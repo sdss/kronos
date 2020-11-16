@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+{% from 'plateTable.html' import planObservingTableBoss, planObservingTableApogee, planObservingTableManga  %}
+{% from 'almanacMacro.html' import almanacTable %}
+{% extends "layout.html" %}
+{% set active_page = "surveyPlanning" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Petunia : Survey Planning</title>
+{% endblock head %}
+
+{#<body onload="onLoad();" onresize="onResize();"> <!-- extra code for Timeline -->#}
+
+{% block body %}
+{# <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> #}
+<script src="../static/js/d3.min.js"></script>
+<script src="../static/js/autoschedulerForm.js"></script>
+<script src="../static/js/vizWindow.js"></script>
+{% if not autoschedulerFail %}
+
+<div class="row">
+    <div class="col-md-12">
+    <div class="well">
+        <h3 align="center"> Select Plates </h3>
+        <form class="form-inline" role="form" action={{"surveyPlanning.html"}} method="get">
+            <div class="row">
+            <div class="col-md-12">
+            <h5> Query Type: </h5>
+                <div class="radio">
+                    <label><input type="radio" name="queryMode" value="autoscheduler" {% if queryMode == "autoscheduler" %} checked="yes" {% endif %} onclick="toggleAS()"/> autoscheduler </label>
+                    <label><input type="radio" name="queryMode" value="platedb" {% if queryMode != "autoscheduler" %} checked="yes" {% endif %} onclick="toggleDB()"/> platedb </label>
+                </div>
+            </div>
+            </div>
+            <div class="row">
+            <div id="collapseAS" class="col-md-12 panel-collapse collapse {% if queryMode == 'autoscheduler' %} in {% endif %}">
+                <h5> Autoscheduler Inputs: </h5>
+                <div class="radio">
+                    <label><input type="radio" name="asMode" value="planning" {% if asMode == "planning" %} checked="yes" {% endif %}/> planning mode </label>
+                    <label><input type="radio" name="asMode" value="observing" {% if asMode != "planning" %} checked="yes" {% endif %}/> observing mode </label>
+                </div>
+            </div>
+            </div>
+            <div class="row">
+            <div id="collapseDB" class="col-md-12 panel-collapse collapse {% if queryMode != 'autoscheduler' %} in {% endif %}">
+                <h5> PlateDB Inputs: </h5>
+                Min Priority: <input type="text" class="form-control input-sm" id="minPriority"  value="{{minPriority}}" name="minPriority">
+                Max Prioirty: <input type="text" class="form-control input-sm" id="maxPriority"  value="{{maxPriority}}" name="maxPriority">
+                Max Plates*: <input type="text" class="form-control input-sm" id="maxPlates"  value="{{maxPlates}}" name="maxPlates"> (*an upper bound, less may be returned)
+                <br/>Plate IDs (Note: Priorities, location, status, etc ignored!!!): <input type="text" class="form-control input-sm" id="plateIDList"  value="{{plateIDList}}" name="plateIDList">
+                <br/>Location:
+                {% for location in allLocations %}
+                    <div class="checkbox">
+                    {% if location in selectedLocations %}
+                    <label><input type="checkbox" name="{{location}}" value="on" checked="yes"/> {{location}} </label>
+                    {% else %}
+                    <label><input type="checkbox" name="{{location}}" value="on"/> {{location}} </label>
+                    {% endif %}
+                    </div>
+                {% endfor %}
+                <br/>Completion:
+                    <div class="radio">
+                        <label><input type="radio" name="incompleteRadio" value="incomplete" {% if showIncomplete %} checked="yes" {% endif %}/> incomplete </label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" name="incompleteRadio" value="any" {% if not showIncomplete %} checked="yes" {% endif %}/> any </label>
+                    </div>
+                <br/>Status:
+                    <div class="radio">
+                        <label><input type="radio" name="statusRadio" value="Accepted" {% if showAccepted %} checked="yes" {% endif %}/> Accepted or Special </label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" name="statusRadio" value="any" {% if not showAccepted %} checked="yes" {% endif %}/> any </label>
+                    </div>
+                <br/>Min Viz Time (hours):<input type="text" class="form-control input-sm" id="minVizTime"  value="{{minVizTime}}" name="minVizTime">
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-md-12">
+                <div class="radio">
+                    <label><input type="radio" onclick="disableText()" name="mjdRadio" value="mjdNow" {% if showMJDNow %} checked="yes" {% endif %}/> MJD Now </label>
+                </div>
+                <div class="radio"> <label> <input type="radio" onclick="enableText()" name="mjdRadio" value="mjdEntered"{% if not showMJDNow %} checked="yes" {% endif %}/> MJD Entered:</label></div>
+                {% if showMJDNow %}
+                    <input type="text" class="form-control input-sm" id="mjdEnteredText"  placeholder="MJD NOW: {{queriedMJD}}" name="mjdTextBox" disabled>
+                {% else %}
+                    <input type="text" class="form-control input-sm" id="mjdEnteredText" value={{ schedule.queriedMJD }} name="mjdTextBox">
+                {% endif %}
+            </div>
+            </div>
+            <div class="row">
+            <div class="col-md-12">
+            {% for survey in allSurveys %}
+                <div class="checkbox">
+                {% if survey in selectedSurveys %}
+                <label><input type="checkbox" name="{{survey}}" value="on" checked="yes"/> {{survey}} </label>
+                {% else %}
+                <label><input type="checkbox" name="{{survey}}" value="on"/> {{survey}} </label>
+                {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+            </div>
+            {# add the extra fields #}
+            {#
+            <h5> Min Priority || Max List Length:</h5>
+            <select name="priority" class="form-control input-xs">
+                {% for priorityValue in range(1,11) %}
+                    {% if minPriority == priorityValue%}
+                        <option selected="selected">{{priorityValue}}</option>
+                    {% else %}
+                        <option>{{priorityValue}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select> ||
+            {% if maxAmtOfPlates %}
+            <input type="text" class="form-control input-sm" value={{ maxAmtOfPlates }}  name="maxAmtOfPlates">
+            {% else %}
+            <input type="text" class="form-control input-sm" placeholder="No Set Max" name="maxAmtOfPlates">
+            {% endif %}
+            #}
+            <input type="submit" value="Submit" class="btn btn-default"/>
+        </form>
+    </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="well">
+        <h3 align="center"> MJD: {{schedule.queriedMJD}} </h3>
+        {{almanacTable(almanac)}}
+        </div>
+        </div>
+    </div>
+
+<div class="well">
+<div class="row">
+<div class="col-md-12">
+<p>notes:
+<p> - click visibility bar below to select a plate!  Use button to compress and expand your selections.
+<br> - in autoscheduler/planning mode cart number is **requested** not actual.  Otherwise cart number is always actual.
+</div>
+</div>
+</div>
+
+<!-- D3 in .chart -->
+{% if ebossViz %}
+<div class="well">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="ebossViz">
+                <h4> eBOSS </h4>
+                <div class="row">
+                <div class = "col-md-8">
+                        <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseEboss">Toggle Table</button>
+                         {# <button type="button" class="btn btn-default btn-sm">
+                          <span class="glyphicon glyphicon-print"></span> Print Top Table
+                        </button> #}
+                </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <div id="collapseEboss" class="panel-collapse collapse">
+                            {{ planObservingTableBoss(ebossPlateList) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% if apogeeViz %}
+<div class="well">
+<div class="row">
+    <div class="col-md-12">
+        <div class="apogeeViz">
+            <h4> Apogee-led </h4>
+            <div class="row">
+            <div class = "col-md-8">
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
+                    {# <button type="button" class="btn btn-default btn-sm">
+                      <span class="glyphicon glyphicon-print"></span> Print Top Table
+                    </button> #}
+            </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div id="collapseApogee" class="panel-collapse collapse">
+                        {{ planObservingTableApogee(apogeePlateList) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endif %}
+{% if mangaViz %}
+<div class="well">
+<div class="row">
+    <div class="col-md-12">
+        <div class="mangaViz">
+        <h4> MaNGA-led </h4>
+            <div class="row">
+            <div class = "col-md-8">
+                    <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseManga">Toggle Table</button>
+                    {# <button type="button" class="btn btn-default btn-sm">
+                      <span class="glyphicon glyphicon-print"></span> Print Top Table
+                    </button> #}
+            </div>
+            </div>
+            <div class="row">
+                <div class="col-md-10 col-md-offset-1">
+                    <div id="collapseManga" class="panel-collapse collapse">
+                        {{ planObservingTableManga(mangaPlateList) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endif %}
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+<script>
+    // this populates the .<nameViz> div with the visualization
+    {% if ebossViz %}
+    generateViz(
+        {{ebossViz | tojson }},
+        ".ebossViz",
+        true
+        );
+    {% endif %}
+    {% if apogeeViz %}
+    generateViz(
+        {{apogeeViz | tojson}},
+        ".apogeeViz",
+        true
+        );
+    {% endif %}
+    {% if mangaViz %}
+    generateViz(
+        {{mangaViz | tojson }},
+        ".mangaViz",
+        true
+        );
+    {% endif %}
+</script>
+
+{% endif %}
+{% endblock body %}

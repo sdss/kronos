@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+{% extends "layout.html" %}
+{% set active_page = "fieldDetail" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Kronos : Field Detail</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Field Detail")} #}
+{% endblock head %}
+
+{% block body %}
+
+<div class="well">
+<div class="row">
+  <div align=center>
+    <h2>Field {{fieldID}}</h2>
+    <h4>Details coming</h4>
+  </div>
+</div>
+</div>
+
+
+
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+
+{% endblock body %}

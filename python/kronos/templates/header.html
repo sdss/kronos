@@ -1,0 +1,35 @@
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/"><img src="../static/images/clock.svg" style="width:30px;height:30px;">KRONOS {% if isDev %} <span style="color:red"> DEV </span> {% elif isStable %} <span style="color:green"> STABLE </span> {% endif %}</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+<!--                 <li {% if active_page == "plates" %} class = "active" {% endif %}><a href="/plates.html">Plates</a></li>
+                <li {% if active_page == "pluggings" %} class = "active" {% endif %}><a href="/pluggings.html">Pluggings</a></li>
+               {# <li {% if active_page == "profilometry" %} class = "active" {% endif %}><a href="/profilometry.html">Profilometry</a></li> #} -->
+                <li {% if active_page == "planObserving" %} class = "active" {% endif %}><a href="/planObserving.html">Plan Observing</a></li>
+<!--                 <li {% if active_page == "surveyPlanning" %} class = "active" {% endif %}><a href="/surveyPlanning.html">Survey Planning</a></li>
+                <li {% if active_page == "plateMeas" %} class = "active" {% endif %}><a href="/plateMeas.html">Plate Measurement</a></li>
+                <li {% if active_page == "obsMetrics" %} class = "active" {% endif %}><a href="/obsMetrics.html">OBS Metrics</a></li>
+                <li {% if active_page == "apogeeSummary" %} class = "active" {% endif %}><a href="/apogeeSummary.html">Apogee Summary</a></li> -->
+                {#<li><a href="/documentation.html">Documentation</a></li>#}
+            </ul>
+        <!--     {% if active_page != "index" %}
+            <form class="navbar-form navbar-left navbar-input-group" role="form" action="plateDetail.html" method="get">
+                <div class="form-group">
+                    <input type="text" class="form-control" name="plateID" value="" placeholder="Plate ID">
+                </div>
+                <button type="submit" class="btn btn-primary">Get Plate ID</button>
+            </form>
+            {% endif %} -->
+        </div>
+    </div>
+</nav>

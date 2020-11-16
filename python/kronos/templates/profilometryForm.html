@@ -1,0 +1,84 @@
+{% macro profilometryForm(measDict, allTolerances) -%}
+<form class="form" role="form" method="post">
+    {# <div class = "row">
+        <div class = "col-md-12">
+            <div class="form-group">
+                <input type="submit" name="reconnect" class="btn btn-default" value="Retry Connection"/>
+            </div>
+        </div>
+    </div> #}
+    <div class = "row">
+        <div class = "col-md-6">
+            <div class="form-group">
+                <h5> Enter Profilometry Measurements 1-5 (mm): </h5> <input type="submit" name="saveChanges" class="btn btn-default" value="Save Changes"/>
+            </div>
+            <div class="form-group">
+            <table class="table table-condensed">
+    {# table header #}
+        {#    <tr>
+                <th align="center" valign="top">Direction</th>
+                <th align="center" valign="top" colspan="5">Measurements (mm)</th>
+                <th align="center" valign="top">Make Measurement</th>
+            </tr> #}
+            {# populate it #}
+            {% for direction, measList in measDict.iteritems() %}
+                <tr>
+                    <th> {{direction}} </th>
+                    {% for meas in measList %}
+                        {% set bgColor = meas | j2bgColorFromMeas(allTolerances[loop.index0]) %}
+                        {% set value = meas if meas != None else "" %}
+                        <th class={{bgColor}}><input type="text" name="{{direction}}#{{loop.index0}}" class="form-control" value={{value | j2FmtProfValue}}></th>
+                    {% endfor %}
+                    <th> <input type="submit" name="meas{{direction}}" class="btn btn-default btn-xs" value="Measure"/></th>
+                </tr>
+                {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="col-md-4 col-md-offset-1">
+            {{ profTolTable(allTolerances) }}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="inputComments" class="col-sm-2 control-label">Comments</label>
+                <textarea class="form-control" rows="3" name="inputComments"></textarea>
+            </div>
+        </div>
+    </div>
+</form>
+{% endmacro %}
+
+{% macro profTolTable(allTolerances) %}
+
+<div class="well" style="background-color:white">
+    <table class="table">
+        <tr>
+            <th> <h4> Meas </h4> </th>
+            <th> <h4> Low </h4> </th>
+            <th> <h4> High </h4> </th>
+        </tr>
+        {% for tol in allTolerances %}
+        <tr>
+            <td> <h4> r{{loop.index}}  </h4> </td>
+            <td> <h4> {{ tol[1] }} </h4> </td>
+            <td> <h4> {{ tol[0] }} </h4> </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endmacro %}
+
+{% macro plateQueryForm() %}
+
+<form class="form-inline" role="form" action="profilometry.html" method="get">
+    <div class="form-group">
+    <label class="control-label"> Enter Plate ID:
+        <input type="text" class="form-control input-md" name="plateID" value="" placeholder = "Plate ID"/></label>
+    <button type="submit" class="btn btn-default btn-md">Go To Profilometry</button>
+</div>
+</form>
+
+{% endmacro %}

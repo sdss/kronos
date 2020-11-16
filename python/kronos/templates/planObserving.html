@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+{% from 'almanacMacro.html' import almanacTable %}
+{% extends "layout.html" %}
+{% set active_page = "planObserving" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Kronos : Plan Observing</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Plan Observing")} #}
+{% endblock head %}
+
+{% block body %}
+<script src="../static/js/d3.min.js"></script>
+<script src="../static/js/vizWindow.js"></script>
+<script src="../static/js/drawFields.js"></script>
+<script src="../static/js/chroma.js"></script>
+
+<div class="well">
+<div class="row">
+        <div id="cloudCam" align="center">
+            <h3> Cloud Cam </h3>
+            <canvas id='myCanvas' width="640" height="480"></canvas>
+        </div>
+</div>
+</div>
+
+<div class="well">
+<div class="row">
+        <div align="center">
+            <h3> MJD: {{mjd}} </h3>
+            <form method="post">
+              <label for="newMJD">Plan another MJD?</label>
+              <input name="newMJD" id="newMJD"
+                     style="background-color:#d6d6d6;
+                            color:#191919;
+                            font-size:18px; 
+                          "
+                >
+            </form>
+        </div>
+</div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+    <div class="well">
+        {{almanacTable(almanac)}}
+    </div>
+    </div>
+</div>
+
+
+<div class="well">
+<div class="row">
+    <div class="col-md-12">
+        <div class="apogeeViz">
+            <h4> Apogee </h4>
+            <div class="row">
+            <div class = "col-md-8">
+                  {#  <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
+                     <button type="button" class="btn btn-default btn-sm">
+                      <span class="glyphicon glyphicon-print"></span> Print Top Table
+                    </button> #}
+            </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+<script>
+    // show the cloud came image
+    // testViz({{apogeeViz| tojson}})
+
+    // this populates the .<nameViz> div with the visualization
+    generateViz(
+        {{apogeeViz | tojson}},
+        ".apogeeViz"
+        );
+
+    // ctx = renderCloudCam({{apogeeViz| tojson}});
+    // setInterval(renderCloudCam({{apogeeViz| tojson}}), 30000);
+
+</script>
+{% endblock body %}

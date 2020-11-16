@@ -1,0 +1,26 @@
+{% set active_page = "plateNotFound" %}
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="jumbotron">
+    <div class="row">
+        <div class="col-md-4 col-md-offset-1">
+         <h2> Plate {{plateID}} Not Found. </h2>
+         <h2> Try again? <span class="glyphicon glyphicon-arrow-right"></h2>
+        </div>
+        <div class="col-md-3"> {# col-md-offset-4">#}
+            <div class="well">
+                <form class="form" role="form" action="plateDetail.html" method="get">
+                    <div class="form-group">
+                        <input type="text" class="form-control input-lg" name="plateID" value="" placeholder = "Plate ID"/>
+                    </div>
+                    <div class="form-group">
+                        <p align="center"><button type="submit" class="btn btn-primary btn-lg">Get Plate</button></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

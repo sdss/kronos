@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+{% macro almanacTable(almanac) %}
+    {% set twilights = almanac[0] %}
+    {% set headers = almanac[1] %}
+    {% set moonDict = almanac[2] %}
+    {% set nCol = twilights | length %}
+    <table class="table">
+        <tr>
+        {% for key in moonDict.keys() %}
+        <td align="center"><b>{{key}}</b></th>
+        {% endfor %}
+        </tr>
+        <tr>
+        {% for val in moonDict.values() %}
+            <td align="center">{{val}}</td>
+        {% endfor %}
+        </tr>
+    </table>
+    <table class="table">
+        <tr>
+            <td colspan="{{nCol}}" align="center" style="background-color:#191919"><b> Twilight Times (UTC) </b></td>
+        </tr>
+        <tr>
+        {% for key in headers %}
+        <td align="center"><b>{{key}} </b></td>
+        {% endfor %}
+        </tr>
+        <tr>
+        {% for val in twilights %}
+            <td align="center">{{val}}</td>
+        {% endfor %}
+        </tr>
+    </table>
+{% endmacro %}

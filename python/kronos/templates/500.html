@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Oops</title>
+{% endblock head %}
+
+{% block body %}
+<div class="jumbotron">
+    <div class="well">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-2"> {# col-md-offset-4">#}
+                 <h2> Congratulations!  You've just found a bug! </h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4">
+                <h4> Troubleshooting Ideas: </h4>
+                    <!-- <p> Check status of Petunia and Autoscheduler processes and/or restart them:
+                        <br><a href="https://trac.sdss.org/wiki/APO/ServersAndServices#Petunia"> Petunia Instructions </a>
+                        <br><a href="https://trac.sdss.org/wiki/APO/ServersAndServices#AutoschedulerService"> Autoscheduler Instructions </a> -->
+                    <p> Call John, if the error is critical and none of the above worked.
+                </li>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock body %}
