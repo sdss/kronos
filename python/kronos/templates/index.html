@@ -12,38 +12,24 @@
 
 {% block body %}
 
-<div class=well>
-    <div class=row>
-        <div align=center><h1>Fancy start page here!</h1></div>
-    </div>
-    
+<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+  <li class="nav-item active">
+    <a class="nav-link" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true">Home</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="pills-another-tab" data-toggle="pill" href="#pills-another" role="tab" aria-controls="pills-another" aria-selected="false">Another</a>
+  </li>
+</ul>
+<div class="tab-content" id="pills-tabContent">
+  <div class="tab-pane fade in active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+    <h2>This is the home page!!</h2>
+    <h4>It's just a quick example of tabs in case I want it later.</h4>
+  </div>
+  <div class="tab-pane fade" id="pills-another" role="tabpanel" aria-labelledby="pills-another-tab">
+    <h2>THIS is another page</h2>
+  </div>
 </div>
 
-<!-- <div class="jumbotron">
-    <div class="row">
-        <div class="col-md-4 col-md-offset-4"> {# col-md-offset-4">#}
-            <div class="well">
-                <form class="form" role="form" action="plateDetail.html" method="get">
-                    <div class="form-group">
-                        <input type="text" class="form-control input-lg" name="plateID" value="" placeholder = "Plate ID"/>
-                    </div>
-                    <div class="form-group">
-                        <p align="center"><button type="submit" class="btn btn-primary btn-lg">Get Plate</button></p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-4 col-md-offset-4">
-            <p align="center"><img src="../static/images/petunia_text.png"></p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-4 col-md-offset-4">
-            <p align="center"><img src="../static/images/sdssLogo.png"></p>
-        </div>
-    </div>
-</div> -->
+
 
 {% endblock body %}

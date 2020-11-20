@@ -13,64 +13,87 @@
 {% endblock head %}
 
 {% block body %}
-<script src="../static/js/d3.min.js"></script>
+<script src="../static/js/core/d3.min.js"></script>
 <script src="../static/js/vizWindow.js"></script>
 <script src="../static/js/drawFields.js"></script>
-<script src="../static/js/chroma.js"></script>
+<script src="../static/js/core/chroma.js"></script>
 
-<div class="well">
-<div class="row">
-        <div id="cloudCam" align="center">
-            <h3> Cloud Cam </h3>
-            <canvas id='myCanvas' width="640" height="480"></canvas>
-        </div>
-</div>
-</div>
+<ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link" id="pills-cloudcam-tab" data-toggle="pill" href="#pills-cloudcam" role="tab" aria-controls="pills-cloudcam" aria-selected="true">CloudCam</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" id="pills-sn-tab" data-toggle="pill" href="#pills-sn" role="tab" aria-controls="pills-sn" aria-selected="false">S/N</a>
+  </li>
+  <li class="nav-item active">
+    <a class="nav-link" id="pills-windows-tab" data-toggle="pill" href="#pills-windows" role="tab" aria-controls="pills-windows" aria-selected="false">Obs Windows</a>
+  </li>
+</ul>
 
-<div class="well">
-<div class="row">
-        <div align="center">
+<div class="tab-content" id="pills-tabContent">
+
+  <div class="tab-pane fade" id="pills-cloudcam" role="tabpanel" aria-labelledby="pills-cloudcam-tab">
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div id="cloudCam" class="col-md-6">
+        <h3> Cloud Cam </h3>
+        <canvas id='myCanvas' width="640" height="480"></canvas>
+      </div>
+      <div class="col-md-3"></div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3"></div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header card-header-primary">
             <h3> MJD: {{mjd}} </h3>
-            <form method="post">
+          </div>
+          <div class="card-body">
+            <form role="form" method="post">
               <label for="newMJD">Plan another MJD?</label>
-              <input name="newMJD" id="newMJD"
-                     style="background-color:#d6d6d6;
-                            color:#191919;
-                            font-size:18px; 
-                          "
-                >
+              <input name="newMJD" id="newMJD">
             </form>
+          </div>
         </div>
-</div>
-</div>
-
-<div class="row">
-    <div class="col-md-12">
-    <div class="well">
-        {{almanacTable(almanac)}}
+      </div>
+      <div class="col-md-3"></div>
     </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="well">
+            {{almanacTable(almanac)}}
+        </div>
+      </div>
     </div>
-</div>
+  </div>
 
-
-<div class="well">
-<div class="row">
+  <div class="tab-pane fade" id="pills-sn" role="tabpanel" aria-labelledby="pills-sn-tab">
     <div class="col-md-12">
+      <h2>SN would go here</h2>
+    </div>
+  </div>
+
+  <div class="tab-pane fade in active" id="pills-windows" role="tabpanel" aria-labelledby="pills-windows-tab">
+    <div class="row">
+      <div class="col-md-12">
         <div class="apogeeViz">
-            <h4> Apogee </h4>
-            <div class="row">
+          <h4> Apogee </h4>
+          <div class="row">
             <div class = "col-md-8">
-                  {#  <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
-                     <button type="button" class="btn btn-default btn-sm">
-                      <span class="glyphicon glyphicon-print"></span> Print Top Table
-                    </button> #}
+              {#  <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
+                 <button type="button" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-print"></span> Print Top Table
+                </button> #}
             </div>
-            </div>
-            
+          </div>
         </div>
+      </div>
     </div>
-</div>
-</div>
+  </div>
+
+</div> 
 
 <style>
     .xaxis text {
