@@ -1,0 +1,16 @@
+/** {
+    box-sizing: border-box;
+    font-family: sans-serif;
+    font-size:16px;
+    color: rgba(223, 223, 223, .8);
+}*/
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #DCDCDC;
+}
+
+.lg-txt {
+    font-size:18px;
+}
