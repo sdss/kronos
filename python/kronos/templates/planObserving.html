@@ -19,18 +19,39 @@
 <script src="../static/js/core/chroma.js"></script>
 
 <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+  <li class="nav-item active">
+    <a class="nav-link btn btn-lg" id="pills-windows-tab" data-toggle="pill" href="#pills-windows" role="tab" aria-controls="pills-windows" aria-selected="false">Obs Windows</a>
+  </li>
   <li class="nav-item">
     <a class="nav-link btn btn-lg lg-txt" id="pills-cloudcam-tab" data-toggle="pill" href="#pills-cloudcam" role="tab" aria-controls="pills-cloudcam" aria-selected="true">CloudCam</a>
   </li>
   <li class="nav-item">
     <a class="nav-link btn btn-lg" id="pills-sn-tab" data-toggle="pill" href="#pills-sn" role="tab" aria-controls="pills-sn" aria-selected="false">S/N</a>
   </li>
-  <li class="nav-item active">
-    <a class="nav-link btn btn-lg" id="pills-windows-tab" data-toggle="pill" href="#pills-windows" role="tab" aria-controls="pills-windows" aria-selected="false">Obs Windows</a>
+  <li class="nav-item">
+    <a class="nav-link btn btn-lg" id="pills-almanac-tab" data-toggle="pill" href="#pills-almanac" role="tab" aria-controls="pills-almanac" aria-selected="false">Almanac</a>
   </li>
 </ul>
 
 <div class="tab-content" id="pills-tabContent">
+
+  <div class="tab-pane fade in active" id="pills-windows" role="tabpanel" aria-labelledby="pills-windows-tab">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="apogeeViz">
+          <h4> Apogee </h4>
+          <div class="row">
+            <div class = "col-md-8">
+              {#  <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
+                 <button type="button" class="btn btn-default btn-sm">
+                  <span class="glyphicon glyphicon-print"></span> Print Top Table
+                </button> #}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="tab-pane fade" id="pills-cloudcam" role="tabpanel" aria-labelledby="pills-cloudcam-tab">
     <div class="row">
@@ -59,14 +80,6 @@
       </div>
       <div class="col-md-3"></div>
     </div>
-
-    <div class="row">
-      <div class="col-md-12">
-        <div class="well">
-            {{almanacTable(almanac)}}
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="tab-pane fade" id="pills-sn" role="tabpanel" aria-labelledby="pills-sn-tab">
@@ -75,19 +88,11 @@
     </div>
   </div>
 
-  <div class="tab-pane fade in active" id="pills-windows" role="tabpanel" aria-labelledby="pills-windows-tab">
+    <div class="tab-pane fade" id="pills-almanac" role="tabpanel" aria-labelledby="pills-almanac-tab">
     <div class="row">
       <div class="col-md-12">
-        <div class="apogeeViz">
-          <h4> Apogee </h4>
-          <div class="row">
-            <div class = "col-md-8">
-              {#  <button type="button" class="btn btn-default btn-sm" data-toggle="collapse" data-parent="#accordion" href="#collapseApogee">Toggle Table</button>
-                 <button type="button" class="btn btn-default btn-sm">
-                  <span class="glyphicon glyphicon-print"></span> Print Top Table
-                </button> #}
-            </div>
-          </div>
+        <div class="card">
+            {{almanacTable(almanac)}}
         </div>
       </div>
     </div>

@@ -5,30 +5,38 @@
     {% set moonDict = almanac[2] %}
     {% set nCol = twilights | length %}
     <table class="table">
-        <tr>
-        {% for key in moonDict.keys() %}
-        <td align="center"><b>{{key}}</b></th>
-        {% endfor %}
-        </tr>
-        <tr>
-        {% for val in moonDict.values() %}
-            <td align="center">{{val}}</td>
-        {% endfor %}
-        </tr>
+        <thead>
+            <tr>
+                {% for key in moonDict.keys() %}
+                <th class="text-center"><b>{{key}}</b></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            {% for val in moonDict.values() %}
+                <td class="text-center">{{val}}</td>
+            {% endfor %}
+            </tr>
+        </tbody>
     </table>
     <table class="table">
-        <tr>
-            <td colspan="{{nCol}}" align="center" style="background-color:#191919"><b> Twilight Times (UTC) </b></td>
-        </tr>
-        <tr>
-        {% for key in headers %}
-        <td align="center"><b>{{key}} </b></td>
-        {% endfor %}
-        </tr>
-        <tr>
-        {% for val in twilights %}
-            <td align="center">{{val}}</td>
-        {% endfor %}
-        </tr>
+        <thead>
+            <tr>
+                <th colspan="{{nCol}}" class="text-center"><b> Twilight Times (UTC) </b></th>
+            </tr>
+            <tr>
+            {% for key in headers %}
+            <th class="text-center"><b>{{key}} </b></th>
+            {% endfor %}
+            </t>
+        </thead>
+        <tbody>
+            <tr>
+            {% for val in twilights %}
+                <td class="text-center">{{val}}</td>
+            {% endfor %}
+            </tr>
+        </tbody>
     </table>
 {% endmacro %}

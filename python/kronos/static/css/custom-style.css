@@ -14,3 +14,7 @@ html, body {
 .lg-txt {
     font-size:18px;
 }
+
+.nav-item {
+    text-align: center;
+}

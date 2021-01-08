@@ -1,13 +1,12 @@
-<div class="sidebar" data-color="purple" data-background-color="white" data-image="../static/images/clock.svg">
+<div class="sidebar" data-color="purple" data-background-color="white">
   <div class="logo">
-    <a class="navbar-brand" href="/"><img src="../static/images/clock.svg" style="width:30px;height:30px;">KRONOS {% if isDev %} <span style="color:red"> DEV </span> {% elif isStable %} <span style="color:green"> STABLE </span> {% endif %}</a>
+    <a href="/" class="simple-text logo-normal"><img src="../static/images/clock.svg" style="width:30px;height:30px;">KRONOS {% if isDev %} <span style="color:red"> DEV </span> {% elif isStable %} <span style="color:green"> STABLE </span> {% endif %}</a>
   </div>
   
   <div class="sidebar-wrapper">
     <ul class="nav">
       <li class="nav-item {% if active_page == "planObserving" %} active {% endif %}">
         <a class="nav-link" href="/planObserving.html">
-          <i class="material-icons">plan observing</i>
           <p>Plan Observing</p>
         </a>
       </li>
