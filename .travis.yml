@@ -26,6 +26,7 @@ branches:
 install:
 - pip install -U pip wheel --quiet
 - pip install --upgrade setuptools --quiet
+- pip install git+https://github.com/sdss/roboscheduler
 - pip install pytest
 - pip install pytest-coverage
 - pip install codecov

@@ -5,7 +5,7 @@
 from pytest import mark
 
 from kronos.apoSite import APOSite
-# from kronos.app import app
+from kronos.app import app
 
 
 class TestSite(object):
@@ -17,15 +17,15 @@ class TestSite(object):
         assert APOSite.zenithWarnHA(dec, zenithAngle) == result
 
 
-# @mark.asyncio
-# async def test_app(app):
-#     client = app.test_client()
-#     response = await client.get('/')
-#     assert response.status_code == 200
+@mark.asyncio
+async def test_index():
+    client = app.test_client()
+    response = await client.get('/')
+    assert response.status_code == 200
 
 
-# @mark.asyncio
-# async def test_app(app):
-#     client = app.test_client()
-#     response = await client.get('/planObserving.html')
-#     assert response.status_code == 200
+@mark.asyncio
+async def test_planObs():
+    client = app.test_client()
+    response = await client.get('/planObserving.html')
+    assert response.status_code == 200
