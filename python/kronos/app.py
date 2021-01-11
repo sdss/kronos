@@ -68,10 +68,10 @@ psycopg2.extensions.register_type(DECARRAY2FLOATARRAY)
 # -------------------
 # Register blueprints
 # -------------------
-from controllers.index import index_page
-from controllers.fieldDetail import fieldDetail_page
-from controllers.planObserving import planObserving_page
-from controllers import getTemplateDictBase
+from kronos.controllers.index import index_page
+from kronos.controllers.fieldDetail import fieldDetail_page
+from kronos.controllers.planObserving import planObserving_page
+from kronos.controllers import getTemplateDictBase
 
 app.register_blueprint(index_page)
 app.register_blueprint(fieldDetail_page)
