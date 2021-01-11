@@ -5,17 +5,19 @@ import numpy
 import astropy.units as u
 from astropy.coordinates import EarthLocation, AltAz, get_sun, get_moon
 
+
 def wrapHA(ha):
     """Force ha into range -180 to 180. Just to be sure.
     """
-    if -180<ha<=180:
+    if -180 < ha <= 180:
         return ha
     while ha > 180:
         ha = ha - 360.
     while ha <= -180:
         ha = ha + 360.
-    assert -180<ha<=180, "ha = %.2f"%ha
+    assert -180 < ha <= 180, "ha = {:.2f}".format(ha)
     return ha
+
 
 class APOSite(object):
     lat = 32.789278
@@ -29,8 +31,7 @@ class APOSite(object):
     # ephAPO.lon = '254.180000305'
     # ephAPO.lat = '32.7899987793' # this doesnt exactly match pyobs?
     # ephAPO.lat = '32.789278'
-    #ephAPO.elevation = set it?
-
+    # ephAPO.elevation = set it?
 
     @classmethod
     def zenithWarnHA(cls, dec, zenithAngle):
@@ -143,63 +144,63 @@ class APOSite(object):
         coords = cls.site.apparentCoordinates(platecoo)
         return (coords.alt.d, coords.az.d)
 
-    @classmethod
-    def ra2ha(cls, ra):
-        ha = float(15.0 * cls.site.localSiderialTime() - ra)
-        while ha < -180:
-            ha += 360
-        while ha > 180:
-            ha -= 360
-        return ha
+    # @classmethod
+    # def ra2ha(cls, ra):
+    #     ha = float(15.0 * cls.site.localSiderialTime() - ra)
+    #     while ha < -180:
+    #         ha += 360
+    #     while ha > 180:
+    #         ha -= 360
+    #     return ha
 
-    @classmethod
-    def sunRiseAndSet(cls, mjd):
-        """@param[in] date, a datetime obj or None
-        """
-        return cls._riseAndSet(cls.sun, horizon=0, mjd=mjd, useCenter=True)
+    # @classmethod
+    # def sunRiseAndSet(cls, mjd):
+    #     """@param[in] date, a datetime obj or None
+    #     """
+    #     return cls._riseAndSet(cls.sun, horizon=0, mjd=mjd, useCenter=True)
 
-    @classmethod
-    def twilightRiseAndSet(cls, mjd, degree):
-        return cls._riseAndSet(cls.sun, horizon=-1*degree, mjd=mjd, useCenter=True)
+    # @classmethod
+    # def twilightRiseAndSet(cls, mjd, degree):
+    #     return cls._riseAndSet(cls.sun, horizon=-1*degree, mjd=mjd, useCenter=True)
 
-    @classmethod
-    def moonRiseAndSet(cls, mjd):
-        # print("moon rise and set")
-        return cls._riseAndSet(cls.moon, horizon=0, mjd=mjd, useCenter=True)
+    # @classmethod
+    # def moonRiseAndSet(cls, mjd):
+    #     # print("moon rise and set")
+    #     return cls._riseAndSet(cls.moon, horizon=0, mjd=mjd, useCenter=True)
 
-    @classmethod
-    def moonphase(cls, mjd):
-        # get moonphase for midpoint between sun rise and set for a given datetime
-        # if none date is now
-        return idlasl.moonphase(numpy.mean([cls._ephem2jd(x) for x in cls.sunRiseAndSet(mjd)]))
+    # @classmethod
+    # def moonphase(cls, mjd):
+    #     # get moonphase for midpoint between sun rise and set for a given datetime
+    #     # if none date is now
+    #     return idlasl.moonphase(numpy.mean([cls._ephem2jd(x) for x in cls.sunRiseAndSet(mjd)]))
 
-    @classmethod
-    def moondistance(cls, ra, dec, mjd=None):
-        """Compute angular distance in degrees between moon position computed
-        at the given mjd to the supplied ra and dec.
+    # @classmethod
+    # def moondistance(cls, ra, dec, mjd=None):
+    #     """Compute angular distance in degrees between moon position computed
+    #     at the given mjd to the supplied ra and dec.
 
-        Handled by IDLASL and astrophysics, same algorithm as autoscheduler
-        Thanks to Ben Thompson.
-        """
-        if not mjd:
-            date = datetime.datetime.now()
-            jd = sdssconv.datetime2jd(date) # or maybe mjd should be used?
-        else:
-            jd = sdssconv.mjd2jd(mjd)
-        moonpos = idlasl.moonpos(jd)
-        moonpos = pycoo.ICRSCoordinates(moonpos[0], moonpos[1])
-        targetcoords = pycoo.ICRSCoordinates(ra, dec)
-        return (moonpos - targetcoords).d
+    #     Handled by IDLASL and astrophysics, same algorithm as autoscheduler
+    #     Thanks to Ben Thompson.
+    #     """
+    #     if not mjd:
+    #         date = datetime.datetime.now()
+    #         jd = sdssconv.datetime2jd(date) # or maybe mjd should be used?
+    #     else:
+    #         jd = sdssconv.mjd2jd(mjd)
+    #     moonpos = idlasl.moonpos(jd)
+    #     moonpos = pycoo.ICRSCoordinates(moonpos[0], moonpos[1])
+    #     targetcoords = pycoo.ICRSCoordinates(ra, dec)
+    #     return (moonpos - targetcoords).d
 
-    @classmethod
-    def _riseAndSet(cls, obj, horizon, mjd, useCenter=True):
-        date = cls.mjd2DatetimeUTC(mjd + 0.5) # + 0.5 to hack around multiple mjd definitons problem
-        cls.ephAPO.horizon = str(horizon)
-        cls.ephAPO.date = (date.year, date.month, date.day, date.hour, date.minute, date.second) # moon wrong?
-        objSet = cls.ephAPO.previous_setting(obj, use_center=useCenter).tuple()
-        objRise = cls.ephAPO.next_rising(obj, use_center=useCenter).tuple()
-        return (objRise, objSet)
+    # @classmethod
+    # def _riseAndSet(cls, obj, horizon, mjd, useCenter=True):
+    #     date = cls.mjd2DatetimeUTC(mjd + 0.5) # + 0.5 to hack around multiple mjd definitons problem
+    #     cls.ephAPO.horizon = str(horizon)
+    #     cls.ephAPO.date = (date.year, date.month, date.day, date.hour, date.minute, date.second) # moon wrong?
+    #     objSet = cls.ephAPO.previous_setting(obj, use_center=useCenter).tuple()
+    #     objRise = cls.ephAPO.next_rising(obj, use_center=useCenter).tuple()
+    #     return (objRise, objSet)
 
-    @staticmethod
-    def _ephem2jd(obj):
-        return sdssconv.ymd2jd(obj[0], obj[1], obj[2]) + (obj[3] + obj[4]/60. + obj[5]/3600.)/24.
+    # @staticmethod
+    # def _ephem2jd(obj):
+    #     return sdssconv.ymd2jd(obj[0], obj[1], obj[2]) + (obj[3] + obj[4]/60. + obj[5]/3600.)/24.

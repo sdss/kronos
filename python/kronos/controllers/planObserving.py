@@ -38,7 +38,7 @@ def getAlmanac(mjd):
     twilights = evening_times + morning_times
     other = OrderedDict(
         (
-            ("Sidereal Time at Midnight","99:00 LST"),
+            ("Sidereal Time at Midnight", "99:00 LST"),
             ("Moon Illumination", "{:4.2f}".format(float(RS.moon_illumination(mjd=mjd)))),
             ("Moonrise", "?"),
             ("Moonset", "?"),
@@ -75,7 +75,7 @@ async def planObserving():
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
-        "apogeeViz": ApogeeViz(schedule, fields).export(),   
+        "apogeeViz": ApogeeViz(schedule, fields).export(),
         "mjd": mjd,
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": getAlmanac(mjd),  # if schedule else None,
