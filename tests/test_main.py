@@ -5,17 +5,16 @@
 from pytest import mark
 
 from kronos.apoSite import APOSite
-from kronos.app import app
+# from kronos.app import app
 
 
 class TestSite(object):
     """Tests for the ``math`` function in main.py."""
 
     @mark.parametrize(('dec', 'zenithAngle', 'result'),
-                      [(30, 5, 0), (30, 3, 0)])
+                      [(5, 5, 0), (5, 3, 0)])
     def test_zenithWarn(self, dec, zenithAngle, result):
-
-        assert zenithWarnHA(dec, zenithAngle) == result
+        assert APOSite.zenithWarnHA(dec, zenithAngle) == result
 
 
 # @mark.asyncio
