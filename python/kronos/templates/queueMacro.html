@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+{% macro obsQueue(designs) %}
+    {% for des in designs %}
+        <li class="list-group-item"><a href="#0" class="card-link">{{des.fieldID}}</a>: <a>{{des.designID}}</a> </p>
+    {% endfor %}
+{% endmacro %}
