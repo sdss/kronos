@@ -6,8 +6,10 @@ from quart import request, render_template, Blueprint
 
 from astropy.time import Time, TimeDelta
 
+# from sdssdb.peewee.sdss5db import opsdb
+
 from kronos.vizWindow import ApogeeViz
-from kronos.scheduler import Scheduler
+from kronos.scheduler import Scheduler, Design, Queue
 
 from . import getTemplateDictBase
 
@@ -63,7 +65,12 @@ async def planObserving():
     # date = datetimenow.date()
     scheduler = Scheduler(observatory="apo", base="beta-5")
 
-    fields, startTime, endTime = scheduler.scheduleMjd(mjd)
+    # fields, startTime, endTime = scheduler.scheduleMjd(mjd)
+
+    mjd_evening_twilight, mjd_morning_twilight = scheduler.scheduleMjd(mjd)
+
+    startTime = Time(mjd_evening_twilight, format="mjd").datetime
+    endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
     schedule = {
             "queriedMJD": mjd,
@@ -71,15 +78,17 @@ async def planObserving():
             "timeBarEndUTC": endTime
         }
 
-    # print(ApogeeViz(schedule, fields).export())
+    queue = Queue()
+
+    queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
-        "apogeeViz": ApogeeViz(schedule, fields).export(),
+        "apogeeViz": ApogeeViz(schedule, queue.fields).export(),
         "mjd": mjd,
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": getAlmanac(mjd),  # if schedule else None,
-        "activeCartList": [],
+        "queue": queue.designs
     })
 
     # findAndConvertDatetimes(templateDict)

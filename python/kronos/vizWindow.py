@@ -13,10 +13,11 @@ class SVGAttrs(object):
     def __init__(self, color, opacity):
         self.fill = color
         self.opacity = opacity
-        self.rx = 5 # bar edge radius
-        self.ry = 5 # bar edge radius
+        self.rx = 5  # bar edge radius
+        self.ry = 5  # bar edge radius
 
-svgAttrDict = { # colors that svg knows about
+
+svgAttrDict = {  # colors that svg knows about
     "grey": SVGAttrs("black", 0.2),
     "background": SVGAttrs("white", 1.),
     "backgroundset": SVGAttrs("green", .3),
@@ -58,6 +59,7 @@ def datetime2dict(datetimeObj):
         "ms": 0,
     }
 
+
 def verifyUTRange(utRange, name="?"):
     """inputs:
     utRange (datetime, datetime)
@@ -70,6 +72,7 @@ def verifyUTRange(utRange, name="?"):
     assert utRange[0] <= utRange[1], "utRange fail for %s, ut1: %s, ut2: %s"%(name, str(utRange[0]), str(utRange[1]))
     # verify the range is less than a day, (otherwise something is wrong)
     assert (utRange[1]-utRange[0]).days == 0, "utRange fail for %s"%name
+
 
 class VizWindow(object):
     """Represents a time/ha window
@@ -89,14 +92,14 @@ class VizWindow(object):
 
     @property
     def showUT(self):
-        if self.utRange[0]==self.utRange[1]:
+        if self.utRange[0] == self.utRange[1]:
             return False
         else:
             return True
 
     @property
     def showHA(self):
-        if self.haRange[0]==self.haRange[1]:
+        if self.haRange[0] == self.haRange[1]:
             return False
         else:
             return True
@@ -117,6 +120,7 @@ class VizWindow(object):
             "primary": self.primary
         }
 
+
 class TimeScale(object):
     def __init__(self, utRange):
         """inputs:
@@ -128,6 +132,7 @@ class TimeScale(object):
     def export(self):
         # print("time scale", self.range)
         return [datetime2dict(datetimeObj) for datetimeObj in self.range]
+
 
 class HAScale(object):
     def __init__(self, haRange):
@@ -141,8 +146,10 @@ class HAScale(object):
     def export(self):
         return list(self.range)
 
+
 class VizRow(object):
-    def __init__(self, field, tableDict, timeScale, haScale, setCurrent=True, isHeader=False, isChild=False):
+    def __init__(self, field, tableDict, timeScale, haScale, setCurrent=True,
+                 isHeader=False, isChild=False):
         """inputs:
         field: a scheduler.field object
         tableDict: dictionary that corresponds to keys/values wanted for tabular display
@@ -164,7 +171,6 @@ class VizRow(object):
         self.isHeader = isHeader
         self.isChild = isChild
         self.hasChild = False
-
 
     def addVizWindow(self, name, utRange, haRange, primary=False, text=None):
         """viz windows drawn in order added (so last will lay 'above' first)"""
@@ -197,8 +203,8 @@ class VizRow(object):
         if haRange[0] < self.haScale.range[0]:
             haRange[0] = self.haScale.range[0]
 
-        self.vizWindows.append(VizWindow(name, tuple(utRange), tuple(haRange), primary, text))
-
+        self.vizWindows.append(VizWindow(name, tuple(utRange), tuple(haRange),
+                                         primary, text))
 
     def addChildViz(self, vizObj):
         """vizObj, instance of Viz (probably MangaSetViz)
@@ -206,20 +212,18 @@ class VizRow(object):
         self.childViz = vizObj
         self.hasChild = True
 
-
     def setCurrentMarkers(self):
         """establish positions for current time and HA, if they
         fall within the ut/ha scale range
         """
         currentTime = datetime.datetime.utcnow()
         currentHA = self.field.haNow
-        if self.timeScale.range[0]<=currentTime<=self.timeScale.range[1]:
+        if self.timeScale.range[0] <= currentTime <= self.timeScale.range[1]:
             # marker falls inside time scale
             self.currentTime = currentTime
-        if self.haScale.range[0]<=currentHA<=self.haScale.range[1]:
+        if self.haScale.range[0] <= currentHA <= self.haScale.range[1]:
             # marker falls inside time scale
             self.currentHA = currentHA
-
 
     def export(self):
         # look for float table values, convert them to strings.
@@ -233,12 +237,12 @@ class VizRow(object):
             "tableItems": self.tableKeys if self.isHeader else tableValues,
             "vizWindows": [vizWindow.export() for vizWindow in self.vizWindows],
             "currentTime": datetime2dict(self.currentTime),
-            "currentHA": self.currentHA, # used for current HA marker (may be None)
-            "expanded": False, # flag, to be used in d3/J
-            "selected": False, # flag, to be used in d3/J
+            "currentHA": self.currentHA,  # used for current HA marker (may be None)
+            "expanded": False,  # flag, to be used in d3/J
+            "selected": False,  # flag, to be used in d3/J
             "autoscheduled": True,
             "coPlugged": False,
-            "yValue": 0., # initialize all rows to lie at y=0 (JS will update)
+            "yValue": 0.,  # initialize all rows to lie at y=0 (JS will update)
             "childViz": self.childViz.export() if self.hasChild else None,
             "isChild": self.isChild,
             "isHeader": self.isHeader,
@@ -252,6 +256,7 @@ class VizRow(object):
             # "alt": -99,  # for updating in JS
             # "az": -99,  # for updating in JS
         }
+
 
 class Viz(object):
     def __init__(self, schedule, fieldList, setCurrent=True, isChild=False, surveyName=None):
@@ -406,7 +411,7 @@ class Viz(object):
         for field in self.fieldList:
             row = self._basicFieldRow(field)
             if not self.isChild:
-                row.addChildViz(childViz(self.schedule, field.backups))
+                row.addChildViz(childViz(self.schedule, field.designs))
             fieldRows.append(row)
         return fieldRows
 
