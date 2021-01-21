@@ -23,9 +23,15 @@
   <div class="col-lg-3">
     <div class="card card-nav-tabs" style="width: 20rem;">
       <div class="card-header card-header-danger">
-        Obs Queue
+        <h3> Obs Queue </h3>
+        <div class="queue-row">
+          <span class="queue-head">
+              <a class="queue-field">Field</a>
+              <a class="queue-design">Design</a>
+          </span>
       </div>
-      <ul class="list-group list-group-flush" style="height: 200px; overflow: auto">
+      </div>
+      <ul class="list-group" style="height: 200px; overflow: auto">
         {{obsQueue(queue)}}
       </ul>
     </div>

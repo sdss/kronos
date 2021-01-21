@@ -19,3 +19,30 @@ html, body {
 .nav-item {
     text-align: center;
 }
+
+.queue-item {
+    display: inline-block;
+    width: 100%;
+}
+
+.queue-head {
+    display: inline-block;
+    width: 100%;
+}
+
+.queue-item:hover {
+    background-color: rgba(255, 99, 71, .3);
+}
+
+.queue-field {
+    display: inline-block;
+    margin-right: 1em;
+    width: 30%;
+}
+
+.queue-design {
+    display: inline-block;
+    width: 30%;
+    font-weight:bold;
+    font-size:120%;
+}
