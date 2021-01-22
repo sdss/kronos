@@ -3,7 +3,7 @@
     {% for des in designs %}
         <li class="list-group-item">
             <div class="queue-row">
-                <span class="queue-item">
+                <span onclick="selectField({{des.fieldID}})" class="queue-item field-{{des.fieldID}}">
                     <a class="queue-field">{{des.fieldID}}</a>
                     <a class="queue-design">{{des.designID}}</a>
                 </span>

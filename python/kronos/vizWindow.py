@@ -410,8 +410,8 @@ class Viz(object):
         fieldRows = []
         for field in self.fieldList:
             row = self._basicFieldRow(field)
-            if not self.isChild:
-                row.addChildViz(childViz(self.schedule, field.designs))
+            # if not self.isChild:
+            #     row.addChildViz(childViz(self.schedule, field.designs))
             fieldRows.append(row)
         return fieldRows
 

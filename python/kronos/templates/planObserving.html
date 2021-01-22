@@ -140,11 +140,42 @@
     // show the cloud came image
     // testViz({{apogeeViz| tojson}})
 
+    const vizObj = {{apogeeViz | tojson}};
+    var dataset = null;
+
     // this populates the .<nameViz> div with the visualization
-    generateViz(
-        {{apogeeViz | tojson}},
-        ".apogeeViz"
-        );
+    redrawSVG = generateViz(vizObj,".apogeeViz");
+
+    function selectField(fieldID){
+        toggleOff = false;
+        for (i=0;i<dataset.length;i++){
+            if(dataset[i].fieldID == fieldID){
+                console.log("toggling " + i, fieldID);
+                console.log(dataset[i].toggleSelected)
+                dataset[i].toggleSelected();
+                // if(vizObj.allRows[i].selected){
+                //     toggleOff = true;
+                //     dataset[i].selected = false;
+                // }
+                // else{
+                //     dataset[i].selected = true;
+                // }
+            }
+            // else{
+            //     dataset[i].selected  = false;
+            // }
+        }
+        // redrawSVG();
+        // var fields = document.getElementsByClassName("queue-item");
+        // for (i=0;i<fields.length;i++){
+        //     if(fields[i].classList.contains("field-"+fieldID) && !toggleOff){
+        //         fields[i].style.backgroundColor = "rgba(224, 45, 45, 1)";
+        //     }
+        //     else{
+        //         fields[i].style.backgroundColor = "rgba(0, 0, 0, 0)";
+        //     }
+        // }
+    }
 
     // ctx = renderCloudCam({{apogeeViz| tojson}});
     // setInterval(renderCloudCam({{apogeeViz| tojson}}), 30000);

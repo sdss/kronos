@@ -118,56 +118,65 @@ function Layout(divClass, vizObj, isSurveyPlanning){
         var i,j; //iter
         var childBuffer = [];
         for(i=0;i<dataset.length;i++){
-            // note that children preceed parent in dataset
-            if(dataset[i].isChild){
-                // place it in the buffer until its parent is reached
-                // the state of the parent determines the y location of the child
-                childBuffer.push(dataset[i]);
+            var showChildren = dataset[i].expanded;
+            var hideRow = this.showOnlySelected && !dataset[i].selected && !dataset[i].isHeader;
+            if(hideRow){
+                dataset[i].yValue = this.margin;
             }
-
             else{
-                var showChildren = dataset[i].expanded;
-                var hideRow = this.showOnlySelected && !dataset[i].selected && !dataset[i].isHeader;
-                if(hideRow){
-                    dataset[i].yValue = this.margin;
-                }
-                else{
-                    dataset[i].yValue = y;
-                    y = y + this.rowBuffer + this.rowHeight;
-                }
-                //is anything in the buffer?
-                if(childBuffer.length > 0){
-                    // console.log(childBuffer)
-                    //children in buffer need y values to be set, what is the parent's state?
-                    if(dataset[i].childViz.plateRows.length != childBuffer.length){
-                        // paranioa make sure the numbers match up, could add more tests.
-                        alert("Bug in JS, please tell Conor so he can search and destroy!");
-                    }
-                    // this is the only place we decide where to show children
-                    // can control vis of children here
-                    if(showChildren && !hideRow){
-                        //children are displayed
-                        for(j=0;j<childBuffer.length;j++){
-                            childBuffer[j].yValue = y;
-                            y = y + this.rowBuffer + this.rowHeight // increment y
-                            // show on cloudcam as well
-                            childBuffer[j].current = true
-                        }
-                    }
-                    else{
-                        // not expanded children not displayed, give them same y value
-                        // as parent.  Because they are drawn first (and the parent overtop)
-                        // they will not be visible.
-                        for(j=0;j<childBuffer.length;j++){
-                            childBuffer[j].yValue = dataset[i].yValue; // same y as parent
-                            // don't show on cloudcam
-                            childBuffer[j].current = false
-                        }
-                    }
-                    // clear the child buffer
-                    childBuffer = [];
-                }
+                dataset[i].yValue = y;
+                y = y + this.rowBuffer + this.rowHeight;
             }
+            // note that children preceed parent in dataset
+            // if(dataset[i].isChild){
+            //     // place it in the buffer until its parent is reached
+            //     // the state of the parent determines the y location of the child
+            //     childBuffer.push(dataset[i]);
+            // }
+
+            // else{
+            //     var showChildren = dataset[i].expanded;
+            //     var hideRow = this.showOnlySelected && !dataset[i].selected && !dataset[i].isHeader;
+            //     if(hideRow){
+            //         dataset[i].yValue = this.margin;
+            //     }
+            //     else{
+            //         dataset[i].yValue = y;
+            //         y = y + this.rowBuffer + this.rowHeight;
+            //     }
+            //     //is anything in the buffer?
+            //     if(childBuffer.length > 0){
+            //         // console.log(childBuffer)
+            //         //children in buffer need y values to be set, what is the parent's state?
+            //         if(dataset[i].childViz.plateRows.length != childBuffer.length){
+            //             // paranioa make sure the numbers match up, could add more tests.
+            //             alert("Bug in JS, please tell Conor so he can search and destroy!");
+            //         }
+            //         // this is the only place we decide where to show children
+            //         // can control vis of children here
+            //         if(showChildren && !hideRow){
+            //             //children are displayed
+            //             for(j=0;j<childBuffer.length;j++){
+            //                 childBuffer[j].yValue = y;
+            //                 y = y + this.rowBuffer + this.rowHeight // increment y
+            //                 // show on cloudcam as well
+            //                 childBuffer[j].current = true
+            //             }
+            //         }
+            //         else{
+            //             // not expanded children not displayed, give them same y value
+            //             // as parent.  Because they are drawn first (and the parent overtop)
+            //             // they will not be visible.
+            //             for(j=0;j<childBuffer.length;j++){
+            //                 childBuffer[j].yValue = dataset[i].yValue; // same y as parent
+            //                 // don't show on cloudcam
+            //                 childBuffer[j].current = false
+            //             }
+            //         }
+            //         // clear the child buffer
+            //         childBuffer = [];
+            //     }
+            // }
         }
         this.totalHeight = y + this.margin;
     }
@@ -181,7 +190,7 @@ function generateViz(vizObj, targetDiv){
     //initialization
     var duration = 400;
     var layout = new Layout(targetDiv, vizObj);
-    var dataset = vizObj.allRows;
+    dataset = vizObj.allRows;
     var selectedField = null;
     // layout.setRows(dataset); // set y values in dataset elements
     // create the svg! everything will be appended to this object
@@ -541,66 +550,66 @@ function generateViz(vizObj, targetDiv){
                 });
         }
 
-        function makeSendFieldButton(){
-            svg.selectAll(".sendRect").remove();
-            svg.selectAll(".sendTxt").remove();
-            svg.selectAll(".invisSendRect").remove();
-            var y = 0;
-            var height = layout.margin-layout.rowBuffer;
-            var x = layout.margin+2*layout.rowBuffer+layout.tableWidth + 250;
-            var width = 200;
-            svg
-                .append("rect")
-                .attr("class", "sendRect")
-                .attr("fill", "steelblue")
-                .attr("stroke", "black")
-                .attr("opacity", 0.7)
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("y", y)
-                .attr("x", x)
-                .attr("width", width)
-                .attr("height", height);
-            svg
-                .append("text")
-                .text("Send field " + selectedField)
-                .attr("class", "sendTxt")
-                .attr("y", (y + 0.65*height))
-                .attr("x", x + 0.5*width)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "14px")
-                .attr("font-weight", "bold")
-                .attr("fill", "white")
-                // .attr("stroke", "black")
-                .attr("stroke-width", "1px")
-                .attr("text-anchor", "middle");
-            svg // overlay an invisible rectangle for clicking
-                .append("rect")
-                .attr("class", "invisSendRect")
-                .attr("fill", "white")
-                .attr("opacity", 0)
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("y", y)
-                .attr("x", x)
-                .attr("width", width)
-                .attr("height", height)
-                .on("mouseover", function(){
-                    d3.select(this)
-                        .attr("cursor", "pointer");
-                    svg.select(".sendRect")
-                        .attr("fill", "orange");
-                })
-                .on("mouseout", function(){
-                    d3.select(this)
-                        .attr("cursor", "none");
-                    svg.select(".sendRect")
-                        .attr("fill", "steelblue");
-                })
-                .on("click", function(){
-                    alert("field would be sent!")
-                });
-        }
+        // function makeSendFieldButton(){
+        //     svg.selectAll(".sendRect").remove();
+        //     svg.selectAll(".sendTxt").remove();
+        //     svg.selectAll(".invisSendRect").remove();
+        //     var y = 0;
+        //     var height = layout.margin-layout.rowBuffer;
+        //     var x = layout.margin+2*layout.rowBuffer+layout.tableWidth + 250;
+        //     var width = 200;
+        //     svg
+        //         .append("rect")
+        //         .attr("class", "sendRect")
+        //         .attr("fill", "steelblue")
+        //         .attr("stroke", "black")
+        //         .attr("opacity", 0.7)
+        //         .attr("rx", 5)
+        //         .attr("ry", 5)
+        //         .attr("y", y)
+        //         .attr("x", x)
+        //         .attr("width", width)
+        //         .attr("height", height);
+        //     svg
+        //         .append("text")
+        //         .text("Send field " + selectedField)
+        //         .attr("class", "sendTxt")
+        //         .attr("y", (y + 0.65*height))
+        //         .attr("x", x + 0.5*width)
+        //         .attr("font-family", "sans-serif")
+        //         .attr("font-size", "14px")
+        //         .attr("font-weight", "bold")
+        //         .attr("fill", "white")
+        //         // .attr("stroke", "black")
+        //         .attr("stroke-width", "1px")
+        //         .attr("text-anchor", "middle");
+        //     svg // overlay an invisible rectangle for clicking
+        //         .append("rect")
+        //         .attr("class", "invisSendRect")
+        //         .attr("fill", "white")
+        //         .attr("opacity", 0)
+        //         .attr("rx", 5)
+        //         .attr("ry", 5)
+        //         .attr("y", y)
+        //         .attr("x", x)
+        //         .attr("width", width)
+        //         .attr("height", height)
+        //         .on("mouseover", function(){
+        //             d3.select(this)
+        //                 .attr("cursor", "pointer");
+        //             svg.select(".sendRect")
+        //                 .attr("fill", "orange");
+        //         })
+        //         .on("mouseout", function(){
+        //             d3.select(this)
+        //                 .attr("cursor", "none");
+        //             svg.select(".sendRect")
+        //                 .attr("fill", "steelblue");
+        //         })
+        //         .on("click", function(){
+        //             alert("field would be sent!")
+        //         });
+        // }
 
         function makeTextButton(){
             var y = 0;
@@ -944,69 +953,69 @@ function generateViz(vizObj, targetDiv){
 
 
                 // add a triangle for expanding contracting
-                if(row.hasChild){
-                    var svgTriangle = d3.select(this)
-                        .append("polygon")
-                        .attr("class", "triangle")
-                        .attr("points", getTriangleVertices(row.yValue, row.expanded))
-                        .attr("fill", "black")
-                        .on("mouseover", function(){
-                            d3.select(this)
-                                .attr("fill", "orange")
-                                .attr("cursor", "pointer");
-                        })
-                        .on("mouseout", function(){
-                            d3.select(this)
-                                .attr("fill", "black")
-                                .attr("cursor", "none");
-                        })
-                        .on("click", function(){
-                            row.expanded = !row.expanded;
+                // if(row.hasChild){
+                //     var svgTriangle = d3.select(this)
+                //         .append("polygon")
+                //         .attr("class", "triangle")
+                //         .attr("points", getTriangleVertices(row.yValue, row.expanded))
+                //         .attr("fill", "black")
+                //         .on("mouseover", function(){
+                //             d3.select(this)
+                //                 .attr("fill", "orange")
+                //                 .attr("cursor", "pointer");
+                //         })
+                //         .on("mouseout", function(){
+                //             d3.select(this)
+                //                 .attr("fill", "black")
+                //                 .attr("cursor", "none");
+                //         })
+                //         .on("click", function(){
+                //             row.expanded = !row.expanded;
 
-                            // next adjust all y rows!
-                            // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
-                            layout.setRows(dataset);
-                            // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
+                //             // next adjust all y rows!
+                //             // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
+                //             layout.setRows(dataset);
+                //             // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
 
-                            d3.select(this)
-                                .transition()
-                                .duration(duration)
-                                .attr("points", getTriangleVertices(row.yValue, row.expanded));
+                //             d3.select(this)
+                //                 .transition()
+                //                 .duration(duration)
+                //                 .attr("points", getTriangleVertices(row.yValue, row.expanded));
 
-                            // // next adjust all y rows!
-                            // layout.setRows(dataset);
+                //             // // next adjust all y rows!
+                //             // layout.setRows(dataset);
 
-                            svg.transition()
-                                .duration(duration)
-                                .attr("height", layout.totalHeight)
+                //             svg.transition()
+                //                 .duration(duration)
+                //                 .attr("height", layout.totalHeight)
 
-                            svgRow.each(function(row, i){
-                                // dont touch header row
-                                if(i==0){
-                                    return;
-                                }
-                                d3.select(this)
-                                    .selectAll("polygon")
-                                    .transition()
-                                    .duration(duration)
-                                    .attr("points", getTriangleVertices(row.yValue, row.expanded));
-                                d3.select(this)
-                                    .selectAll("rect")
-                                    .transition()
-                                    .duration(duration)
-                                    .attr("y", row.yValue);
+                //             svgRow.each(function(row, i){
+                //                 // dont touch header row
+                //                 if(i==0){
+                //                     return;
+                //                 }
+                //                 d3.select(this)
+                //                     .selectAll("polygon")
+                //                     .transition()
+                //                     .duration(duration)
+                //                     .attr("points", getTriangleVertices(row.yValue, row.expanded));
+                //                 d3.select(this)
+                //                     .selectAll("rect")
+                //                     .transition()
+                //                     .duration(duration)
+                //                     .attr("y", row.yValue);
 
-                                d3.select(this)
-                                    .selectAll("text")
-                                    .transition()
-                                    .duration(duration)
-                                    .attr("y", row.yValue+0.5*layout.rowHeight);
-                            });
-                            makeTickOverlays();
-                            makeTickNow();
-                            renderCloudCam(dataset);
-                        });
-                }
+                //                 d3.select(this)
+                //                     .selectAll("text")
+                //                     .transition()
+                //                     .duration(duration)
+                //                     .attr("y", row.yValue+0.5*layout.rowHeight);
+                //             });
+                //             makeTickOverlays();
+                //             makeTickNow();
+                //             renderCloudCam(dataset);
+                //         });
+                // }
 
                 //allow row clickability for filtering
                 // !row.setCurrent &&  don't know why this would be needed..
@@ -1017,7 +1026,9 @@ function generateViz(vizObj, targetDiv){
                     function toggleSelected(){
                         svg.selectAll(".selectedTxt").remove();
                         row.selected = !row.selected
+                        let toggleOff = true;
                         if(row.selected){
+                            toggleOff = false;
                             for(i=0;i<dataset.length;i++){
                                 if(dataset[i].id != row.id){
                                     dataset[i].selected = false
@@ -1053,7 +1064,16 @@ function generateViz(vizObj, targetDiv){
                         }
                         row.redraw(row)
                         renderCloudCam(dataset);
-                        makeSendFieldButton();
+                        // makeSendFieldButton();
+                        var fields = document.getElementsByClassName("queue-item");
+                        for (i=0;i<fields.length;i++){
+                            if(fields[i].classList.contains("field-"+selectedField) && !toggleOff){
+                                fields[i].style.backgroundColor = "rgba(224, 45, 45, 1)";
+                            }
+                            else{
+                                fields[i].style.backgroundColor = "rgba(0, 0, 0, 0)";
+                            }
+                        }
                     }
                     d3.select(this)
                         .selectAll(".vizRects")
@@ -1082,12 +1102,18 @@ function generateViz(vizObj, targetDiv){
                         })
                         .on("click", toggleSelected);
                 }
+                for(i=0;i<dataset.length;i++){
+                    if(dataset[i].id == row.id){
+                        // console.log("setting toggle selected for " + i)
+                        dataset[i].toggleSelected = toggleSelected;
+                    }
+                }
 
             });
         makeTickOverlays();
         makeAxis();
         makeTickNow();
-        makeSendFieldButton();
+        // makeSendFieldButton();
         if (vizObj.setCurrent){
             makeToggleScaleButton();
         }
@@ -1122,4 +1148,6 @@ function generateViz(vizObj, targetDiv){
     renderCloudCam(dataset);
     // start timer for real time red bar, update once a second (every 1000 ms)
     $( window ).on("resize", redrawSVG);
+
+    return redrawSVG
 }
