@@ -172,6 +172,11 @@ class VizRow(object):
         self.isChild = isChild
         self.hasChild = False
 
+        if self.isHeader:
+            self.fieldID = -1
+        else:
+            self.fieldID = self.field.fieldID
+
     def addVizWindow(self, name, utRange, haRange, primary=False, text=None):
         """viz windows drawn in order added (so last will lay 'above' first)"""
         if utRange is not None:
@@ -233,7 +238,7 @@ class VizRow(object):
                 value = "%.2f"%value
             tableValues.append(value)
         return {
-            "fieldID": self.field.fieldID,
+            "fieldID": self.fieldID,
             "tableItems": self.tableKeys if self.isHeader else tableValues,
             "vizWindows": [vizWindow.export() for vizWindow in self.vizWindows],
             "currentTime": datetime2dict(self.currentTime),
@@ -315,13 +320,13 @@ class Viz(object):
         #     ))
 
         if not hasattr(self, "nTableItems"):
-            self.nTableItems = len(tableDict) # set length
+            self.nTableItems = len(tableDict)  # set length
         return tableDict
 
     def exportAllRows(self):
         allRows = []
         for row in self.fieldRows:
-            if row.hasChild: # place children in front (so they are drawn first)
+            if row.hasChild:  # place children in front (so they are drawn first)
                 allRows.extend([r.export() for r in row.childViz.fieldRows])
             allRows.append(row.export())
         return allRows
@@ -336,7 +341,7 @@ class Viz(object):
                 break
         return hasChild
 
-    @property    
+    @property
     def nChildTableItems(self):
         nChildTableItems = 0
         if self.hasChild:
@@ -355,7 +360,7 @@ class Viz(object):
             "allRows": self.exportAllRows(),
             "isChild": self.isChild,
             "hasChild": self.hasChild,
-            "nTableItems": self.nTableItems, # define length of side table
+            "nTableItems": self.nTableItems,  # define length of side table
             "setCurrent": self.setCurrent,
             "nChildTableItems": self.nChildTableItems
             }

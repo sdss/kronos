@@ -187,6 +187,8 @@ function generateViz(vizObj, targetDiv){
     // Inputs: vizObj, jsonified dict (vizWindow.export())
     // targetDiv, the name of the div class in which to put the vizualization
 
+    // reset the div every time this is called
+    d3.select(targetDiv).html('<h4> Apogee </h4><div class="row"><div class = "col-md-8"></div></div>')
     //initialization
     var duration = 400;
     var layout = new Layout(targetDiv, vizObj);
@@ -1023,9 +1025,37 @@ function generateViz(vizObj, targetDiv){
                     // var xStart = layout.margin + layout.tableWidth + 2*layout.rowBuffer;
                     // var xEnd = layout.totalWidth - layout.margin;
                     // var xVals = d3.range(xStart, xEnd, (xEnd-xStart)/5);
+                    function drawSelectText(){
+                        var xStart = layout.margin + layout.tableWidth + 2*layout.rowBuffer;
+                        // var xEnd = layout.totalWidth - layout.margin;
+                        // var xVals = d3.range(xStart, xEnd, (xEnd-xStart)/5);
+                        
+                        // console.log("drawing select!")
+                        // console.log(this.parentNode)
+
+                        d3.select(this.parentNode)
+                            // .selectAll(".selectedTxt")
+                            // .data(xVals)
+                            // .enter()
+                            .append("text")
+                            .text("SELECTED")
+                            .attr("class", "selectedTxt")
+                            .attr("y", row.yValue + 0.7*layout.rowHeight)
+                            .attr("x", xStart)//function(d){return d;})
+                            .attr("font-family", "sans-serif")
+                            .attr("font-size", "22px")
+                            .attr("font-weight", "bold")
+                            .attr("fill", "White")
+                            .attr("opacity", "1")
+                            .attr("stroke-width", "0.5px")
+                            .attr("stroke", "black")
+                            .attr("text-anchor", "left");
+                    }
                     function toggleSelected(){
                         svg.selectAll(".selectedTxt").remove();
-                        row.selected = !row.selected
+                        row.selected = !row.selected;
+                        // console.log(row.fieldID, row.selected);
+                        // console.log(d3.select(this.parentNode));
                         let toggleOff = true;
                         if(row.selected){
                             toggleOff = false;
@@ -1035,34 +1065,14 @@ function generateViz(vizObj, targetDiv){
                                 }
                             }
                             selectedField = row.fieldID
-                            var xStart = layout.margin + layout.tableWidth + 2*layout.rowBuffer;
-                            // var xEnd = layout.totalWidth - layout.margin;
-                            // var xVals = d3.range(xStart, xEnd, (xEnd-xStart)/5);
-                            // console.log(d3.select(this.parentNode));
-                            d3.select(this.parentNode)
-                                // .selectAll(".selectedTxt")
-                                // .data(xVals)
-                                // .enter()
-                                .append("text")
-                                .text("SELECTED")
-                                .attr("class", "selectedTxt")
-                                .attr("y", row.yValue + 0.7*layout.rowHeight)
-                                .attr("x", xStart)//function(d){return d;})
-                                .attr("font-family", "sans-serif")
-                                .attr("font-size", "22px")
-                                .attr("font-weight", "bold")
-                                .attr("fill", "White")
-                                .attr("opacity", "1")
-                                .attr("stroke-width", "0.5px")
-                                .attr("stroke", "black")
-                                .attr("text-anchor", "left");
+                            drawSelectText();
                         }
                         else{
                             d3.select(this.parentNode)
                                 .selectAll(".selectedTxt")
                                 .remove();
                         }
-                        row.redraw(row)
+                        row.redraw(row);
                         renderCloudCam(dataset);
                         // makeSendFieldButton();
                         var fields = document.getElementsByClassName("queue-item");
@@ -1074,6 +1084,9 @@ function generateViz(vizObj, targetDiv){
                                 fields[i].style.backgroundColor = "rgba(0, 0, 0, 0)";
                             }
                         }
+                    }
+                    if(row.selected){
+                        drawSelectText();
                     }
                     d3.select(this)
                         .selectAll(".vizRects")
@@ -1104,8 +1117,9 @@ function generateViz(vizObj, targetDiv){
                 }
                 for(i=0;i<dataset.length;i++){
                     if(dataset[i].id == row.id){
-                        // console.log("setting toggle selected for " + i)
+                        // console.log(i + " setting toggle selected for " + dataset[i].id )
                         dataset[i].toggleSelected = toggleSelected;
+                        // console.log(i, dataset[i].fieldID, dataset[i].toggleSelected)
                     }
                 }
 
@@ -1149,5 +1163,5 @@ function generateViz(vizObj, targetDiv){
     // start timer for real time red bar, update once a second (every 1000 ms)
     $( window ).on("resize", redrawSVG);
 
-    return redrawSVG
+    // return redrawSVG
 }
