@@ -112,9 +112,9 @@ class Queue(object):
     def __init__(self):
         self.scheduler = Scheduler()
         self.queue = opsdb.Queue
-        self.dbDesigns = opsdb.Queue.select()\
-                                    .where(opsdb.Queue.position > 0)\
-                                    .order_by(opsdb.Queue.position)
+        self.dbDesigns = self.queue.select()\
+                                   .where(opsdb.Queue.position > 0)\
+                                   .order_by(opsdb.Queue.position)
         self.designs = [Design(d.design.pk, self.scheduler.scheduler) for d in self.dbDesigns]
         self.fields = list()
 
@@ -148,21 +148,49 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     """
 
     def __init__(self, **kwargs):
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo")
+        self.plan = "test-newfield"
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo",
+                                                           plan=self.plan)
+        self.exp_nom = 18 / 60 / 24
 
     def scheduleMjd(self, mjd):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
         opsdb.Queue.flushQueue()
 
-        test_fields = targetdb.Field.select().where(targetdb.Field.deccen > -30)
-        if len(test_fields) > 10:
-            test_fields = test_fields[:10]
+        now = mjd_evening_twilight
 
-        for f in test_fields:
-            designs = targetdb.Design.select().where(targetdb.Design.field == f)
+        Field = targetdb.Field
+        Design = targetdb.Design
+        Version = targetdb.Version
+        dbVersion = Version.get(label=self.plan)
+
+        while now < mjd_morning_twilight:
+            exp_max = (mjd_morning_twilight - now) // self.exp_nom
+            # field id and exposure nums of designs
+            field_id, designs = self.scheduler.nextfield(mjd=now,
+                                                         maxExp=exp_max,
+                                                         live=True)
+
+            designs = Design.select().join(Field)\
+                            .where(Field.field_id == field_id,
+                                   Field.version == dbVersion,
+                                   Design.exposure << designs)
+
             for d in designs:
+                # designs are i
                 opsdb.Queue.appendQueue(d)
+
+        now += len(design) * exp_nom
+
+        # test_fields = targetdb.Field.select().where(targetdb.Field.deccen > -30)
+        # if len(test_fields) > 10:
+        #     test_fields = test_fields[:10]
+
+        # for f in test_fields:
+        #     designs = targetdb.Design.select().where(targetdb.Design.field == f)
+        #     for d in designs:
+        #         opsdb.Queue.appendQueue(d)
 
         return mjd_evening_twilight, mjd_morning_twilight
 
