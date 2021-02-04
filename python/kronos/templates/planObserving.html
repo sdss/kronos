@@ -15,9 +15,10 @@
 
 {% block body %}
 <script src="../static/js/core/d3.min.js"></script>
+<script src="../static/js/core/chroma.js"></script>
 <script src="../static/js/vizWindow.js"></script>
 <script src="../static/js/drawFields.js"></script>
-<script src="../static/js/core/chroma.js"></script>
+<script src="../static/js/formControls.js"></script>
 
 <div class="row">
   <div class="col-lg-3">
@@ -43,9 +44,9 @@
         <h3> MJD: {{mjd}} </h3>
       </div>
       <div class="card-body">
-        <form role="form" method="post">
-          <label for="newMJD">Plan another MJD?</label>
-          <input name="newMJD" id="newMJD">
+        <form role="form" method="get">
+          <label for="mjd">Plan another MJD?</label>
+          <input name="mjd" id="mjd">
         </form>
       </div>
     </div>

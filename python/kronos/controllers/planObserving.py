@@ -6,7 +6,7 @@ from quart import request, render_template, Blueprint
 
 from astropy.time import Time, TimeDelta
 
-# from sdssdb.peewee.sdss5db import opsdb
+from sdssdb.peewee.sdss5db import opsdb
 
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
@@ -56,18 +56,31 @@ async def planObserving():
     now.format = "mjd"
     mjd = round(now.value)
 
-    if request.method == "POST":
+    form = await request.form
+    args = request.args
 
-        mjd = int(request.form.get("newMJD", 59060))
+    redo = False
+
+    if "mjd" in args:
+        mjd = int(args["mjd"])
+        redo = True
+    if "redo" in args:
+        redo = True
+
+    if "rmField" in form:
+        rmField = int(form["rmField"])
+        print("remove field", rmField)
+        opsdb.Queue.rm(rmField)
 
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
-    scheduler = Scheduler(observatory="apo", base="beta-5")
+    scheduler = Scheduler(observatory="apo")
 
     # fields, startTime, endTime = scheduler.scheduleMjd(mjd)
 
-    mjd_evening_twilight, mjd_morning_twilight = scheduler.scheduleMjd(mjd)
+    mjd_evening_twilight, mjd_morning_twilight = scheduler.scheduleMjd(mjd,
+                                                                       redo=redo)
 
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime

@@ -35,7 +35,7 @@ class Design(object):
             self.designID = int(design)
             self.dbDesign = targetdb.Design.get(pk=self.designID)
         self.field = self.dbDesign.field
-        self.fieldID = self.field.pk
+        self.fieldID = self.field.field_id
         self.ra = self.field.racen
         self.dec = self.field.deccen
         self.obsTimes = dict()
@@ -57,11 +57,11 @@ class Field(object):
 
     def __init__(self, field, scheduler=None):
         if isinstance(field, targetdb.Field):
-            self.fieldID = int(field.pk)
+            self.fieldID = int(field.field_id)
             self.dbField = field
         else:
             self.fieldID = int(field)
-            self.dbField = targetdb.Field.get(pk=self.fieldID)
+            self.dbField = targetdb.Field.get(field_id=self.field_id)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
         self.obsTimes = dict()
@@ -153,9 +153,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
-    def scheduleMjd(self, mjd):
+    def scheduleMjd(self, mjd, redo=True):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
+        if not redo:
+            return mjd_evening_twilight, mjd_morning_twilight
         opsdb.Queue.flushQueue()
 
         now = mjd_evening_twilight
