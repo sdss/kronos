@@ -148,9 +148,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     """
 
     def __init__(self, **kwargs):
+        print("creating scheduler")
         self.plan = "test-newfield"
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo",
-                                                           plan=self.plan)
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo")
+        self.scheduler.initdb(designbase=self.plan, fromFits=False)
+        print("fields read")
         self.exp_nom = 18 / 60 / 24
 
     def scheduleMjd(self, mjd):
@@ -163,7 +165,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
-        dbVersion = Version.get(label=self.plan)
+        dbVersion = Version.get(plan=self.plan)
+
 
         while now < mjd_morning_twilight:
             exp_max = (mjd_morning_twilight - now) // self.exp_nom
@@ -171,17 +174,15 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             field_id, designs = self.scheduler.nextfield(mjd=now,
                                                          maxExp=exp_max,
                                                          live=True)
-
             designs = Design.select().join(Field)\
                             .where(Field.field_id == field_id,
                                    Field.version == dbVersion,
                                    Design.exposure << designs)
-
             for d in designs:
                 # designs are i
                 opsdb.Queue.appendQueue(d)
 
-        now += len(design) * exp_nom
+            now += len(designs) * self.exp_nom
 
         # test_fields = targetdb.Field.select().where(targetdb.Field.deccen > -30)
         # if len(test_fields) > 10:
