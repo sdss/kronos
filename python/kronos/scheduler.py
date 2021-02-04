@@ -148,11 +148,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     """
 
     def __init__(self, **kwargs):
-        print("creating scheduler")
         self.plan = "test-newfield"
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo")
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
-        print("fields read")
         self.exp_nom = 18 / 60 / 24
 
     def scheduleMjd(self, mjd):

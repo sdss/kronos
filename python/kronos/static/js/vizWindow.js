@@ -1075,7 +1075,7 @@ function generateViz(vizObj, targetDiv){
                         row.redraw(row);
                         renderCloudCam(dataset);
                         // makeSendFieldButton();
-                        var fields = document.getElementsByClassName("queue-item");
+                        var fields = document.getElementsByClassName("queue-field");
                         for (i=0;i<fields.length;i++){
                             if(fields[i].classList.contains("field-"+selectedField) && !toggleOff){
                                 fields[i].style.backgroundColor = "rgba(224, 45, 45, 1)";
