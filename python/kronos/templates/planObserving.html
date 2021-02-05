@@ -25,13 +25,13 @@
     <div class="card card-nav-tabs" style="width: 20rem;">
       <div class="card-header card-header-danger">
         <h3> Obs Queue </h3>
-        <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
-        <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
         <div class="queue-row">
           <span class="queue-head">
-              <a class="queue-field">Field</a>
-              <a class="queue-design">Design</a>
+            <a class="queue-field">Field</a>
+            <a class="queue-design">Design</a>
           </span>
+          <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
+          <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
       </div>
       </div>
       {% if queue|length > 0 %}

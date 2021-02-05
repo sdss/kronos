@@ -27,7 +27,7 @@ html, body {
 
 .queue-head {
     display: inline-block;
-    width: 70%;
+    width: 65%;
 }
 
 .queue-item:hover {
