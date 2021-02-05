@@ -167,7 +167,6 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         Version = targetdb.Version
         dbVersion = Version.get(plan=self.plan)
 
-
         while now < mjd_morning_twilight:
             exp_max = (mjd_morning_twilight - now) // self.exp_nom
             # field id and exposure nums of designs

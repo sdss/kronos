@@ -69,8 +69,13 @@ async def planObserving():
 
     if "rmField" in form:
         rmField = int(form["rmField"])
-        print("remove field", rmField)
         opsdb.Queue.rm(rmField)
+
+    elif "flush" in form:
+        opsdb.Queue.flushQueue()
+
+    elif "redo" in form:
+        redo = True
 
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
@@ -92,12 +97,15 @@ async def planObserving():
         }
 
     queue = Queue()
-
-    queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
+    if len(queue.fields) == 0:
+        viz = None
+    else:
+        queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
+        viz = ApogeeViz(schedule, queue.fields).export()
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
-        "apogeeViz": ApogeeViz(schedule, queue.fields).export(),
+        "apogeeViz": viz,
         "mjd": mjd,
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": getAlmanac(mjd),  # if schedule else None,

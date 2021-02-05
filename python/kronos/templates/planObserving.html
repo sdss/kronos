@@ -25,6 +25,8 @@
     <div class="card card-nav-tabs" style="width: 20rem;">
       <div class="card-header card-header-danger">
         <h3> Obs Queue </h3>
+        <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
+        <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
         <div class="queue-row">
           <span class="queue-head">
               <a class="queue-field">Field</a>
@@ -32,9 +34,17 @@
           </span>
       </div>
       </div>
-      <ul class="list-group" style="height: 200px; overflow: auto">
-        {{obsQueue(queue)}}
-      </ul>
+      {% if queue|length > 0 %}
+        <ul class="list-group" style="height: 200px; overflow: auto">
+          {{obsQueue(queue)}}
+        </ul>
+      {% else %}
+        <div style="height: 200px; overflow: auto; text-align: center; line-height: 200px;">
+          <a>
+            <i class="material-icons refresh-field" onclick="redoQueue()">refresh</i>
+          </a>
+        </div>
+      {% endif %}
     </div>
   </div>
 
@@ -80,7 +90,6 @@
     <div class="row">
       <div class="col-md-12">
         <div class="apogeeViz">
-          <h4> Apogee </h4>
           <div class="row">
             <div class = "col-md-8">
             </div>
