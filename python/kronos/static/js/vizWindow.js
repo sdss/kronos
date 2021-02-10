@@ -188,7 +188,7 @@ function generateViz(vizObj, targetDiv){
     // targetDiv, the name of the div class in which to put the vizualization
 
     // reset the div every time this is called
-    d3.select(targetDiv).html('<h4> Apogee </h4><div class="row"><div class = "col-md-8"></div></div>')
+    d3.select(targetDiv).html('<div class="row"><div class = "col-md-8"></div></div>')
     //initialization
     var duration = 400;
     var layout = new Layout(targetDiv, vizObj);
@@ -224,9 +224,9 @@ function generateViz(vizObj, targetDiv){
             if(jsDate(dataset[i].timeScale[0]) < initDate && jsDate(dataset[i].timeScale[1]) > initDate){
                 dataset[i].current = true
                 onSky = true
-                if(!dataset[i].isChild){
-                    dataset[i].expanded = true
-                }
+                // if(!dataset[i].isChild){
+                //     dataset[i].expanded = true
+                // }
             }
         }
 
@@ -237,7 +237,7 @@ function generateViz(vizObj, targetDiv){
             }
             dataset[i].current = true
             if(!dataset[i].isChild){
-                dataset[i].expanded = true
+                // dataset[i].expanded = true
                 // once we hit the first non-child row we're done with the first block
                 break
             }

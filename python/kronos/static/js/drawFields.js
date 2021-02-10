@@ -19,7 +19,7 @@ function renderCloudCam(dataset){
         function updateField(row){
             row.alt = Math.abs(row.alt);
             var altaz = altAzToXY(row.alt, row.az);
-            var show = row.current || row.selected || row.expanded
+            var show = row.selected || row.expanded
             if(!show){
                 // console.log("skipping", row.id, row);
                 return
