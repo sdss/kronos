@@ -49,6 +49,18 @@ def getAlmanac(mjd):
     return twilights, headers, other
 
 
+def backupDicts(*args, sched=None, mjd=None):
+    backup = list()
+    for field, dc, coord in zip(*args):
+        alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
+        backup.append({"field": int(field),
+                       "alt": float(alt),
+                       "az": float(az),
+                       "selected": False,
+                       "expanded": True,
+                       "color": "#FF0000"})
+    return backup
+
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
 async def planObserving():
 
@@ -77,6 +89,11 @@ async def planObserving():
     elif "redo" in form:
         redo = True
 
+    if "replace" in form:
+        replace = form["replace"]
+    else:
+        replace = False
+
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
@@ -103,13 +120,22 @@ async def planObserving():
         queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
         viz = ApogeeViz(schedule, queue.fields).export()
 
+    if replace:
+        # make replace the new field, or False
+        field = queue.fields[[f.fieldID for f in queue.fields] == replace]
+        args = scheduler.choiceFields(field.startTime)
+        backups = backupDicts(*args, sched=scheduler, mjd=field.startTime)
+    else:
+        backups = list()
+
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
         "mjd": mjd,
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": getAlmanac(mjd),  # if schedule else None,
-        "queue": queue.designs
+        "queue": queue.designs,
+        "backups": backups
     })
 
     # findAndConvertDatetimes(templateDict)

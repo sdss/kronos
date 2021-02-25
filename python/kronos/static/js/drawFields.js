@@ -1,4 +1,4 @@
-function renderCloudCam(dataset){
+function renderCloudCam(dataset, backups){
     var image = new Image();
     image.src = "https://irsc.apo.nmsu.edu/tonight/current.gif";
     // image.src = "../static/images/cP105500.gif";
@@ -37,6 +37,11 @@ function renderCloudCam(dataset){
         for(i=0;i<dataset.length;i++){
             dataset[i].redraw = updateField;
             updateField(dataset[i])
+        }
+
+        for(i=0;i<backups.length;i++){
+            backups[i].redraw = updateField;
+            updateField(backups[i]);
         }
       }
     return ctx

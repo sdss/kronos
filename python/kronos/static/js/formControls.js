@@ -70,3 +70,28 @@ function confirmRedo(){
         redoQueue();
     }
 }
+
+function replaceField(fieldID){
+    //submit post request to replace field, behind the scenes
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/planObserving.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "replace";
+    hiddenField.value = fieldID;
+    form.appendChild(hiddenField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmReplace(fieldID){
+
+    var forReal = confirm("Would you like to replace field " + fieldID + "?")
+        if (forReal) {
+            replaceField(fieldID);
+        }
+}

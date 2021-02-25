@@ -65,6 +65,8 @@ class Field(object):
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
         self.obsTimes = dict()
+        # in MJD, needed for rescheduling
+        self.startTime = None
         self.haRange = [-60, 60]
         self.RS = scheduler  # keep track. bad form?
         self.designs = list()
@@ -73,6 +75,7 @@ class Field(object):
     def schedule(self, mjd, duration=None):
         if duration is None:
             duration = design_time * len(self.designs)
+        self.startTime = mjd
         startTime = Time(mjd, format="mjd").datetime
         self.obsTimes = {"start": startTime,
                          "end": startTime + datetime.timedelta(seconds=int(duration*86400))}
@@ -84,9 +87,6 @@ class Field(object):
         return mjd + duration
         # print(mjd, duration)
         # print(self.obsTimes["start"], "\n", self.obsTimes["end"])
-
-    # def addBackup(self, designid, ra, dec):
-    #     self.backups.append(design(designid, ra, dec, scheduler=self.RS))
 
     @property
     def haNow(self):
@@ -148,10 +148,41 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     """
 
     def __init__(self, **kwargs):
-        self.plan = "test-newfield"
+        self.plan = "test-newfield-hack"
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo")
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
+
+    def choiceFields(self, mjd, exp=8):
+        """return multiple fields for user to choose from
+           at a specific mjd
+        """
+        field_ids, n_designs = self.scheduler.nextfield(mjd=mjd,
+                                                        maxExp=exp,
+                                                        live=True,
+                                                        returnAll=True)
+
+        fields = list()
+        design_count = list()
+        coords = list()
+        for f, d in zip(field_ids, n_designs):
+            if len(fields) > 3:
+                continue
+            idx = np.where(self.scheduler.fields.field_id == f)
+            ra = self.scheduler.fields.racen[idx]
+            dec = self.scheduler.fields.deccen[idx]
+            far_enough = True
+            for c in coords:
+                d = ((c[0] - ra)*np.cos(dec*np.pi/180))**2 + (dec - c[1])**2
+                if d < 45**2:
+                    far_enough = False
+                    break
+            if far_enough:
+                fields.append(f)
+                design_count.append(d)
+                coords.append([ra, dec])
+
+        return fields, design_count, coords
 
     def scheduleMjd(self, mjd, redo=True):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)

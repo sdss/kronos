@@ -8,7 +8,7 @@
                     <a class="queue-design">{{des.designID}}</a>
                 </span>
                 <i class="material-icons delete-field" onclick="confirmRM({{des.fieldID}})">clear</i>
-                <i class="material-icons refresh-field" onclick="alert({{des.fieldID}})">refresh</i>
+                <i class="material-icons refresh-field" onclick="confirmReplace({{des.fieldID}})">refresh</i>
             </div>
         </li>
     {% endfor %}

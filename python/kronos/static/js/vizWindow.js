@@ -182,7 +182,7 @@ function Layout(divClass, vizObj, isSurveyPlanning){
     }
 }
 
-function generateViz(vizObj, targetDiv){
+function generateViz(vizObj, targetDiv, backups){
     // This thing generates the visualization
     // Inputs: vizObj, jsonified dict (vizWindow.export())
     // targetDiv, the name of the div class in which to put the vizualization
@@ -1073,7 +1073,7 @@ function generateViz(vizObj, targetDiv){
                                 .remove();
                         }
                         row.redraw(row);
-                        renderCloudCam(dataset);
+                        renderCloudCam(dataset, backups);
                         // makeSendFieldButton();
                         var fields = document.getElementsByClassName("queue-field");
                         for (i=0;i<fields.length;i++){
@@ -1155,11 +1155,11 @@ function generateViz(vizObj, targetDiv){
             altNowTimers.pop();
         }
         d3.select(targetDiv).select("svg").remove();
-        renderCloudCam(dataset);
+        renderCloudCam(dataset, backups);
         drawSVG();
     }
     drawSVG();
-    renderCloudCam(dataset);
+    renderCloudCam(dataset, backups);
     // start timer for real time red bar, update once a second (every 1000 ms)
     $( window ).on("resize", redrawSVG);
 

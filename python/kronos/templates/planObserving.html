@@ -114,10 +114,12 @@
     // testViz({{apogeeViz| tojson}})
 
     const vizObj = {{apogeeViz | tojson}};
+    const backupFields = {{backups | tojson}};
+    console.log(backupFields);
     var dataset = null;
 
     // this populates the .<nameViz> div with the visualization
-    generateViz(vizObj,".apogeeViz");
+    generateViz(vizObj,".apogeeViz", backupFields);
 
     function selectField(fieldID){
         toggleOff = false;
@@ -140,7 +142,7 @@
             // }
         }
         // console.log("calling make viz");
-        generateViz(vizObj,".apogeeViz");
+        generateViz(vizObj,".apogeeViz", backupFields);
         // console.log("called make viz")
         // var fields = document.getElementsByClassName("queue-item");
         // for (i=0;i<fields.length;i++){
