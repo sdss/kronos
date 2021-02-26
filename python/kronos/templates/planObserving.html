@@ -58,9 +58,14 @@
     <div class="row">
       {% for b in backups %}
         <li class="list-group-item">
-          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field}})" {% if b.selected %} disabled {% endif %}>{{b.field}}</button>
+          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field}})" id="backup-{{b.field}}" style="background-color: {{b.color}}; color: black;">{{b.field}}</button>
         </li>
       {% endfor %}
+      {% if backups|length > 0 %}
+        <li class="list-group-item">
+          <button class="btn btn-info" onclick="submitReplacement()" style="color:black;" id="submitReplacementField"></button>
+        </li>
+      {% endif %}
     </div>
   </div>
 
@@ -110,8 +115,15 @@
 
     const vizObj = {{apogeeViz | tojson}};
     const backupFields = {{backups | tojson}};
-    console.log(backupFields);
+    const selectedBackup = null;
     var dataset = null;
+
+    var colorScale = chroma.scale(['yellow', 'red', 'black']);
+    for (i=0;i<backupFields.length;i++){
+        backupFields[i].color = colorScale(i/backupFields.length).hex()
+        let thisButton = document.getElementById("backup-" + backupFields[i].field);
+        thisButton.style.backgroundColor = backupFields[i].color;
+    }
 
     // this populates the .<nameViz> div with the visualization
     generateViz(vizObj,".apogeeViz", backupFields);
@@ -127,15 +139,26 @@
     }
 
     function highlightBackup(fieldid){
+        let idField = document.getElementById("submitReplacementField");
         for (i=0;i<backupFields.length;i++){
             if(backupFields[i].field == fieldid){
                 backupFields[i].selected = !backupFields[i].selected;
+                if (backupFields[i].selected){
+                  idField.innerText = "submit " + fieldid;
+                }
+            }
+            else{
+              backupFields[i].selected = false;
             }
         }
         generateViz(vizObj,".apogeeViz", backupFields);
         // renderCloudCam(dataset, backups);
     }
 
+    function submitReplacement(){
+      let idField = document.getElementById("submitReplacementField");
+       alert(idField.innerText);
+    }
 
 </script>
 {% endblock body %}
