@@ -55,6 +55,13 @@
         <canvas id='myCanvas' width="640" height="480"></canvas>
       </div>
     </div>
+    <div class="row">
+      {% for b in backups %}
+        <li class="list-group-item">
+          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field}})" {% if b.selected %} disabled {% endif %}>{{b.field}}</button>
+        </li>
+      {% endfor %}
+    </div>
   </div>
 
   <div class="col-lg-3">
@@ -63,18 +70,6 @@
   </div>
 
 </div>  
-
-<!-- <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-  <li class="nav-item active">
-    <a class="nav-link btn btn-lg" id="pills-windows-tab" data-toggle="pill" href="#pills-windows" role="tab" aria-controls="pills-windows" aria-selected="false" onclick="generateViz(vizObj,'.apogeeViz');">Obs Windows</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link btn btn-lg" id="pills-sn-tab" data-toggle="pill" href="#pills-sn" role="tab" aria-controls="pills-sn" aria-selected="false">S/N</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link btn btn-lg" id="pills-almanac-tab" data-toggle="pill" href="#pills-almanac" role="tab" aria-controls="pills-almanac" aria-selected="false">Almanac</a>
-  </li>
-</ul> -->
 
 <div class="row">
   <div class="col-md-12">
@@ -125,38 +120,22 @@
         toggleOff = false;
         for (i=0;i<dataset.length;i++){
             if(dataset[i].fieldID == fieldID){
-                // console.log("toggling " + i, fieldID);
-                // console.log(dataset[i].toggleSelected);
-                // console.log(dataset[i]);
                 dataset[i].toggleSelected();
-                // if(vizObj.allRows[i].selected){
-                //     toggleOff = true;
-                //     dataset[i].selected = false;
-                // }
-                // else{
-                //     dataset[i].selected = true;
-                // }
             }
-            // else{
-            //     dataset[i].selected  = false;
-            // }
         }
-        // console.log("calling make viz");
         generateViz(vizObj,".apogeeViz", backupFields);
-        // console.log("called make viz")
-        // var fields = document.getElementsByClassName("queue-item");
-        // for (i=0;i<fields.length;i++){
-        //     if(fields[i].classList.contains("field-"+fieldID) && !toggleOff){
-        //         fields[i].style.backgroundColor = "rgba(224, 45, 45, 1)";
-        //     }
-        //     else{
-        //         fields[i].style.backgroundColor = "rgba(0, 0, 0, 0)";
-        //     }
-        // }
     }
 
-    // ctx = renderCloudCam({{apogeeViz| tojson}});
-    // setInterval(renderCloudCam({{apogeeViz| tojson}}), 30000);
+    function highlightBackup(fieldid){
+        for (i=0;i<backupFields.length;i++){
+            if(backupFields[i].field == fieldid){
+                backupFields[i].selected = !backupFields[i].selected;
+            }
+        }
+        generateViz(vizObj,".apogeeViz", backupFields);
+        // renderCloudCam(dataset, backups);
+    }
+
 
 </script>
 {% endblock body %}
