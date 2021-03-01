@@ -95,3 +95,44 @@ function confirmReplace(fieldID){
             replaceField(fieldID);
         }
 }
+
+function submitBackup(fieldID){
+    //submit post request to replace field, behind the scenes
+
+    var ndesigns = 0;
+    var prev = 0;
+    for (i=0;i<backupFields.length;i++){
+        if(backupFields[i].field == fieldID){
+            ndesigns = backupFields[i].designs;
+            prev = backupFields[i].prev;
+        }
+    }
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/planObserving.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "backup";
+    hiddenField.value = fieldID;
+    form.appendChild(hiddenField);
+
+    var hiddenField2 = document.createElement('input');
+    hiddenField2.type = 'hidden';
+    hiddenField2.name = "prev";
+    hiddenField2.value = prev;
+    form.appendChild(hiddenField2);
+
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmBackup(fieldID){
+
+    var forReal = confirm("Replace with field" + fieldID + "?")
+        if (forReal) {
+            submitBackup(fieldID);
+        }
+}

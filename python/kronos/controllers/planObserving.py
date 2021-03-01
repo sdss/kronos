@@ -49,16 +49,17 @@ def getAlmanac(mjd):
     return twilights, headers, other
 
 
-def backupDicts(*args, sched=None, mjd=None):
+def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
-    for field, dc, coord in zip(*args):
+    for field, coord in zip(*args):
         alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
         backup.append({"field": int(field),
                        "alt": float(alt),
                        "az": float(az),
                        "selected": False,
                        "expanded": True,
-                       "color": "#FF0000"})
+                       "color": "#FF0000",
+                       "prev": prev})
     return backup
 
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
@@ -73,10 +74,14 @@ async def planObserving():
 
     redo = False
 
+    # parse POST/GET args
+
     if "mjd" in args:
+        # deprecated?
         mjd = int(args["mjd"])
         redo = True
     if "redo" in args:
+        # deprecated?
         redo = True
 
     if "rmField" in form:
@@ -94,10 +99,19 @@ async def planObserving():
     else:
         replace = False
 
+    if "backup" in form:
+        replacementField = int(form["backup"])
+        oldField = int(form["prev"])
+    else:
+        replacementField = None
+
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
     scheduler = Scheduler(observatory="apo")
+
+    if replacementField is not None:
+        scheduler.replaceField(oldField, replacementField)
 
     # fields, startTime, endTime = scheduler.scheduleMjd(mjd)
 
@@ -124,7 +138,8 @@ async def planObserving():
         # make replace the new field, or False
         field = queue.fields[[f.fieldID for f in queue.fields] == replace]
         args = scheduler.choiceFields(field.startTime)
-        backups = backupDicts(*args, sched=scheduler, mjd=field.startTime)
+        backups = backupDicts(*args, sched=scheduler, mjd=field.startTime,
+                              prev=replace)
     else:
         backups = list()
 

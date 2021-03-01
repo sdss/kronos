@@ -157,15 +157,15 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         """return multiple fields for user to choose from
            at a specific mjd
         """
-        field_ids, n_designs = self.scheduler.nextfield(mjd=mjd,
-                                                        maxExp=exp,
-                                                        live=True,
-                                                        returnAll=True)
+        field_ids = self.scheduler.nextfield(mjd=mjd,
+                                             maxExp=exp,
+                                             live=True,
+                                             returnAll=True)
 
         fields = list()
-        design_count = list()
+        # design_count = list()
         coords = list()
-        for f, d in zip(field_ids, n_designs):
+        for f in field_ids:
             if len(fields) > 3:
                 continue
             idx = np.where(self.scheduler.fields.field_id == f)
@@ -179,10 +179,33 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                     break
             if far_enough:
                 fields.append(f)
-                design_count.append(d)
+                # design_count.append(d)
                 coords.append([ra, dec])
 
-        return fields, design_count, coords
+        return fields, coords
+
+    def replaceField(self, oldField, backup):
+        """replace oldField with backup
+        """
+        newDesigns = self.scheduler.designsNext(backup)
+
+
+        oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
+
+        Field = targetdb.Field
+        Design = targetdb.Design
+        Version = targetdb.Version
+        dbVersion = Version.get(plan=self.plan)
+        designs = Design.select().join(Field)\
+                                 .where(Field.field_id == backup,
+                                        Field.version == dbVersion,
+                                        Design.exposure << newDesigns)
+
+        queuePos = min(oldPositions)
+        for d in designs:
+            # designs are i
+            opsdb.Queue.insertInQueue(d, queuePos)
+            queuePos += 1
 
     def scheduleMjd(self, mjd, redo=True):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
