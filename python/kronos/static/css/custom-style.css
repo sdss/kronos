@@ -22,7 +22,7 @@ html, body {
 
 .queue-item {
     display: inline-block;
-    width: 70%;
+    width: 55%;
 }
 
 .queue-head {
@@ -43,9 +43,15 @@ html, body {
 
 .queue-design {
     display: inline-block;
-    width: 40%;
+    align-content: right;
+    /*width: 28%;*/
     font-weight:bold;
     font-size:120%;
+}
+
+.queue-buttons {
+    display: inline-block;
+    width: 40%;
 }
 
 .delete-field:hover {
@@ -54,6 +60,11 @@ html, body {
 }
 
 .refresh-field:hover {
+    background-color: rgba(0, 255, 0, .5);
+    cursor: pointer;
+}
+
+.clear-from-here:hover {
     background-color: rgba(0, 255, 0, .5);
     cursor: pointer;
 }

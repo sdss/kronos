@@ -27,7 +27,7 @@ class Design(object):
     """wrap db design
     """
 
-    def __init__(self, design, scheduler=None):
+    def __init__(self, design, scheduler=None, mjd_plan=None):
         if isinstance(design, targetdb.Design):
             self.designID = int(design.pk)
             self.dbDesign = design
@@ -38,9 +38,10 @@ class Design(object):
         self.fieldID = self.field.field_id
         self.ra = self.field.racen
         self.dec = self.field.deccen
-        self.obsTimes = dict()
+        # self.obsTimes = dict()
         self.haRange = [-60, 60]
         self.RS = scheduler
+        self.mjd_plan = mjd_plan
 
     @property
     def haNow(self):
@@ -64,29 +65,38 @@ class Field(object):
             self.dbField = targetdb.Field.get(field_id=self.field_id)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
-        self.obsTimes = dict()
+        self._obsTimes = None
+        self._startTime = None
         # in MJD, needed for rescheduling
-        self.startTime = None
         self.haRange = [-60, 60]
         self.RS = scheduler  # keep track. bad form?
         self.designs = list()
         # self.backups = list()
 
-    def schedule(self, mjd, duration=None):
-        if duration is None:
-            duration = design_time * len(self.designs)
-        self.startTime = mjd
-        startTime = Time(mjd, format="mjd").datetime
-        self.obsTimes = {"start": startTime,
-                         "end": startTime + datetime.timedelta(seconds=int(duration*86400))}
-        now = startTime
-        for d in self.designs:
-            d.obsTimes["start"] = now
-            now += datetime.timedelta(seconds=int(design_time*86400))
-            d.obsTimes["end"] = now
-        return mjd + duration
-        # print(mjd, duration)
-        # print(self.obsTimes["start"], "\n", self.obsTimes["end"])
+    def _timesFromDesigns(self):
+        """startTime and obsTimes need to get info from designs
+        """
+        start = np.max([d.mjd_plan for d in self.designs])
+        self._startTime = start
+        startTime = Time(start, format="mjd").datetime,
+        if type(startTime) is tuple:
+            startTime = startTime[0]
+        mjd_duration = len(self.designs) * design_time
+        endTime = startTime + datetime.timedelta(seconds=int(mjd_duration*86400))
+        self._obsTimes = {"start": startTime,
+                          "end": endTime}
+
+    @property
+    def obsTimes(self):
+        if self._obsTimes is None:
+            self._timesFromDesigns()
+        return self._obsTimes
+
+    @property
+    def startTime(self):
+        if self._startTime is None:
+            self._timesFromDesigns()
+        return self._startTime
 
     @property
     def haNow(self):
@@ -94,15 +104,6 @@ class Field(object):
         now.format = "mjd"
         lst = self.RS.lst(now.value)
         return float(self.RS.ralst2ha(ra=self.ra, lst=lst))
-
-    # @property
-    # def backups(self):
-    #     if self._backups is None:
-    #         self._backups = list()
-    #         for i in range(1, 3):
-    #             self._backups.append(field(9999, self.ra + i*30, self.dec + i*30, scheduler=self.RS))
-    #             self._backups[-1].obsTimes = self.obsTimes
-    #     return self._backups
 
 
 class Queue(object):
@@ -115,7 +116,10 @@ class Queue(object):
         self.dbDesigns = self.queue.select()\
                                    .where(opsdb.Queue.position > 0)\
                                    .order_by(opsdb.Queue.position)
-        self.designs = [Design(d.design.pk, self.scheduler.scheduler) for d in self.dbDesigns]
+        self.designs = [Design(d.design.pk,
+                               scheduler=self.scheduler.scheduler,
+                               mjd_plan=d.mjd_plan)
+                        for d in self.dbDesigns]
         self.fields = list()
 
         for d in self.designs:
@@ -126,20 +130,6 @@ class Queue(object):
             else:
                 w = np.where(d.fieldID == np.array([f.fieldID for f in self.fields]))
                 self.fields[int(w[0])].designs.append(d)
-
-    def scheduleFields(self, mjd_start, mjd_end):
-        """fields are in order because designs are in order
-           so run the night and fill it up
-        """
-        now = mjd_start
-        for i, f in enumerate(self.fields):
-            next_start = f.schedule(now)
-            if next_start > mjd_end:
-                # out of time, exclude remainder of fields
-                self.fields = self.fields[:i + 1]
-                break
-            else:
-                now = next_start
 
 
 # singleton may not be necessary, but it is probably helpful
@@ -189,7 +179,6 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         """
         newDesigns = self.scheduler.designsNext(backup)
 
-
         oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
 
         Field = targetdb.Field
@@ -207,22 +196,16 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             opsdb.Queue.insertInQueue(d, queuePos)
             queuePos += 1
 
-    def scheduleMjd(self, mjd, redo=True):
-        mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
-        mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
-        if not redo:
-            return mjd_evening_twilight, mjd_morning_twilight
-        opsdb.Queue.flushQueue()
-
-        now = mjd_evening_twilight
+    def queueFromSched(self, mjdStart, mjdEnd, redo=True):
+        now = mjdStart
 
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
         dbVersion = Version.get(plan=self.plan)
 
-        while now < mjd_morning_twilight:
-            exp_max = (mjd_morning_twilight - now) // self.exp_nom
+        while now < mjdEnd:
+            exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
             field_id, designs = self.scheduler.nextfield(mjd=now,
                                                          maxExp=exp_max,
@@ -231,78 +214,39 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                             .where(Field.field_id == field_id,
                                    Field.version == dbVersion,
                                    Design.exposure << designs)
-            for d in designs:
-                # designs are i
-                opsdb.Queue.appendQueue(d)
+            for i, d in enumerate(designs):
+                mjd_plan = now + i*self.exp_nom
+                opsdb.Queue.appendQueue(d, mjd_plan)
 
             now += len(designs) * self.exp_nom
 
-        # test_fields = targetdb.Field.select().where(targetdb.Field.deccen > -30)
-        # if len(test_fields) > 10:
-        #     test_fields = test_fields[:10]
+    def scheduleMjd(self, mjd, redo=True):
+        mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
+        mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
+        if not redo:
+            return mjd_evening_twilight, mjd_morning_twilight
+        opsdb.Queue.flushQueue()
 
-        # for f in test_fields:
-        #     designs = targetdb.Design.select().where(targetdb.Design.field == f)
-        #     for d in designs:
-        #         opsdb.Queue.appendQueue(d)
+        self.queueFromSched(mjd_evening_twilight, mjd_morning_twilight,
+                            redo=True)
 
         return mjd_evening_twilight, mjd_morning_twilight
 
-# singleton may not be necessary, but it is probably helpful
-# class Scheduler(object, metaclass=SchedulerSingleton):
-#     """Wrap roboscheduler for useful interactive behavior
-#     """
+    def rescheduleAfterField(self, mjd, fieldID):
+        queue = Queue()
 
-#     def __init__(self, observatory="apo", base=None):
+        field = queue.fields[[f.fieldID for f in queue.fields] == replace]
+        args = scheduler.choiceFields(field.startTime)
 
-#         # Set up schedule
-#         self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory)
+        oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
 
-#         # Initialize observedb
-#         self.scheduler.initdb(designbase=base)
-#         self.fields = self.scheduler.fields
+        Field = targetdb.Field
+        Design = targetdb.Design
+        Version = targetdb.Version
+        dbVersion = Version.get(plan=self.plan)
+        designs = Design.select().join(Field)\
+                                 .where(Field.field_id == backup,
+                                        Field.version == dbVersion,
+                                        Design.exposure << newDesigns)
 
-#         self.duration = np.float32(18. / 60. / 24.)
-
-#     def scheduleMjd(self, mjd):
-#         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
-#         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
-#         curr_mjd = mjd_evening_twilight
-
-#         fields = list()
-
-#         while curr_mjd < mjd_morning_twilight:
-#             maxExp = int((mjd_morning_twilight - curr_mjd)//self.duration)
-#             fieldids, nexposures, priority, nexp_next = self.scheduler.nextfield(mjd=curr_mjd,
-#                                                       maxExp=maxExp, returnAll=True)
-#             if fieldids is not None:
-#                 ipick = np.argmax(priority)
-#                 fieldid = fieldids[ipick]
-#                 pick_exp = nexposures[ipick]
-#                 # fields.append(field(fieldid, self.fields.racen[fieldid],
-#                 #                     self.fields.deccen[fieldid],
-#                 #                     self.scheduler))
-#                 # fields[-1].schedule(curr_mjd, pick_exp*self.duration)
-#                 # fields[-1].addBackup(fieldid+1000, self.fields.racen[fieldid]+30,
-#                 #                      self.fields.deccen[fieldid]+30)
-#                 # for b in fields[-1].backups:
-#                 #     b.schedule(curr_mjd, pick_exp*self.duration)
-#                 curr_mjd = curr_mjd + pick_exp*self.duration
-
-#             else:
-#                 print(curr_mjd)
-#                 curr_mjd = curr_mjd + self.duration
-
-#         startTime = Time(mjd_evening_twilight, format="mjd").datetime
-#         endTime = Time(mjd_morning_twilight, format="mjd").datetime
-
-#         return fields, startTime, endTime
-
-
-def chooseBackups(fieldids, priority, ras, decs, raMain, decMain):
-    """takes priorities and coordinates of fields
-       sorts into top picks away from "Main"
-       returns a list of fieldids chosen
-    """
-    raCuts = [-60, -30, 0, 30, 60]
-    return
+        queuePos = min(oldPositions)

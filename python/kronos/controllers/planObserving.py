@@ -105,6 +105,11 @@ async def planObserving():
     else:
         replacementField = None
 
+    if "remainder" in form:
+        redoFromField = True
+    else:
+        redoFromField = False
+
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
@@ -131,7 +136,7 @@ async def planObserving():
     if len(queue.fields) == 0:
         viz = None
     else:
-        queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
+        # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
         viz = ApogeeViz(schedule, queue.fields).export()
 
     if replace:

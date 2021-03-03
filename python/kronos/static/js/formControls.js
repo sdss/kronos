@@ -97,13 +97,13 @@ function confirmReplace(fieldID){
 }
 
 function submitBackup(fieldID){
-    //submit post request to replace field, behind the scenes
+    //submit chosen replacement
 
-    var ndesigns = 0;
+    // var ndesigns = 0;
     var prev = 0;
     for (i=0;i<backupFields.length;i++){
         if(backupFields[i].field == fieldID){
-            ndesigns = backupFields[i].designs;
+            // ndesigns = backupFields[i].designs;
             prev = backupFields[i].prev;
         }
     }
@@ -134,5 +134,52 @@ function confirmBackup(fieldID){
     var forReal = confirm("Replace with field" + fieldID + "?")
         if (forReal) {
             submitBackup(fieldID);
+        }
+}
+
+function redoFromHere(fieldID){
+    //reschedule the night after field fieldID
+
+    // var ndesigns = 0;
+    var prev = 0;
+    for (i=0;i<backupFields.length;i++){
+        if(backupFields[i].field == fieldID){
+            // ndesigns = backupFields[i].designs;
+            prev = backupFields[i].prev;
+        }
+    }
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/planObserving.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "backup";
+    hiddenField.value = fieldID;
+    form.appendChild(hiddenField);
+
+    var hiddenField2 = document.createElement('input');
+    hiddenField2.type = 'hidden';
+    hiddenField2.name = "prev";
+    hiddenField2.value = prev;
+    form.appendChild(hiddenField2);
+
+    var hiddenField3 = document.createElement('input');
+    hiddenField3.type = 'hidden';
+    hiddenField3.name = "remainder";
+    hiddenField3.value = true;
+    form.appendChild(hiddenField3);
+
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmRedoFromHere(fieldID){
+
+    var forReal = confirm("Reschedule tonight after " + fieldID + "?")
+        if (forReal) {
+            redoFromHere(fieldID);
         }
 }
