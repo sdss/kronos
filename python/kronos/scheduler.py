@@ -76,7 +76,7 @@ class Field(object):
     def _timesFromDesigns(self):
         """startTime and obsTimes need to get info from designs
         """
-        start = np.max([d.mjd_plan for d in self.designs])
+        start = np.min([d.mjd_plan for d in self.designs])
         self._startTime = start
         startTime = Time(start, format="mjd").datetime,
         if type(startTime) is tuple:
@@ -121,6 +121,7 @@ class Queue(object):
                                mjd_plan=d.mjd_plan)
                         for d in self.dbDesigns]
         self.fields = list()
+        self._fieldDict = None
 
         for d in self.designs:
             if d.fieldID not in [f.fieldID for f in self.fields]:
@@ -130,6 +131,12 @@ class Queue(object):
             else:
                 w = np.where(d.fieldID == np.array([f.fieldID for f in self.fields]))
                 self.fields[int(w[0])].designs.append(d)
+
+    @property
+    def fieldDict(self):
+        if self._fieldDict is None:
+            self._fieldDict = {f.fieldID: f for f in self.fields}
+        return self._fieldDict
 
 
 # singleton may not be necessary, but it is probably helpful
@@ -196,7 +203,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             opsdb.Queue.insertInQueue(d, queuePos)
             queuePos += 1
 
-    def queueFromSched(self, mjdStart, mjdEnd, redo=True):
+    def queueFromSched(self, mjdStart, mjdEnd):
         now = mjdStart
 
         Field = targetdb.Field
@@ -220,33 +227,20 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             now += len(designs) * self.exp_nom
 
-    def scheduleMjd(self, mjd, redo=True):
+    def getNightBounds(self, mjd):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
-        if not redo:
-            return mjd_evening_twilight, mjd_morning_twilight
-        opsdb.Queue.flushQueue()
-
-        self.queueFromSched(mjd_evening_twilight, mjd_morning_twilight,
-                            redo=True)
-
         return mjd_evening_twilight, mjd_morning_twilight
 
-    def rescheduleAfterField(self, mjd, fieldID):
+    def rescheduleAfterField(self, fieldID, night_end):
         queue = Queue()
 
-        field = queue.fields[[f.fieldID for f in queue.fields] == replace]
-        args = scheduler.choiceFields(field.startTime)
+        field = queue.fieldDict[fieldID]
+        mjd_prev = field.startTime
 
-        oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
+        rm_fields = [f for f in queue.fields if f.startTime >= mjd_prev]
 
-        Field = targetdb.Field
-        Design = targetdb.Design
-        Version = targetdb.Version
-        dbVersion = Version.get(plan=self.plan)
-        designs = Design.select().join(Field)\
-                                 .where(Field.field_id == backup,
-                                        Field.version == dbVersion,
-                                        Design.exposure << newDesigns)
+        for f in rm_fields:
+            opsdb.Queue.rm(f.fieldID)
 
-        queuePos = min(oldPositions)
+        self.queueFromSched(mjd_prev, night_end)

@@ -4,7 +4,7 @@ import datetime
 
 from quart import request, render_template, Blueprint
 
-from astropy.time import Time, TimeDelta
+from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb
 
@@ -62,12 +62,16 @@ def backupDicts(*args, sched=None, mjd=None, prev=None):
                        "prev": prev})
     return backup
 
+
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
 async def planObserving():
 
     now = Time.now()
     now.format = "mjd"
-    mjd = round(now.value)
+    mjd_now = now.value
+    # use an offset so "tonight" is used until 15:00 UTC
+    offset = 3 / 24
+    mjd = round(mjd_now - offset)
 
     form = await request.form
     args = request.args
@@ -95,7 +99,7 @@ async def planObserving():
         redo = True
 
     if "replace" in form:
-        replace = form["replace"]
+        replace = int(form["replace"])
     else:
         replace = False
 
@@ -115,16 +119,29 @@ async def planObserving():
     # date = datetimenow.date()
     scheduler = Scheduler(observatory="apo")
 
-    if replacementField is not None:
-        scheduler.replaceField(oldField, replacementField)
-
-    # fields, startTime, endTime = scheduler.scheduleMjd(mjd)
-
-    mjd_evening_twilight, mjd_morning_twilight = scheduler.scheduleMjd(mjd,
-                                                                       redo=redo)
+    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
 
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
+
+    if replacementField is not None:
+        # replacing a field
+        if redoFromField:
+            # is it bad enough to redo the rest of the queue?
+            scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
+        else:
+            # ok just the one then!
+            scheduler.replaceField(oldField, replacementField)
+
+    if redo:
+        # clear the queue
+        opsdb.Queue.flushQueue()
+        # redo the whole queue, but check if it's during the night
+        if mjd_now > mjd_evening_twilight:
+            start_mjd = mjd_now
+        else:
+            start_mjd = mjd_evening_twilight
+        scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
 
     schedule = {
             "queriedMJD": mjd,
@@ -140,8 +157,8 @@ async def planObserving():
         viz = ApogeeViz(schedule, queue.fields).export()
 
     if replace:
-        # make replace the new field, or False
-        field = queue.fields[[f.fieldID for f in queue.fields] == replace]
+        # make replace the fieldID to be replaced, or False
+        field = queue.fieldDict[replace]
         args = scheduler.choiceFields(field.startTime)
         backups = backupDicts(*args, sched=scheduler, mjd=field.startTime,
                               prev=replace)

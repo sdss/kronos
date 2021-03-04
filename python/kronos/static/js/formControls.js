@@ -142,12 +142,6 @@ function redoFromHere(fieldID){
 
     // var ndesigns = 0;
     var prev = 0;
-    for (i=0;i<backupFields.length;i++){
-        if(backupFields[i].field == fieldID){
-            // ndesigns = backupFields[i].designs;
-            prev = backupFields[i].prev;
-        }
-    }
 
     var form = document.createElement('form');
     form.method = "post";
