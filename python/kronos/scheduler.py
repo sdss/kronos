@@ -150,21 +150,26 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
-    def choiceFields(self, mjd, exp=8):
+    def choiceFields(self, mjd, exp=12):
         """return multiple fields for user to choose from
            at a specific mjd
         """
-        field_ids = self.scheduler.nextfield(mjd=mjd,
-                                             maxExp=exp,
-                                             live=True,
-                                             returnAll=True)
 
+        if exp < 4:
+            exp = 4
+        field_ids, designs = self.scheduler.nextfield(mjd=mjd,
+                                                      maxExp=exp,
+                                                      live=True,
+                                                      returnAll=True)
         fields = list()
         # design_count = list()
         coords = list()
-        for f in field_ids:
+        for f, d in zip(field_ids, designs):
             if len(fields) > 3:
                 continue
+            # try to fit in this slot as closely as possible
+            # if abs(d - exp) > 2:
+            #     continue
             idx = np.where(self.scheduler.fields.field_id == f)
             ra = self.scheduler.fields.racen[idx]
             dec = self.scheduler.fields.deccen[idx]
@@ -206,17 +211,28 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def queueFromSched(self, mjdStart, mjdEnd):
         now = mjdStart
 
+        queue = Queue()
+
+        inQueue = [f.fieldID for f in queue.fields]
+
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
         dbVersion = Version.get(plan=self.plan)
+
+        errors = list()
 
         while now < mjdEnd:
             exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
             field_id, designs = self.scheduler.nextfield(mjd=now,
                                                          maxExp=exp_max,
-                                                         live=True)
+                                                         live=True,
+                                                         ignore=inQueue)
+            if field_id is None:
+                errors.append(unfilledMjdError(now))
+                now += self.exp_nom
+                continue
             designs = Design.select().join(Field)\
                             .where(Field.field_id == field_id,
                                    Field.version == dbVersion,
@@ -225,7 +241,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 mjd_plan = now + i*self.exp_nom
                 opsdb.Queue.appendQueue(d, mjd_plan)
 
+            inQueue.append(field_id)
+
             now += len(designs) * self.exp_nom
+        return errors
 
     def getNightBounds(self, mjd):
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
@@ -243,4 +262,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         for f in rm_fields:
             opsdb.Queue.rm(f.fieldID)
 
-        self.queueFromSched(mjd_prev, night_end)
+        errors = self.queueFromSched(mjd_prev, night_end)
+        return errors
+
+
+def unfilledMjdError(mjd):
+    return f"could not schedule field at {mjd}"

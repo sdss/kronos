@@ -128,7 +128,7 @@ async def planObserving():
         # replacing a field
         if redoFromField:
             # is it bad enough to redo the rest of the queue?
-            scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
+            errors = scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
         else:
             # ok just the one then!
             scheduler.replaceField(oldField, replacementField)
@@ -141,7 +141,7 @@ async def planObserving():
             start_mjd = mjd_now
         else:
             start_mjd = mjd_evening_twilight
-        scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
+        errors = scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
 
     schedule = {
             "queriedMJD": mjd,
@@ -159,7 +159,7 @@ async def planObserving():
     if replace:
         # make replace the fieldID to be replaced, or False
         field = queue.fieldDict[replace]
-        args = scheduler.choiceFields(field.startTime)
+        args = scheduler.choiceFields(field.startTime, exp=len(field.designs))
         backups = backupDicts(*args, sched=scheduler, mjd=field.startTime,
                               prev=replace)
     else:
