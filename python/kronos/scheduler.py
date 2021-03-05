@@ -38,6 +38,7 @@ class Design(object):
         self.fieldID = self.field.field_id
         self.ra = self.field.racen
         self.dec = self.field.deccen
+        self.cadence = self.field.cadence.label
         # self.obsTimes = dict()
         self.haRange = [-60, 60]
         self.RS = scheduler
@@ -57,6 +58,8 @@ class Field(object):
     """
 
     def __init__(self, field, scheduler=None):
+        # if we ever need more than a few, get this from
+        # scheduler.fields array probably; all info should be there
         if isinstance(field, targetdb.Field):
             self.fieldID = int(field.field_id)
             self.dbField = field
@@ -65,6 +68,7 @@ class Field(object):
             self.dbField = targetdb.Field.get(field_id=self.field_id)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
+        self.cadence = self.dbField.cadence.label
         self._obsTimes = None
         self._startTime = None
         # in MJD, needed for rescheduling
