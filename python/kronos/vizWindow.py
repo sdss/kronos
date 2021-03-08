@@ -9,6 +9,7 @@ import numpy
 from kronos.scheduler import Scheduler
 
 
+
 class SVGAttrs(object):
     def __init__(self, color, opacity):
         self.fill = color
@@ -18,17 +19,17 @@ class SVGAttrs(object):
 
 
 svgAttrDict = {  # colors that svg knows about
-    "grey": SVGAttrs("black", 0.2),
+    "grey": SVGAttrs("#191919", 0.2),
     "background": SVGAttrs("white", 1.),
     "backgroundset": SVGAttrs("green", .3),
     "twilight": SVGAttrs("teal", 0.1),
-    "apogee": SVGAttrs("#191919", 0.5),
-    "vizwindow": SVGAttrs("blue", 0.5),
+    "apogee": SVGAttrs("green", 0.8),
+    "vizwindow": SVGAttrs("blue", 0.3),
     "missing": SVGAttrs("yellow", 1.0),
     "infobar": SVGAttrs("black", 0.6),
     "ha": SVGAttrs("teal", 0.1),
-    "zwarn1": SVGAttrs("chocolate", 0.8),
-    "zwarn2": SVGAttrs("red", 0.8),
+    "zwarn1": SVGAttrs("chocolate", 0.6),
+    "zwarn2": SVGAttrs("red", 0.7),
 }
 
 # define what shows up in the table (in what order too)
@@ -293,31 +294,6 @@ class Viz(object):
             ("alt", -999),
             ("utc-start", field.obsTimes["start"].strftime("%H:%M")),
         ))
-        # else:
-        #     # not current (survey planning), no time-now, choose elements to display
-        #     if self.surveyName == "eboss":
-        #         complete = plate.bossCompletionPercent
-        #     elif self.surveyName == "apogee":
-        #         if plate.apogeeCompletion is not None:
-        #             # occasionally apogee completion calculation fails, usually due to missing db
-        #             # elements.  Keep petunia from crashing here
-        #             complete = "%.2f " % plate.apogeeCompletion
-        #         else:
-        #             complete = "??"
-        #     else:
-        #         assert self.surveyName == "manga"
-        #         complete = " %.2f " % plate.mangaCompletion
-        #     tableDict = OrderedDict((
-        #         ("cart", cart),
-        #         ("plate", plate.plateID),
-        #         ("ra", plate.ra),
-        #         ("dec", plate.dec),
-        #         ("ha", plate.ha),
-        #         ("priority", plate.priority),
-        #         ("beg", vizTimes["min"].strftime("%H:%M")),
-        #         ("end", vizTimes["max"].strftime("%H:%M")),
-        #         ("%", complete),
-        #     ))
 
         if not hasattr(self, "nTableItems"):
             self.nTableItems = len(tableDict)  # set length
@@ -430,48 +406,47 @@ class Viz(object):
                         field.obsTimes["end"] + datetime.timedelta(hours=0.5))
         # print(field.fieldID, "\n", fieldUtRange)
         fieldRow = VizRow(field, self.getTableDict(field), self.timeScale, self.haScale, setCurrent=self.setCurrent, isChild=self.isChild)
-        fieldRow.addVizWindow( # draw on a white background
-            name = "background",
-            utRange = self.timeScale.range,
-            haRange = self.haScale.range
+        fieldRow.addVizWindow(  # draw on a white background
+            name="background",
+            utRange=self.timeScale.range,
+            haRange=self.haScale.range
         )
-        fieldRow.addVizWindow( # background bar
-            name = self.surveyName,
-            utRange = self.timeScale.range,
-            haRange = self.haScale.range
+        fieldRow.addVizWindow(  # background bar
+            name="grey",
+            utRange=self.timeScale.range,
+            haRange=self.haScale.range
         )
-        fieldRow.addVizWindow( # viz window
-            name = "vizwindow",
-            utRange = fullVisRange,
-            haRange = fieldHaRange,
-            primary = False  # probably?
+        fieldRow.addVizWindow(  # viz window
+            name="vizwindow",
+            utRange=fullVisRange,
+            haRange=fieldHaRange,
+            primary=False  # probably?
         )
-        fieldRow.addVizWindow( # viz window
-            name = "zWarn1",
-            utRange = fieldUtRange,
-            haRange = fieldHaRange,
-            primary = True
+        fieldRow.addVizWindow(  # viz window
+            name="apogee",
+            utRange=fieldUtRange,
+            haRange=fieldHaRange,
+            primary=True
         )
-        
-        
-        # # use 10 and 3 degree limits
-        # if plate.haRange5DegZenith: # 85 degree warning
-        #     plateRow.addVizWindow(
-        #         name = "zWarn1",
-        #         utRange = plate.utRange5DegZenith,
-        #         haRange = plate.haRange5DegZenith,
-        #     )
-        # if plate.haRange3DegZenith: # 87 degree warning
-        #     plateRow.addVizWindow(
-        #         name = "zWarn2",
-        #         utRange = plate.utRange3DegZenith,
-        #         haRange = plate.haRange3DegZenith,
-        #     )
+
+        if field.haRange5DegZenith:  # 85 degree warning
+            fieldRow.addVizWindow(
+                name="zWarn1",
+                utRange=field.utRange5DegZenith,
+                haRange=field.haRange5DegZenith,
+            )
+        if field.haRange3DegZenith:  # 85 degree warning
+            fieldRow.addVizWindow(
+                name="zWarn2",
+                utRange=field.utRange3DegZenith,
+                haRange=field.haRange3DegZenith,
+            )
+
         return fieldRow
 
 
 class ApogeeViz(Viz):
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, surveyName="apogee", **kwargs)
 

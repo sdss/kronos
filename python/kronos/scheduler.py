@@ -1,9 +1,13 @@
 import datetime
 import numpy as np
 from astropy.time import Time
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
+
+from kronos.apoSite import APOSite
 
 if not opsdb.database.connected:
     opsdb.database.connect_from_parameters(user='sdss_user',
@@ -68,6 +72,7 @@ class Field(object):
             self.dbField = targetdb.Field.get(field_id=self.field_id)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
+        self.SkyCoord = SkyCoord(self.ra*u.deg, self.dec*u.deg)
         self.cadence = self.dbField.cadence.label
         self._obsTimes = None
         self._startTime = None
@@ -92,12 +97,14 @@ class Field(object):
 
     @property
     def obsTimes(self):
+        # datetime
         if self._obsTimes is None:
             self._timesFromDesigns()
         return self._obsTimes
 
     @property
     def startTime(self):
+        # mjd
         if self._startTime is None:
             self._timesFromDesigns()
         return self._startTime
@@ -108,6 +115,48 @@ class Field(object):
         now.format = "mjd"
         lst = self.RS.lst(now.value)
         return float(self.RS.ralst2ha(ra=self.ra, lst=lst))
+
+    @property
+    def utRange5DegZenith(self):
+        if self.haRange5DegZenith is None:
+            return None
+        ha_pos = self.haRange5DegZenith[1]
+        return self._zenWarnUTC(ha_pos)
+
+    @property
+    def haRange5DegZenith(self):
+        """Return the ha range for which this field has a zenith
+        angle of 5 degrees or less, or None
+        """
+        return self._zenWarnHA(angle=5.)
+
+    @property
+    def utRange3DegZenith(self):
+        if self.haRange3DegZenith is None:
+            return None
+        ha_pos = self.haRange3DegZenith[1]
+        return self._zenWarnUTC(ha_pos)
+
+    @property
+    def haRange3DegZenith(self):
+        """Return the ha range for which this field has a zenith
+        angle of 3 degrees or less, or None
+        """
+        return self._zenWarnHA(angle=3.)
+
+    def _zenWarnHA(self, angle):
+        """Return the ha range for which this field has a zenith
+        angle of input angle(degrees) or less, or None
+        """
+        ha = APOSite.zenithWarnHA(self.dec, zenithAngle=angle)
+        if ha == 0:
+            return None
+        else:
+            return (-ha, ha)
+
+    def _zenWarnUTC(self, ha):
+
+        return APOSite.targetHa2UTC(ha, target=self.SkyCoord, mjd=self.startTime)
 
 
 class Queue(object):

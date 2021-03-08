@@ -215,12 +215,12 @@ function generateViz(vizObj, targetDiv, backups){
             else{
                 dataset[i].color = colorScale(i/numPoints).hex()
             }
-            for(j=0;j<dataset[i].vizWindows.length;j++){
-                if(dataset[i].vizWindows[j].primary){
-                    dataset[i].vizWindows[j].fill = dataset[i].color
-                    // dataset[i].color = dataset[i].vizWindows[j].fill
-                }
-            }
+            // for(j=0;j<dataset[i].vizWindows.length;j++){
+            //     if(dataset[i].vizWindows[j].primary){
+            //         dataset[i].vizWindows[j].fill = dataset[i].color
+            //         // dataset[i].color = dataset[i].vizWindows[j].fill
+            //     }
+            // }
             if(jsDate(dataset[i].timeScale[0]) < initDate && jsDate(dataset[i].timeScale[1]) > initDate){
                 dataset[i].current = true
                 onSky = true
