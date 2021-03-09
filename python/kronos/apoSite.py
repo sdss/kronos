@@ -37,7 +37,7 @@ class APOSite(object):
     # ephAPO.elevation = set it?
 
     @classmethod
-    def zenithWarnHA(cls, dec, zenithAngle):
+    def zenithAngleHA(cls, dec, zenithAngle):
         """Return hour angle (degrees) at which a given declination (dec, degrees) will fall within zenithAngle (degrees from zenith at APO)
         """
         # don't bother doing any work if dec never comes within zenithAngle of zenith at apo
@@ -89,8 +89,8 @@ class APOSite(object):
             assert dec is not None, "must specify coords if targ not given"
             target = SkyCoord(ra*u.deg, dec*u.deg)
 
-        # which means relative to sunrise, "nearest" may be better
-        t_time = cls.apo.target_meridian_transit_time(time, target, which="next")
+        # which means relative to sunrise, "nearest" seems to work best
+        t_time = cls.apo.target_meridian_transit_time(time, target, which="nearest")
 
         return t_time
 

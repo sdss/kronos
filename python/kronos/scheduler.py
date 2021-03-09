@@ -117,46 +117,70 @@ class Field(object):
         return float(self.RS.ralst2ha(ra=self.ra, lst=lst))
 
     @property
+    def utRange45DegZenith(self):
+        if self.haRange45DegZenith is None:
+            return None
+        ha_pos = self.haRange45DegZenith[1]
+        return self._zenAngleUTC(ha_pos)
+
+    @property
+    def haRange45DegZenith(self):
+        return self._zenAngleHA(angle=45.)
+
+    @property
+    def utRange60DegZenith(self):
+        if self.haRange60DegZenith is None:
+            return None
+        ha_pos = self.haRange60DegZenith[1]
+        return self._zenAngleUTC(ha_pos)
+
+    @property
+    def haRange60DegZenith(self):
+        return self._zenAngleHA(angle=60.)
+
+    @property
     def utRange5DegZenith(self):
         if self.haRange5DegZenith is None:
             return None
         ha_pos = self.haRange5DegZenith[1]
-        return self._zenWarnUTC(ha_pos)
+        return self._zenAngleUTC(ha_pos)
 
     @property
     def haRange5DegZenith(self):
         """Return the ha range for which this field has a zenith
         angle of 5 degrees or less, or None
         """
-        return self._zenWarnHA(angle=5.)
+        return self._zenAngleHA(angle=5.)
 
     @property
     def utRange3DegZenith(self):
         if self.haRange3DegZenith is None:
             return None
         ha_pos = self.haRange3DegZenith[1]
-        return self._zenWarnUTC(ha_pos)
+        return self._zenAngleUTC(ha_pos)
 
     @property
     def haRange3DegZenith(self):
         """Return the ha range for which this field has a zenith
         angle of 3 degrees or less, or None
         """
-        return self._zenWarnHA(angle=3.)
+        return self._zenAngleHA(angle=3.)
 
-    def _zenWarnHA(self, angle):
+    def _zenAngleHA(self, angle):
         """Return the ha range for which this field has a zenith
         angle of input angle(degrees) or less, or None
         """
-        ha = APOSite.zenithWarnHA(self.dec, zenithAngle=angle)
+        ha = APOSite.zenithAngleHA(self.dec, zenithAngle=angle)
         if ha == 0:
             return None
         else:
             return (-ha, ha)
 
-    def _zenWarnUTC(self, ha):
+    def _zenAngleUTC(self, ha):
 
         return APOSite.targetHa2UTC(ha, target=self.SkyCoord, mjd=self.startTime)
+
+
 
 
 class Queue(object):

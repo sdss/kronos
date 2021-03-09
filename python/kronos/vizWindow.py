@@ -25,6 +25,7 @@ svgAttrDict = {  # colors that svg knows about
     "twilight": SVGAttrs("teal", 0.1),
     "apogee": SVGAttrs("green", 0.8),
     "vizwindow": SVGAttrs("blue", 0.3),
+    "lowalt": SVGAttrs("yellow", 0.2),
     "missing": SVGAttrs("yellow", 1.0),
     "infobar": SVGAttrs("black", 0.6),
     "ha": SVGAttrs("teal", 0.1),
@@ -400,11 +401,8 @@ class Viz(object):
         """field: dbWrappers.field instance
         """
 
-        fieldHaRange = field.haRange
         fieldUtRange = (field.obsTimes["start"], field.obsTimes["end"])
-        fullVisRange = (field.obsTimes["start"] + datetime.timedelta(hours=-0.5),
-                        field.obsTimes["end"] + datetime.timedelta(hours=0.5))
-        # print(field.fieldID, "\n", fieldUtRange)
+
         fieldRow = VizRow(field, self.getTableDict(field), self.timeScale, self.haScale, setCurrent=self.setCurrent, isChild=self.isChild)
         fieldRow.addVizWindow(  # draw on a white background
             name="background",
@@ -417,15 +415,21 @@ class Viz(object):
             haRange=self.haScale.range
         )
         fieldRow.addVizWindow(  # viz window
+            name="lowalt",
+            utRange=field.utRange60DegZenith,
+            haRange=field.haRange60DegZenith,
+            primary=False
+        )
+        fieldRow.addVizWindow(  # viz window
             name="vizwindow",
-            utRange=fullVisRange,
-            haRange=fieldHaRange,
-            primary=False  # probably?
+            utRange=field.utRange45DegZenith,
+            haRange=field.haRange45DegZenith,
+            primary=False
         )
         fieldRow.addVizWindow(  # viz window
             name="apogee",
             utRange=fieldUtRange,
-            haRange=fieldHaRange,
+            haRange=field.haRange45DegZenith,
             primary=True
         )
 

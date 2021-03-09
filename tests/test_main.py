@@ -14,7 +14,7 @@ class TestSite(object):
     @mark.parametrize(('dec', 'zenithAngle', 'result'),
                       [(5, 5, 0), (5, 3, 0)])
     def test_zenithWarn(self, dec, zenithAngle, result):
-        assert APOSite.zenithWarnHA(dec, zenithAngle) == result
+        assert APOSite.zenithAngleHA(dec, zenithAngle) == result
 
 
 @mark.asyncio
