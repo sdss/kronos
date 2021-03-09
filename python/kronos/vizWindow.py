@@ -414,12 +414,13 @@ class Viz(object):
             utRange=self.timeScale.range,
             haRange=self.haScale.range
         )
-        fieldRow.addVizWindow(  # viz window
-            name="lowalt",
-            utRange=field.utRange60DegZenith,
-            haRange=field.haRange60DegZenith,
-            primary=False
-        )
+        # this is somehow slower than the others?
+        # fieldRow.addVizWindow(  # viz window
+        #     name="lowalt",
+        #     utRange=field.utRange60DegZenith,
+        #     haRange=field.haRange60DegZenith,
+        #     primary=False
+        # )
         fieldRow.addVizWindow(  # viz window
             name="vizwindow",
             utRange=field.utRange45DegZenith,

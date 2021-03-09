@@ -10,6 +10,7 @@ from sdssdb.peewee.sdss5db import opsdb
 
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
+from kronos.apoSite import APOSite
 
 from . import getTemplateDictBase
 
@@ -38,12 +39,16 @@ def getAlmanac(mjd):
     morning_mjds = [RS.morning_twilight(mjd=mjd, twilight=a) for a in angles]
     morning_times = [mjdToHMstr(m) for m in morning_mjds]
     twilights = evening_times + morning_times
+
+    moon_rise, moon_set = APOSite.moonRiseSet(evening_mjds[0])
+
     other = OrderedDict(
         (
-            ("Sidereal Time at Midnight", "99:00 LST"),
             ("Moon Illumination", "{:4.2f}".format(float(RS.moon_illumination(mjd=mjd)))),
-            ("Moonrise", "?"),
-            ("Moonset", "?"),
+            ("Moonrise", "{:2d}/{:02d} {:2d}:{:02d}".format(moon_rise.month, moon_rise.day,
+                                                            moon_rise.hour, moon_rise.minute)),
+            ("Moonset", "{:2d}/{:02d} {:2d}:{:02d}".format(moon_set.month, moon_set.day,
+                                                            moon_set.hour, moon_set.minute)),
         )
     )
     return twilights, headers, other

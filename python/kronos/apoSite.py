@@ -100,20 +100,34 @@ class APOSite(object):
         """
         return cls.site.localSiderialTime(2400000 + MJD)
 
-    @classmethod
-    def lstMidnight(cls, datetimeObj=None, returntype="datetime"):
-        if not datetimeObj:
-            datetimeObj = datetime.datetime.now()
-        dateObj = datetimeObj.date()
-        return cls.site.localSiderialTime(dateObj, returntype=returntype)
-        # else:
-        #     return cls.site.localSiderialTime(returntype="datetime")
+    # @classmethod
+    # def lstMidnight(cls, datetimeObj=None, returntype="datetime"):
+    #     if not datetimeObj:
+    #         datetimeObj = datetime.datetime.now()
+    #     dateObj = datetimeObj.date()
+    #     return cls.site.localSiderialTime(dateObj, returntype=returntype)
+    #     # else:
+    #     #     return cls.site.localSiderialTime(returntype="datetime")
+
+    # @classmethod
+    # def raDec2AltAz(cls, ra, dec):
+    #     """Convert from RA, DEC to Alt Az
+    #     @return tuple (alt, az) in degrees.
+    #     """
+    #     platecoo = pycoo.ICRSCoordinates(ra, dec)
+    #     coords = cls.site.apparentCoordinates(platecoo)
+    #     return (coords.alt.d, coords.az.d)
 
     @classmethod
-    def raDec2AltAz(cls, ra, dec):
-        """Convert from RA, DEC to Alt Az
-        @return tuple (alt, az) in degrees.
+    def moonRiseSet(cls, mjd_evening_twilight):
+        """calculate moon rise and set appropriately after mjd_evening_twilight
         """
-        platecoo = pycoo.ICRSCoordinates(ra, dec)
-        coords = cls.site.apparentCoordinates(platecoo)
-        return (coords.alt.d, coords.az.d)
+        time = Time(mjd_evening_twilight, format="mjd")
+        moon_pos = cls.apo.moon_altaz(time)
+        if moon_pos.alt.value > 0:
+            moon_set = cls.apo.moon_set_time(time, which="next")
+            moon_rise = cls.apo.moon_rise_time(time, which="previous")
+        else:
+            moon_set = cls.apo.moon_set_time(time, which="next")
+            moon_rise = cls.apo.moon_rise_time(time, which="next")
+        return moon_rise.datetime, moon_set.datetime
