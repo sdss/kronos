@@ -181,8 +181,6 @@ class Field(object):
         return APOSite.targetHa2UTC(ha, target=self.SkyCoord, mjd=self.startTime)
 
 
-
-
 class Queue(object):
     """wrapper around opsdb.Queue
     """

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+{% macro recentExps(exposures) %}
+    <table class="table" style="display:block;">
+      <thead>
+        <tr>
+          <th class="text-center">Design</th>
+          <th class="text-center">Time</th>
+          <th class="text-center">AP</th>
+          <th class="text-center">b1</th>
+          <th class="text-center">r1</th>
+        </tr>
+      </thead>
+      <tbody style="height: 350px; overflow-y:scroll; display:block;">
+    {% for e in exposures %}
+        <tr>
+          <td class="text-center">{{e.design}}</td>
+          <td class="text-center">{{e.timeStamp}}</td>
+          <td class="text-center">{{e.r1}}</td>
+          <td class="text-center">{{e.b1}}</td>
+          <td class="text-center">{{e.AP}}</td>
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}

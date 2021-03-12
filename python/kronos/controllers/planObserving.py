@@ -11,6 +11,7 @@ from sdssdb.peewee.sdss5db import opsdb
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
 from kronos.apoSite import APOSite
+from kronos.dbConvenience import getRecentExps
 
 from . import getTemplateDictBase
 
@@ -170,6 +171,8 @@ async def planObserving():
     else:
         backups = list()
 
+    exps = getRecentExps(mjd)
+
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
@@ -177,7 +180,8 @@ async def planObserving():
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": getAlmanac(mjd),  # if schedule else None,
         "queue": queue.designs,
-        "backups": backups
+        "backups": backups,
+        "exposures": exps
     })
 
     # findAndConvertDatetimes(templateDict)

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% from 'almanacMacro.html' import almanacTable %}
 {% from 'queueMacro.html' import obsQueue %}
+{% from 'exposuresMacro.html' import recentExps %}
 {% extends "layout.html" %}
 {% set active_page = "planObserving" %}
 
@@ -71,6 +72,14 @@
 
   <div class="col-lg-3">
     <div class="card">
+      <div class="card card-nav-tabs">
+        <div class="card-header card-header-danger">
+          <h3> Recent Exps </h3>
+        </div>
+        {% if exposures|length > 0 %}
+          {{recentExps(exposures)}}
+        {% endif %}
+      </div>
     </div>
   </div>
 
