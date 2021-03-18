@@ -216,7 +216,9 @@ class Queue(object):
 
 # singleton may not be necessary, but it is probably helpful
 class Scheduler(object, metaclass=SchedulerSingleton):
-    """dummy schedule for queue testing without full DB
+    """Facilitate scheduling during the night. roboscheduler picks the best
+    field for a given time, so this scheduler iterates through time to plan
+    full or partial nights.
     """
 
     def __init__(self, **kwargs):
@@ -228,6 +230,15 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def choiceFields(self, mjd, exp=12):
         """return multiple fields for user to choose from
            at a specific mjd
+
+        Parameters:
+        ----------
+
+        mjd : float
+            the mjd to ask the scheduler to schedule for
+
+        exp : integer
+            how many exposures to schedule for (i.e. how much time do we have?)
         """
 
         if exp < 4:
@@ -262,7 +273,16 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         return fields, coords
 
     def replaceField(self, oldField, backup):
-        """replace oldField with backup
+        """replace oldField with backup in the queue
+
+        Parameters:
+        ----------
+
+        oldField : integer
+            the old field to be repalced
+
+        backup : integer
+            the new field to replace oldField
         """
         newDesigns = self.scheduler.designsNext(backup)
 
@@ -284,6 +304,18 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             queuePos += 1
 
     def queueFromSched(self, mjdStart, mjdEnd):
+        """Schedule the night from mjdStart to mjdEnd and populate the queue
+        with those designs.
+
+        Parameters:
+        ----------
+
+        mjdStart : float
+            the MJD start time
+
+        mjdStop : float
+            the MJD stop time
+        """
         now = mjdStart
 
         queue = Queue()
@@ -322,11 +354,31 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         return errors
 
     def getNightBounds(self, mjd):
+        """find the beginning and end of the night
+
+        Parameters:
+        ----------
+
+        mjd : numeric
+            the MJD day we want bounds for
+        """
         mjd_evening_twilight = self.scheduler.evening_twilight(mjd)
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
         return mjd_evening_twilight, mjd_morning_twilight
 
     def rescheduleAfterField(self, fieldID, night_end):
+        """reschedule the rest of the night starting with fieldID
+
+        Parameters:
+        ----------
+
+        fieldID : integer
+            the field to begin rescheduling the night at
+
+        night_end : float
+            the MJD of the end of the night; the beginning will be the
+            scheduled mjd of fieldID
+        """
         queue = Queue()
 
         field = queue.fieldDict[fieldID]
