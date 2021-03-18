@@ -147,9 +147,9 @@ class Field(object):
 
     @property
     def haRange5DegZenith(self):
-        """Return the ha range for which this field has a zenith
-        angle of 5 degrees or less, or None
-        """
+        # """Return the ha range for which this field has a zenith
+        # angle of 5 degrees or less, or None
+        # """
         return self._zenAngleHA(angle=5.)
 
     @property
@@ -161,9 +161,9 @@ class Field(object):
 
     @property
     def haRange3DegZenith(self):
-        """Return the ha range for which this field has a zenith
-        angle of 3 degrees or less, or None
-        """
+        # """Return the ha range for which this field has a zenith
+        # angle of 3 degrees or less, or None
+        # """
         return self._zenAngleHA(angle=3.)
 
     def _zenAngleHA(self, angle):

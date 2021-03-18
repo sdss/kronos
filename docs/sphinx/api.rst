@@ -1,15 +1,23 @@
 
 .. _api:
 
-kronos Reference
+Kronos Reference
 =========================
 
 .. _api-main:
 
-Main
-----
+Scheduler
+---------
 
-.. automodule:: kronos.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autoclass:: kronos.scheduler.Scheduler
+    :members:
+
+.. autoclass:: kronos.scheduler.Queue
+    :members:
+
+.. autoclass:: kronos.scheduler.Field
+    :members:
+
+.. autoclass:: kronos.scheduler.Design
+    :members:
+
