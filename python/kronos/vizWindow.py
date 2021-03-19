@@ -403,7 +403,9 @@ class Viz(object):
 
         fieldUtRange = (field.obsTimes["start"], field.obsTimes["end"])
 
-        fieldRow = VizRow(field, self.getTableDict(field), self.timeScale, self.haScale, setCurrent=self.setCurrent, isChild=self.isChild)
+        fieldRow = VizRow(field, self.getTableDict(field), self.timeScale,
+                          self.haScale, setCurrent=self.setCurrent,
+                          isChild=self.isChild)
         fieldRow.addVizWindow(  # draw on a white background
             name="background",
             utRange=self.timeScale.range,
@@ -415,12 +417,12 @@ class Viz(object):
             haRange=self.haScale.range
         )
         # this is somehow slower than the others?
-        # fieldRow.addVizWindow(  # viz window
-        #     name="lowalt",
-        #     utRange=field.utRange60DegZenith,
-        #     haRange=field.haRange60DegZenith,
-        #     primary=False
-        # )
+        fieldRow.addVizWindow(  # viz window
+            name="lowalt",
+            utRange=field.utRange60DegZenith,
+            haRange=field.haRange60DegZenith,
+            primary=False
+        )
         fieldRow.addVizWindow(  # viz window
             name="vizwindow",
             utRange=field.utRange45DegZenith,

@@ -223,7 +223,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
     def __init__(self, **kwargs):
         self.plan = "test-newfield-hack"
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo")
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo",
+                                                           airmass_limit=1.5)
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
