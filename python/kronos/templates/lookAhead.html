@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+{% from 'almanacMacro.html' import almanacTable %}
+{% from 'queueMacro.html' import obsQueue %}
+{% from 'exposuresMacro.html' import recentExps %}
+{% extends "layout.html" %}
+{% set active_page = "lookAhead" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Kronos : Look Ahead</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Plan Observing")} #}
+{% endblock head %}
+
+{% block body %}
+<script src="../static/js/core/d3.min.js"></script>
+<script src="../static/js/core/chroma.js"></script>
+<script src="../static/js/vizWindow.js"></script>
+<!-- <script src="../static/js/drawFields.js"></script> -->
+<script src="../static/js/formControls.js"></script>
+
+<div class="row">
+  <div class="col-lg-3">
+    <div class="card card-nav-tabs" style="width: 20rem;">
+      <div class="card-header card-header-danger">
+        <h3> Obs Queue </h3>
+        <div class="queue-row">
+          <span class="queue-head">
+            <a class="queue-field">Field</a>
+            <a class="queue-design">Design</a>
+          </span>
+          <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
+          <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
+      </div>
+      </div>
+      {% if queue|length > 0 %}
+        <ul class="list-group" style="height: 350px; overflow: auto">
+          {{obsQueue(queue)}}
+        </ul>
+      {% else %}
+        <div style="height: 350px; overflow: auto; text-align: center; line-height: 350px;">
+          <a>
+            <i class="material-icons refresh-field" onclick="redoQueue()">refresh</i>
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+<!--   <div class="col-lg-6">
+    <div class="row">
+      <div id="cloudCam" class="col-md-6">
+        <canvas id='myCanvas' width="640" height="480"></canvas>
+      </div>
+    </div>
+    <div class="row">
+      {% for b in backups %}
+        <li class="list-group-item">
+          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field}})" id="backup-{{b.field}}" style="background-color: {{b.color}}; color: black;">{{b.field}}</button>
+        </li>
+      {% endfor %}
+      {% if backups|length > 0 %}
+        <li class="list-group-item">
+          <button class="btn btn-info" onclick="submitReplacement()" style="color:black;" id="submitReplacementField"></button>
+        </li>
+      {% endif %}
+    </div>
+  </div>
+ -->
+<!--   <div class="col-lg-3">
+    <div class="card">
+      <div class="card card-nav-tabs">
+        <div class="card-header card-header-danger">
+          <h3> Recent Exps </h3>
+        </div>
+        {% if exposures|length > 0 %}
+          {{recentExps(exposures)}}
+        {% endif %}
+      </div>
+    </div>
+  </div> -->
+
+</div>  
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+        {{almanacTable(almanac)}}
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="apogeeViz">
+      <div class="row">
+        <div class = "col-md-8">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+<script>
+    // show the cloud came image
+    // testViz({{apogeeViz| tojson}})
+
+    const vizObj = {{apogeeViz | tojson}};
+    const backupFields = {{backups | tojson}};
+    const selectedBackup = null;
+    var dataset = null;
+
+    // var colorScale = chroma.scale(['yellow', 'red', 'black']);
+    // for (i=0;i<backupFields.length;i++){
+    //     backupFields[i].color = colorScale(i/backupFields.length).hex()
+    //     let thisButton = document.getElementById("backup-" + backupFields[i].field);
+    //     thisButton.style.backgroundColor = backupFields[i].color;
+    // }
+
+    // this populates the .<nameViz> div with the visualization
+    generateViz(vizObj,".apogeeViz", backupFields);
+
+    // function selectField(fieldID){
+    //     toggleOff = false;
+    //     for (i=0;i<dataset.length;i++){
+    //         if(dataset[i].fieldID == fieldID){
+    //             dataset[i].toggleSelected();
+    //         }
+    //     }
+    //     generateViz(vizObj,".apogeeViz", backupFields);
+    // }
+
+    // function highlightBackup(fieldid){
+    //     let idField = document.getElementById("submitReplacementField");
+    //     for (i=0;i<backupFields.length;i++){
+    //         if(backupFields[i].field == fieldid){
+    //             backupFields[i].selected = !backupFields[i].selected;
+    //             if (backupFields[i].selected){
+    //               idField.innerText = "submit " + fieldid;
+    //             }
+    //         }
+    //         else{
+    //           backupFields[i].selected = false;
+    //         }
+    //     }
+    //     generateViz(vizObj,".apogeeViz", backupFields);
+    //     // renderCloudCam(dataset, backups);
+    // }
+
+    // function submitReplacement(){
+    //   let idField = document.getElementById("submitReplacementField");
+    //   confirmBackup(idField.innerText.substring(6));
+    // }
+
+</script>
+{% endblock body %}
