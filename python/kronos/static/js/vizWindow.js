@@ -1159,7 +1159,9 @@ function generateViz(vizObj, targetDiv, backups){
         drawSVG();
     }
     drawSVG();
-    renderCloudCam(dataset, backups);
+    if (showCloudCam){
+        renderCloudCam(dataset, backups);
+    }
     // start timer for real time red bar, update once a second (every 1000 ms)
     $( window ).on("resize", redrawSVG);
 

@@ -69,7 +69,7 @@ class Field(object):
             self.dbField = field
         else:
             self.fieldID = int(field)
-            self.dbField = targetdb.Field.get(field_id=self.field_id)
+            self.dbField = targetdb.Field.get(field_id=self.fieldID)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
         self.SkyCoord = SkyCoord(self.ra*u.deg, self.dec*u.deg)
@@ -353,6 +353,56 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             now += len(designs) * self.exp_nom
         return errors
+
+    def schedNoQueue(self, mjdStart, mjdEnd):
+        """Schedule the night from mjdStart to mjdEnd but DO NOT populate
+        the queue. For planning.
+
+        Parameters:
+        ----------
+
+        mjdStart : float
+            the MJD start time
+
+        mjdStop : float
+            the MJD stop time
+        """
+        now = mjdStart
+
+        inQueue = list()
+
+        fields = list()
+
+        errors = list()
+
+        while now < mjdEnd:
+            exp_max = (mjdEnd - now) // self.exp_nom
+            # field id and exposure nums of designs
+            field_id, designs = self.scheduler.nextfield(mjd=now,
+                                                         maxExp=exp_max,
+                                                         live=True,
+                                                         ignore=inQueue)
+            if field_id is None:
+                errors.append(unfilledMjdError(now))
+                now += self.exp_nom
+                continue
+
+            inQueue.append(field_id)
+
+            field_wrap = Field(field_id, self.scheduler)
+            # manually, to save us from designs
+            field_wrap._startTime = now
+
+            startTime = Time(now, format="mjd").datetime
+            mjd_duration = len(designs) * design_time
+            endTime = startTime + datetime.timedelta(seconds=int(mjd_duration*86400))
+            field_wrap._obsTimes = {"start": startTime,
+                                    "end": endTime}
+
+            fields.append(field_wrap)
+
+            now += len(designs) * self.exp_nom
+        return fields, errors
 
     def getNightBounds(self, mjd):
         """find the beginning and end of the night

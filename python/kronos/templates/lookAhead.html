@@ -18,7 +18,7 @@
 <script src="../static/js/core/d3.min.js"></script>
 <script src="../static/js/core/chroma.js"></script>
 <script src="../static/js/vizWindow.js"></script>
-<!-- <script src="../static/js/drawFields.js"></script> -->
+<script src="../static/js/drawFields.js"></script>
 <script src="../static/js/formControls.js"></script>
 
 <div class="row">
@@ -94,7 +94,18 @@
 
 <div class="row">
   <div class="col-md-12">
-    <div class="apogeeViz">
+    <div class="queueViz">
+      <div class="row">
+        <div class = "col-md-8">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="schedViz">
       <div class="row">
         <div class = "col-md-8">
         </div>
@@ -118,55 +129,13 @@
 </style>
 
 <script>
-    // show the cloud came image
-    // testViz({{apogeeViz| tojson}})
-
+    const showCloudCam = false;
     const vizObj = {{apogeeViz | tojson}};
     const backupFields = {{backups | tojson}};
-    const selectedBackup = null;
-    var dataset = null;
+    generateViz(vizObj,".queueViz", backupFields);
 
-    // var colorScale = chroma.scale(['yellow', 'red', 'black']);
-    // for (i=0;i<backupFields.length;i++){
-    //     backupFields[i].color = colorScale(i/backupFields.length).hex()
-    //     let thisButton = document.getElementById("backup-" + backupFields[i].field);
-    //     thisButton.style.backgroundColor = backupFields[i].color;
-    // }
-
-    // this populates the .<nameViz> div with the visualization
-    generateViz(vizObj,".apogeeViz", backupFields);
-
-    // function selectField(fieldID){
-    //     toggleOff = false;
-    //     for (i=0;i<dataset.length;i++){
-    //         if(dataset[i].fieldID == fieldID){
-    //             dataset[i].toggleSelected();
-    //         }
-    //     }
-    //     generateViz(vizObj,".apogeeViz", backupFields);
-    // }
-
-    // function highlightBackup(fieldid){
-    //     let idField = document.getElementById("submitReplacementField");
-    //     for (i=0;i<backupFields.length;i++){
-    //         if(backupFields[i].field == fieldid){
-    //             backupFields[i].selected = !backupFields[i].selected;
-    //             if (backupFields[i].selected){
-    //               idField.innerText = "submit " + fieldid;
-    //             }
-    //         }
-    //         else{
-    //           backupFields[i].selected = false;
-    //         }
-    //     }
-    //     generateViz(vizObj,".apogeeViz", backupFields);
-    //     // renderCloudCam(dataset, backups);
-    // }
-
-    // function submitReplacement(){
-    //   let idField = document.getElementById("submitReplacementField");
-    //   confirmBackup(idField.innerText.substring(6));
-    // }
+    const vizObjSched = {{schedViz | tojson}};
+    generateViz(vizObjSched,".schedViz", backupFields);
 
 </script>
 {% endblock body %}

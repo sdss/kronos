@@ -73,33 +73,15 @@ async def lookAhead():
         redoFromField = False
 
     templateDict = getTemplateDictBase()
-    # date = datetime.datetime.utcnow()
-    # date = datetimenow.date()
+
     scheduler = Scheduler(observatory="apo")
 
     mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
 
+    fields, errors = scheduler.schedNoQueue(mjd_evening_twilight, mjd_morning_twilight)
+
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
-
-    if replacementField is not None:
-        # replacing a field
-        if redoFromField:
-            # is it bad enough to redo the rest of the queue?
-            errors = scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
-        else:
-            # ok just the one then!
-            scheduler.replaceField(oldField, replacementField)
-
-    if redo:
-        # clear the queue
-        opsdb.Queue.flushQueue()
-        # redo the whole queue, but check if it's during the night
-        if mjd_now > mjd_evening_twilight:
-            start_mjd = mjd_now
-        else:
-            start_mjd = mjd_evening_twilight
-        errors = scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
 
     schedule = {
             "queriedMJD": mjd,
@@ -114,26 +96,16 @@ async def lookAhead():
         # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
         viz = ApogeeViz(schedule, queue.fields).export()
 
-    if replace:
-        # make replace the fieldID to be replaced, or False
-        field = queue.fieldDict[replace]
-        args = scheduler.choiceFields(field.startTime, exp=len(field.designs))
-        backups = backupDicts(*args, sched=scheduler, mjd=field.startTime,
-                              prev=replace)
-    else:
-        backups = list()
-
-    exps = getRecentExps(mjd)
+    schedViz = ApogeeViz(schedule, fields).export()
 
     templateDict.update({
-        # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
+        "schedViz": schedViz,
         "mjd": mjd,
-        "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
+        "errorMsg": [],
         "almanac": getAlmanac(mjd),  # if schedule else None,
         "queue": queue.designs,
-        "backups": backups,
-        "exposures": exps
+        "backups": []
     })
 
     # findAndConvertDatetimes(templateDict)
