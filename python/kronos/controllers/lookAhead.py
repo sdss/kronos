@@ -38,39 +38,40 @@ async def lookAhead():
 
     # parse POST/GET args
 
+    print(args)
+
     if "mjd" in args:
-        # deprecated?
+        print(int(args["mjd"]))
         mjd = int(args["mjd"])
-        redo = True
-    if "redo" in args:
-        # deprecated?
-        redo = True
+    # if "redo" in args:
+    #     # deprecated?
+    #     redo = True
 
-    if "rmField" in form:
-        rmField = int(form["rmField"])
-        opsdb.Queue.rm(rmField)
+    # if "rmField" in form:
+    #     rmField = int(form["rmField"])
+    #     opsdb.Queue.rm(rmField)
 
-    elif "flush" in form:
-        opsdb.Queue.flushQueue()
+    # elif "flush" in form:
+    #     opsdb.Queue.flushQueue()
 
-    elif "redo" in form:
-        redo = True
+    # elif "redo" in form:
+    #     redo = True
 
-    if "replace" in form:
-        replace = int(form["replace"])
-    else:
-        replace = False
+    # if "replace" in form:
+    #     replace = int(form["replace"])
+    # else:
+    #     replace = False
 
-    if "backup" in form:
-        replacementField = int(form["backup"])
-        oldField = int(form["prev"])
-    else:
-        replacementField = None
+    # if "backup" in form:
+    #     replacementField = int(form["backup"])
+    #     oldField = int(form["prev"])
+    # else:
+    #     replacementField = None
 
-    if "remainder" in form:
-        redoFromField = True
-    else:
-        redoFromField = False
+    # if "remainder" in form:
+    #     redoFromField = True
+    # else:
+    #     redoFromField = False
 
     templateDict = getTemplateDictBase()
 
