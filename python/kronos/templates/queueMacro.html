@@ -18,3 +18,18 @@
         </li>
     {% endfor %}
 {% endmacro %}
+
+{% macro obsQueueStatic(designs) %}
+    {% for des in designs %}
+        <li class="list-group-item">
+            <div class="queue-row">
+                <span onclick="selectField({{des.fieldID}})" class="queue-item">
+                    <a class="queue-field field-{{des.fieldID}}">
+                        <span class="hover-field">{{des.cadence}}</span>{{des.fieldID}}
+                    </a>
+                    <a class="queue-design">{{des.designID}}</a>
+                </span>
+            </div>
+        </li>
+    {% endfor %}
+{% endmacro %}

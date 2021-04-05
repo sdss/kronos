@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% from 'almanacMacro.html' import almanacTable %}
-{% from 'queueMacro.html' import obsQueue %}
+{% from 'queueMacro.html' import obsQueueStatic %}
 {% from 'exposuresMacro.html' import recentExps %}
 {% extends "layout.html" %}
 {% set active_page = "lookAhead" %}
@@ -31,19 +31,14 @@
             <a class="queue-field">Field</a>
             <a class="queue-design">Design</a>
           </span>
-          <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
-          <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
       </div>
       </div>
       {% if queue|length > 0 %}
         <ul class="list-group" style="height: 350px; overflow: auto">
-          {{obsQueue(queue)}}
+          {{obsQueueStatic(queue)}}
         </ul>
       {% else %}
         <div style="height: 350px; overflow: auto; text-align: center; line-height: 350px;">
-          <a>
-            <i class="material-icons refresh-field" onclick="redoQueue()">refresh</i>
-          </a>
         </div>
       {% endif %}
     </div>
