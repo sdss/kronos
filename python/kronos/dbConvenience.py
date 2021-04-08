@@ -40,3 +40,14 @@ def getRecentExps(mjd):
         exp_list.append(exp_dict)
 
     return exp_list
+
+
+def fieldQuery(cadence):
+    """query targetdb for fields matching parameters
+    """
+
+
+def getCadences():
+    cadQuery = targetdb.Cadence.select()
+    # select returns query object, we want a list
+    return [c for c in cadQuery]
