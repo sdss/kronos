@@ -77,12 +77,15 @@
 
 {% block body %}
 
+<script src="../static/js/autoComplete.js"></script>
+<script src="../static/js/formControls.js"></script>
+
 <div class="card">
 <form autocomplete="off" action="/fieldQuery.html">
   <div class="form-row">
     <div class="form-group col-md-6">
       <label for="cadenceSelect">Cadence</label>
-      <input id="cadenceSelect" type="text" name="cadence" placeholder="{{chosenCadence}}">
+      <input id="cadenceSelect" type="text" name="cadence" {% if chosenCadence != "none" %} value="{{chosenCadence}}" {% else %} placeholder="Cadence" {% endif %}>
     </div>
     <div class="form-group col-md-6">
       <div class="form-check form-check-radio">
@@ -136,12 +139,12 @@
       </tr>
     </thead>
     <tbody>
-      {{fieldList(fields)}}
+      {{fieldList(fields, specialStatus, chosenCadence)}}
     </tbody>
   </table>
 </div>
 
-<script src="../static/js/autoComplete.js"></script>
+
 <script>
   var cadences = [{% for cad in cadences %} "{{cad}}", {% endfor %}];
 

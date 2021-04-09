@@ -177,3 +177,90 @@ function confirmRedoFromHere(fieldID){
             redoFromHere(fieldID);
         }
 }
+
+function prioritizeField(fieldPk, specialStatus, cadence){
+    //submit post request to remove field from queue, behind the scenes
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/fieldQuery.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "prioritizeField";
+    hiddenField.value = fieldPk;
+    form.appendChild(hiddenField);
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "chosenCadence";
+    hiddenField.value = cadence;
+    form.appendChild(hiddenField);
+    
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "specialStatus";
+    hiddenField.value = specialStatus;
+    form.appendChild(hiddenField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function disableField(fieldPk, specialStatus, cadence){
+    //submit post request to remove field from queue, behind the scenes
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/fieldQuery.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "disableField";
+    hiddenField.value = fieldPk;
+    form.appendChild(hiddenField);
+    
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "chosenCadence";
+    hiddenField.value = cadence;
+    form.appendChild(hiddenField);
+    
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "specialStatus";
+    hiddenField.value = specialStatus;
+    form.appendChild(hiddenField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function resetField(fieldPk, specialStatus, cadence){
+    //submit post request to remove field from queue, behind the scenes
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/fieldQuery.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "resetField";
+    hiddenField.value = fieldPk;
+    form.appendChild(hiddenField);
+    
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "chosenCadence";
+    hiddenField.value = cadence;
+    form.appendChild(hiddenField);
+    
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "specialStatus";
+    hiddenField.value = specialStatus;
+    form.appendChild(hiddenField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}

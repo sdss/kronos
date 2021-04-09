@@ -2,11 +2,16 @@
 
 from quart import request, render_template, Blueprint
 
+from sdssdb.peewee.sdss5db import targetdb
+
 from kronos.dbConvenience import getCadences, fieldQuery
 from . import getTemplateDictBase
 
 fieldQuery_page = Blueprint("fieldQuery_page", __name__)
 
+
+def sortFunc(elem):
+    return elem.field_id
 
 @fieldQuery_page.route('/fieldQuery.html', methods=['GET', 'POST'])
 async def fieldDetail():
@@ -15,20 +20,43 @@ async def fieldDetail():
 
     templateDict = getTemplateDictBase()
 
-    if request.args:
-        chosenCadence = request.args["cadence"]
+    form = await request.form
 
-        specialStatus = request.args["specialStatus"]
+    if "prioritizeField" in form:
+        fieldPk = form["prioritizeField"]
+        q = targetdb.Field.update(priority=2).where(targetdb.Field.pk == fieldPk)
+        q.execute()
+        specialStatus = form["specialStatus"]
+        chosenCadence = form["chosenCadence"]
+    elif "disableField" in form:
+        fieldPk = form["disableField"]
+        q = targetdb.Field.update(priority=1).where(targetdb.Field.pk == fieldPk)
+        q.execute()
+        specialStatus = form["specialStatus"]
+        chosenCadence = form["chosenCadence"]
+    elif "resetField" in form:
+        fieldPk = form["resetField"]
+        q = targetdb.Field.update(priority=0).where(targetdb.Field.pk == fieldPk)
+        q.execute()
+        specialStatus = form["specialStatus"]
+        chosenCadence = form["chosenCadence"]
     else:
         specialStatus = "none"
-        chosenCadence = "Cadence"
+        chosenCadence = "none"
 
-    if chosenCadence == "Cadence":
+    if request.args:
+        chosenCadence = request.args["cadence"].strip()
+        if len(chosenCadence) == 0:
+            chosenCadence = "none"
+        specialStatus = request.args["specialStatus"]
+
+    if chosenCadence == "none":
         queryCadence = None
     else:
         queryCadence = chosenCadence
 
     fields = fieldQuery(cadence=queryCadence)
+    fields.sort(key=sortFunc)
 
     templateDict.update({
         "cadences": [str(c.label) for c in cadences],

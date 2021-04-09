@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% macro fieldList(fields) %}
+{% macro fieldList(fields, specialStatus, chosenCadence) %}
     {% for field in fields %}
         <tr>
             <td>{{field.cadence.label}}</td>
@@ -7,17 +7,17 @@
             <td>{{field.racen}}</td>
             <td>{{field.deccen}}</td>
             <td>
-                <button type="button" title="schedule if possible" class="btn btn-success">
+                <button type="button" title="schedule if possible" class="btn {% if field.priority == 2 %} btn-primary {% else %} btn-success {% endif %}" onclick="prioritizeField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">thumb_up_off_alt</i>
                 </button>
             </td>
             <td>
-                <button type="button" title="do not schedule" class="btn btn-danger">
+                <button type="button" title="do not schedule" class="btn {% if field.priority == 1 %} btn-primary {% else %} btn-danger {% endif %}" onclick="disableField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">thumb_down_off_alt</i>
                 </button>
             </td>
             <td>
-                <button type="button" title="return to default" class="btn btn-info">
+                <button type="button" title="return to default" class="btn btn-info" onclick="resetField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">undo</i>
                 </button>
             </td>
