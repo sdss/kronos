@@ -2,7 +2,7 @@
 
 from quart import request, render_template, Blueprint
 
-from kronos.dbConvenience import getCadences
+from kronos.dbConvenience import getCadences, fieldQuery
 from . import getTemplateDictBase
 
 fieldQuery_page = Blueprint("fieldQuery_page", __name__)
@@ -23,10 +23,18 @@ async def fieldDetail():
         specialStatus = "none"
         chosenCadence = "Cadence"
 
+    if chosenCadence == "Cadence":
+        queryCadence = None
+    else:
+        queryCadence = chosenCadence
+
+    fields = fieldQuery(cadence=queryCadence)
+
     templateDict.update({
         "cadences": [str(c.label) for c in cadences],
         "specialStatus": specialStatus,
-        "chosenCadence": chosenCadence
+        "chosenCadence": chosenCadence,
+        "fields": fields
     })
 
     return await render_template("fieldQuery.html", **templateDict)

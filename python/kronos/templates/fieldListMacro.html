@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% macro fieldList(fields) %}
+    {% for field in fields %}
+        <tr>
+            <td>{{field.cadence.label}}</td>
+            <td>{{field.field_id}}</td>
+            <td>{{field.racen}}</td>
+            <td>{{field.deccen}}</td>
+            <td>
+                <button type="button" title="schedule if possible" class="btn btn-success">
+                    <i class="material-icons">thumb_up_off_alt</i>
+                </button>
+            </td>
+            <td>
+                <button type="button" title="do not schedule" class="btn btn-danger">
+                    <i class="material-icons">thumb_down_off_alt</i>
+                </button>
+            </td>
+            <td>
+                <button type="button" title="return to default" class="btn btn-info">
+                    <i class="material-icons">undo</i>
+                </button>
+            </td>
+        </tr>
+    {% endfor %}
+{% endmacro %}

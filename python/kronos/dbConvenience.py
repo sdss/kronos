@@ -42,9 +42,21 @@ def getRecentExps(mjd):
     return exp_list
 
 
-def fieldQuery(cadence):
+def fieldQuery(cadence=None, limit=100):
     """query targetdb for fields matching parameters
     """
+    dbCad = targetdb.Cadence
+    if cadence is not None:
+        matchingCad = dbCad.select().where(dbCad.label.contains(cadence))
+    else:
+        matchingCad = dbCad.select()
+
+    dbField = targetdb.Field
+
+    fields = dbField.select().where(dbField.cadence << matchingCad).limit(limit)
+
+    # select returns query object, we want a list
+    return [f for f in fields]
 
 
 def getCadences():
