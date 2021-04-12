@@ -7,6 +7,7 @@ from astropy.coordinates import SkyCoord
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
+from kronos import rs_version
 from kronos.apoSite import APOSite
 
 if not opsdb.database.connected:
@@ -222,7 +223,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     """
 
     def __init__(self, **kwargs):
-        self.plan = "test-newfield-hack"
+        self.plan = rs_version
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo",
                                                            airmass_limit=1.5)
         self.scheduler.initdb(designbase=self.plan, fromFits=False)

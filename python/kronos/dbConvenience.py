@@ -4,6 +4,8 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
+from kronos import rs_version
+
 
 def getRecentExps(mjd):
     r1_db = opsdb.Camera.get(label="r1")
@@ -53,6 +55,7 @@ def fieldQuery(cadence=None, priority=None, limit=100):
         matchingCad = dbCad.select()
 
     dbField = targetdb.Field
+    dbVersion = targetdb.Version.get(plan=rs_version)
 
     if priority is not None:
         if priority == "top":
@@ -62,10 +65,12 @@ def fieldQuery(cadence=None, priority=None, limit=100):
         else:
             raise Exception()
         fields = dbField.select().where(dbField.cadence << matchingCad,
+                                        dbField.version == dbVersion,
                                         dbField.priority == priority)\
                                  .limit(limit)
     else:
-        fields = dbField.select().where(dbField.cadence << matchingCad)\
+        fields = dbField.select().where(dbField.cadence << matchingCad,
+                                        dbField.version == dbVersion)\
                                  .limit(limit)
 
     # select returns query object, we want a list
