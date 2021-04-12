@@ -42,9 +42,10 @@ def getRecentExps(mjd):
     return exp_list
 
 
-def fieldQuery(cadence=None, limit=100):
+def fieldQuery(cadence=None, priority=None, limit=100):
     """query targetdb for fields matching parameters
     """
+
     dbCad = targetdb.Cadence
     if cadence is not None:
         matchingCad = dbCad.select().where(dbCad.label.contains(cadence))
@@ -53,7 +54,19 @@ def fieldQuery(cadence=None, limit=100):
 
     dbField = targetdb.Field
 
-    fields = dbField.select().where(dbField.cadence << matchingCad).limit(limit)
+    if priority is not None:
+        if priority == "top":
+            priority = 2
+        elif priority == "disabled":
+            priority = 1
+        else:
+            raise Exception()
+        fields = dbField.select().where(dbField.cadence << matchingCad,
+                                        dbField.priority == priority)\
+                                 .limit(limit)
+    else:
+        fields = dbField.select().where(dbField.cadence << matchingCad)\
+                                 .limit(limit)
 
     # select returns query object, we want a list
     return [f for f in fields]

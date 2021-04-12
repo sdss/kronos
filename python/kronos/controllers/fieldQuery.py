@@ -41,6 +41,7 @@ async def fieldDetail():
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     else:
+        # set default, can change it below
         specialStatus = "none"
         chosenCadence = "none"
 
@@ -55,7 +56,11 @@ async def fieldDetail():
     else:
         queryCadence = chosenCadence
 
-    fields = fieldQuery(cadence=queryCadence)
+    if specialStatus == "none":
+        dbPriority = None
+    else:
+        dbPriority = specialStatus
+    fields = fieldQuery(cadence=queryCadence, priority=dbPriority)
     fields.sort(key=sortFunc)
 
     templateDict.update({
