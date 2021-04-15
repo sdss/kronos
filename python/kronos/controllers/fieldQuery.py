@@ -2,7 +2,7 @@
 
 from quart import request, render_template, Blueprint
 
-from sdssdb.peewee.sdss5db import targetdb
+from sdssdb.peewee.sdss5db import targetdb, opsdb
 
 from kronos.dbConvenience import getCadences, fieldQuery
 from . import getTemplateDictBase
@@ -24,20 +24,25 @@ async def fieldDetail():
 
     if "prioritizeField" in form:
         fieldPk = form["prioritizeField"]
-        q = targetdb.Field.update(priority=2).where(targetdb.Field.pk == fieldPk)
-        q.execute()
+        dbPriority = opsdb.FieldPriority.get(label="top")
+        f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
+        f2p.FieldPriority = dbPriority
+        f2p.save()
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     elif "disableField" in form:
         fieldPk = form["disableField"]
-        q = targetdb.Field.update(priority=1).where(targetdb.Field.pk == fieldPk)
-        q.execute()
+        dbPriority = opsdb.FieldPriority.get(label="disabled")
+        f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
+        f2p.FieldPriority = dbPriority
+        f2p.save()
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     elif "resetField" in form:
         fieldPk = form["resetField"]
-        q = targetdb.Field.update(priority=0).where(targetdb.Field.pk == fieldPk)
-        q.execute()
+        q = opsdb.FieldToPriority.delete().where(opsdb.FieldToPriority.field_pk == fieldPk)
+        removed = q.execute()
+        assert removed != 0, "Should not have been able to delete"
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     else:

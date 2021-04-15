@@ -58,15 +58,14 @@ def fieldQuery(cadence=None, priority=None, limit=100):
     dbVersion = targetdb.Version.get(plan=rs_version)
 
     if priority is not None:
-        if priority == "top":
-            priority = 2
-        elif priority == "disabled":
-            priority = 1
-        else:
-            raise Exception()
-        fields = dbField.select().where(dbField.cadence << matchingCad,
-                                        dbField.version == dbVersion,
-                                        dbField.priority == priority)\
+        fp = opsdb.FieldPriority
+        f2p = opsdb.FieldToPriority
+        priority = fp.get(label=priority)
+        fields = dbField.select().join(f2p, on=(f2p.field_pk == dbField.pk))\
+                                 .join(fp, on=(fp.pk == f2p.field_priority_pk))\
+                                 .where(fp.pk == priority.pk,
+                                        dbField.cadence << matchingCad,
+                                        dbField.version == dbVersion)\
                                  .limit(limit)
     else:
         fields = dbField.select().where(dbField.cadence << matchingCad,

@@ -1,25 +1,36 @@
 <!DOCTYPE html>
 {% macro fieldList(fields, specialStatus, chosenCadence) %}
     {% for field in fields %}
+    {% if field.priority | length > 0 %}
+        {% set pri = field.priority[0].label %}
+    {% else %}
+        {% set pri = "none" %}
+    {% endif %}
         <tr>
             <td>{{field.cadence.label}}</td>
             <td>{{field.field_id}}</td>
             <td>{{field.racen}}</td>
             <td>{{field.deccen}}</td>
             <td>
-                <button type="button" title="schedule if possible" class="btn {% if field.priority == 2 %} btn-primary {% else %} btn-success {% endif %}" onclick="prioritizeField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
+                <button type="button" title="schedule if possible" class="btn {% if pri == "top" %} btn-primary {% else %} btn-success {% endif %}" onclick="prioritizeField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">thumb_up_off_alt</i>
                 </button>
             </td>
             <td>
-                <button type="button" title="do not schedule" class="btn {% if field.priority == 1 %} btn-primary {% else %} btn-danger {% endif %}" onclick="disableField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
+                <button type="button" title="do not schedule" class="btn {% if pri == "disabled" %} btn-primary {% else %} btn-danger {% endif %}" onclick="disableField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">thumb_down_off_alt</i>
                 </button>
             </td>
             <td>
-                <button type="button" title="return to default" class="btn btn-info" onclick="resetField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
-                    <i class="material-icons">undo</i>
-                </button>
+                {% if pri == "none" %}
+                    <button type="button" title="return to default" class="btn btn-info" disabled>
+                        <i class="material-icons">undo</i>
+                    </button>
+                {% else %}
+                    <button type="button" title="return to default" class="btn btn-info" onclick="resetField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
+                        <i class="material-icons">undo</i>
+                    </button>
+                {% endif %}
             </td>
         </tr>
     {% endfor %}
