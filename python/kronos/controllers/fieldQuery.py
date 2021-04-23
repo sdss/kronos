@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from quart import request, render_template, Blueprint
+from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import targetdb, opsdb
 
+from kronos.scheduler import Scheduler
 from kronos.dbConvenience import getCadences, fieldQuery
 from . import getTemplateDictBase
 
@@ -15,6 +17,19 @@ def sortFunc(elem):
 
 @fieldQuery_page.route('/fieldQuery.html', methods=['GET', 'POST'])
 async def fieldDetail():
+
+    now = Time.now()
+    now.format = "mjd"
+    mjd_now = now.value
+    # use an offset so "tonight" is used until 15:00 UTC
+    offset = 3 / 24
+    mjd = round(mjd_now - offset)
+
+    scheduler = Scheduler(observatory="apo")
+
+    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
+    ra_start = float(scheduler.scheduler.lst(mjd_evening_twilight) - 45 + 360) % 360
+    ra_end = float(scheduler.scheduler.lst(mjd_morning_twilight) + 45) % 360
 
     cadences = getCadences()
 
@@ -55,6 +70,12 @@ async def fieldDetail():
         if len(chosenCadence) == 0:
             chosenCadence = "none"
         specialStatus = request.args["specialStatus"]
+        try:
+            ra_start = int(request.args["ra0Select"])
+            ra_end = int(request.args["ra1Select"])
+        except:
+            ra_start = 0
+            ra_end = 360
 
     if chosenCadence == "none":
         queryCadence = None
@@ -65,14 +86,15 @@ async def fieldDetail():
         dbPriority = None
     else:
         dbPriority = specialStatus
-    fields = fieldQuery(cadence=queryCadence, priority=dbPriority)
+    fields = fieldQuery(cadence=queryCadence, priority=dbPriority, ra_range=[ra_start, ra_end])
     fields.sort(key=sortFunc)
 
     templateDict.update({
         "cadences": [str(c.label) for c in cadences],
         "specialStatus": specialStatus,
         "chosenCadence": chosenCadence,
-        "fields": fields
+        "fields": fields,
+        "ra_range": [int(ra_start), int(ra_end)]
     })
 
     return await render_template("fieldQuery.html", **templateDict)

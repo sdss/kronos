@@ -242,6 +242,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         exp : integer
             how many exposures to schedule for (i.e. how much time do we have?)
         """
+        # re-cache fields in case priorities changed
+        self.scheduler.fields.fromdb()
 
         if exp < 4:
             exp = 4
@@ -286,6 +288,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         backup : integer
             the new field to replace oldField
         """
+        # re-cache fields in case priorities changed
+        self.scheduler.fields.fromdb()
+
         newDesigns = self.scheduler.designsNext(backup)
 
         oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
@@ -318,6 +323,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjdStop : float
             the MJD stop time
         """
+        # re-cache fields in case priorities changed
+        self.scheduler.fields.fromdb()
+
         now = mjdStart
 
         queue = Queue()
@@ -368,6 +376,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjdStop : float
             the MJD stop time
         """
+        # re-cache fields in case priorities changed
+        self.scheduler.fields.fromdb()
+
         now = mjdStart
 
         inQueue = list()

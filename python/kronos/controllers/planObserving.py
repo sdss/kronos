@@ -123,7 +123,7 @@ async def planObserving():
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
-    scheduler = Scheduler(observatory="apo")
+    scheduler = Scheduler()
 
     mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
 

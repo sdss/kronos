@@ -8,9 +8,9 @@
     {% endif %}
         <tr>
             <td>{{field.cadence.label}}</td>
-            <td>{{field.field_id}}</td>
-            <td>{{field.racen}}</td>
-            <td>{{field.deccen}}</td>
+            <td class="text-left">{{field.field_id}}</td>
+            <td class="text-left">{{"%.2f" % field.racen}}</td>
+            <td class="text-left">{{"%.2f" % field.deccen}}</td>
             <td>
                 <button type="button" title="schedule if possible" class="btn {% if pri == "top" %} btn-primary {% else %} btn-success {% endif %}" onclick="prioritizeField({{field.pk}}, '{{specialStatus}}', '{{chosenCadence}}')">
                     <i class="material-icons">thumb_up_off_alt</i>

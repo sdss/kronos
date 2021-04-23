@@ -44,7 +44,7 @@ def getRecentExps(mjd):
     return exp_list
 
 
-def fieldQuery(cadence=None, priority=None, limit=100):
+def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
     """query targetdb for fields matching parameters
     """
 
@@ -72,6 +72,18 @@ def fieldQuery(cadence=None, priority=None, limit=100):
                                         dbField.version == dbVersion)\
                                  .limit(limit)
 
+    if ra_range:
+        assert len(ra_range) == 2, "must specify only begin and end of RA range"
+        # print("RA RAGE", ra_range)
+        if ra_range[0] > ra_range[1]:
+            # implied between ra_range[1] and 360, or between 0 and ra_range[0]
+            fields = fields.where((dbField.racen > ra_range[0]) |
+                                  (dbField.racen < ra_range[1])).order_by(dbField.racen)
+        else:
+            fields = fields.where((dbField.racen > ra_range[0]) &
+                                  (dbField.racen < ra_range[1])).order_by(dbField.racen)
+
+    # print(fields.sql())
     # select returns query object, we want a list
     return [f for f in fields]
 
