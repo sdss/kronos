@@ -91,16 +91,16 @@ async def lookAhead():
         }
 
     queue = Queue()
-    if len(queue.fields) == 0:
-        viz = None
-    else:
-        # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
-        viz = ApogeeViz(schedule, queue.fields).export()
+    # if len(queue.fields) == 0:
+    #     viz = None
+    # else:
+    #     # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
+    #     viz = ApogeeViz(schedule, queue.fields).export()
 
     schedViz = ApogeeViz(schedule, fields).export()
 
     templateDict.update({
-        "apogeeViz": viz,
+        "apogeeViz": None,
         "schedViz": schedViz,
         "mjd": mjd,
         "errorMsg": [],

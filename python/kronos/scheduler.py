@@ -11,9 +11,10 @@ from kronos import rs_version
 from kronos.apoSite import APOSite
 
 if not opsdb.database.connected:
-    opsdb.database.connect_from_parameters(user='sdss_user',
-                                           host='localhost',
-                                           port=5432)
+    print("!! CONFIG !!", opsdb.database._config)
+#     opsdb.database.connect_from_parameters(user='sdss_user',
+#                                            host='localhost',
+#                                            port=5432)
 
 design_time = 18. / 60. / 24.  # days, keep in mjd
 
