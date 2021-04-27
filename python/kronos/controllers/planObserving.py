@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 from collections import OrderedDict
 import datetime
 
@@ -8,6 +9,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb
 
+from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
 from kronos.apoSite import APOSite
@@ -55,9 +57,10 @@ def getAlmanac(mjd):
     return twilights, headers, other
 
 
-def backupDicts(*args, sched=None, mjd=None, prev=None):
+async def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
     for field, coord in zip(*args):
+        await asyncio.sleep(0)
         alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
         backup.append({"field": int(field),
                        "alt": float(alt),
@@ -125,7 +128,7 @@ async def planObserving():
     # date = datetimenow.date()
     scheduler = Scheduler()
 
-    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
@@ -134,10 +137,10 @@ async def planObserving():
         # replacing a field
         if redoFromField:
             # is it bad enough to redo the rest of the queue?
-            errors = scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
+            errors = await scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
         else:
             # ok just the one then!
-            scheduler.replaceField(oldField, replacementField)
+            await scheduler.replaceField(oldField, replacementField)
 
     if redo:
         # clear the queue
@@ -147,7 +150,7 @@ async def planObserving():
             start_mjd = mjd_now
         else:
             start_mjd = mjd_evening_twilight
-        errors = scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
+        errors = await scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
 
     schedule = {
             "queriedMJD": mjd,
@@ -165,20 +168,22 @@ async def planObserving():
     if replace:
         # make replace the fieldID to be replaced, or False
         field = queue.fieldDict[replace]
-        args = scheduler.choiceFields(field.startTime, exp=len(field.designs))
-        backups = backupDicts(*args, sched=scheduler, mjd=field.startTime,
-                              prev=replace)
+        args = await scheduler.choiceFields(field.startTime, exp=len(field.designs))
+        backups = await backupDicts(*args, sched=scheduler, mjd=field.startTime,
+                                    prev=replace)
     else:
         backups = list()
 
     exps = getRecentExps(mjd)
+
+    almanac = await wrapBlocking(getAlmanac, mjd)
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
         "mjd": mjd,
         "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
-        "almanac": getAlmanac(mjd),  # if schedule else None,
+        "almanac": almanac,  # if schedule else None,
         "queue": queue.designs,
         "backups": backups,
         "exposures": exps

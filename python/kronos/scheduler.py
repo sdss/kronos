@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import numpy as np
 from astropy.time import Time
@@ -7,14 +8,11 @@ from astropy.coordinates import SkyCoord
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version
+from kronos import rs_version, wrapBlocking
 from kronos.apoSite import APOSite
 
 if not opsdb.database.connected:
     print("!! CONFIG !!", opsdb.database._config)
-#     opsdb.database.connect_from_parameters(user='sdss_user',
-#                                            host='localhost',
-#                                            port=5432)
 
 design_time = 18. / 60. / 24.  # days, keep in mjd
 
@@ -230,7 +228,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
-    def choiceFields(self, mjd, exp=12):
+    async def choiceFields(self, mjd, exp=12):
         """return multiple fields for user to choose from
            at a specific mjd
 
@@ -244,18 +242,20 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             how many exposures to schedule for (i.e. how much time do we have?)
         """
         # re-cache fields in case priorities changed
-        self.scheduler.fields.fromdb()
+        await wrapBlocking(self.scheduler.fields.fromdb)
 
         if exp < 4:
             exp = 4
-        field_ids, designs = self.scheduler.nextfield(mjd=mjd,
-                                                      maxExp=exp,
-                                                      live=True,
-                                                      returnAll=True)
+        field_ids, designs = await wrapBlocking(self.scheduler.nextfield,
+                                                mjd=mjd,
+                                                maxExp=exp,
+                                                live=True,
+                                                returnAll=True)
         fields = list()
         # design_count = list()
         coords = list()
         for f, d in zip(field_ids, designs):
+            await asyncio.sleep(0)
             if len(fields) > 3:
                 continue
             # try to fit in this slot as closely as possible
@@ -266,6 +266,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             dec = self.scheduler.fields.deccen[idx]
             far_enough = True
             for c in coords:
+                await asyncio.sleep(0)
                 d = ((c[0] - ra)*np.cos(dec*np.pi/180))**2 + (dec - c[1])**2
                 if d < 45**2:
                     far_enough = False
@@ -277,7 +278,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         return fields, coords
 
-    def replaceField(self, oldField, backup):
+    async def replaceField(self, oldField, backup):
         """replace oldField with backup in the queue
 
         Parameters:
@@ -290,28 +291,28 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             the new field to replace oldField
         """
         # re-cache fields in case priorities changed
-        self.scheduler.fields.fromdb()
+        await wrapBlocking(self.scheduler.fields.fromdb)
 
-        newDesigns = self.scheduler.designsNext(backup)
+        newDesigns = await wrapBlocking(self.scheduler.designsNext, backup)
 
-        oldPositions = opsdb.Queue.rm(oldField, returnPositions=True)
+        oldPositions = await wrapBlocking(opsdb.Queue.rm, oldField, returnPositions=True)
 
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
-        dbVersion = Version.get(plan=self.plan)
-        designs = Design.select().join(Field)\
-                                 .where(Field.field_id == backup,
-                                        Field.version == dbVersion,
-                                        Design.exposure << newDesigns)
+        dbVersion = await wrapBlocking(Version.get, plan=self.plan)
+        designs = await wrapBlocking(Design.select().join(Field).where,
+                                     Field.field_id == backup,
+                                     Field.version == dbVersion,
+                                     Design.exposure << newDesigns)
 
         queuePos = min(oldPositions)
         for d in designs:
-            # designs are i
-            opsdb.Queue.insertInQueue(d, queuePos)
+            await asyncio.sleep(0)
+            await wrapBlocking(opsdb.Queue.insertInQueue, d, queuePos)
             queuePos += 1
 
-    def queueFromSched(self, mjdStart, mjdEnd):
+    async def queueFromSched(self, mjdStart, mjdEnd):
         """Schedule the night from mjdStart to mjdEnd and populate the queue
         with those designs.
 
@@ -325,7 +326,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             the MJD stop time
         """
         # re-cache fields in case priorities changed
-        self.scheduler.fields.fromdb()
+        await wrapBlocking(self.scheduler.fields.fromdb)
 
         now = mjdStart
 
@@ -336,28 +337,32 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
-        dbVersion = Version.get(plan=self.plan)
+        dbVersion = await wrapBlocking(Version.get, plan=self.plan)
 
         errors = list()
 
         while now < mjdEnd:
+            await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
-            field_id, designs = self.scheduler.nextfield(mjd=now,
-                                                         maxExp=exp_max,
-                                                         live=True,
-                                                         ignore=inQueue)
+            field_id, designs = await wrapBlocking(self.scheduler.nextfield,
+                                                   mjd=now,
+                                                   maxExp=exp_max,
+                                                   live=True,
+                                                   ignore=inQueue)
+
             if field_id is None:
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
                 continue
-            designs = Design.select().join(Field)\
-                            .where(Field.field_id == field_id,
-                                   Field.version == dbVersion,
-                                   Design.exposure << designs)
+            designs = await wrapBlocking(Design.select().join(Field).where,
+                                         Field.field_id == field_id,
+                                         Field.version == dbVersion,
+                                         Design.exposure << designs)
             for i, d in enumerate(designs):
+                await asyncio.sleep(0)
                 mjd_plan = now + i*self.exp_nom
-                opsdb.Queue.appendQueue(d, mjd_plan)
+                await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
 
             inQueue.append(field_id)
 
@@ -430,7 +435,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
         return mjd_evening_twilight, mjd_morning_twilight
 
-    def rescheduleAfterField(self, fieldID, night_end):
+    async def rescheduleAfterField(self, fieldID, night_end):
         """reschedule the rest of the night starting with fieldID
 
         Parameters:
@@ -451,10 +456,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         rm_fields = [f for f in queue.fields if f.startTime >= mjd_prev]
 
         for f in rm_fields:
-            opsdb.Queue.rm(f.fieldID)
+            await asyncio.sleep(0)
+            await wrapBlocking(opsdb.Queue.rm, f.fieldID)
 
-        errors = self.queueFromSched(mjd_prev, night_end)
-        return errors
+        return await self.queueFromSched(mjd_prev, night_end)
 
 
 def unfilledMjdError(mjd):
