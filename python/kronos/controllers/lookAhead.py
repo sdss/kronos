@@ -8,6 +8,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb
 
+from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
 from kronos.apoSite import APOSite
@@ -38,48 +39,17 @@ async def lookAhead():
 
     # parse POST/GET args
 
-    print(args)
-
     if "mjd" in args:
         print(int(args["mjd"]))
         mjd = int(args["mjd"])
-    # if "redo" in args:
-    #     # deprecated?
-    #     redo = True
-
-    # if "rmField" in form:
-    #     rmField = int(form["rmField"])
-    #     opsdb.Queue.rm(rmField)
-
-    # elif "flush" in form:
-    #     opsdb.Queue.flushQueue()
-
-    # elif "redo" in form:
-    #     redo = True
-
-    # if "replace" in form:
-    #     replace = int(form["replace"])
-    # else:
-    #     replace = False
-
-    # if "backup" in form:
-    #     replacementField = int(form["backup"])
-    #     oldField = int(form["prev"])
-    # else:
-    #     replacementField = None
-
-    # if "remainder" in form:
-    #     redoFromField = True
-    # else:
-    #     redoFromField = False
 
     templateDict = getTemplateDictBase()
 
-    scheduler = Scheduler(observatory="apo")
+    scheduler = Scheduler()
 
-    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
-    fields, errors = scheduler.schedNoQueue(mjd_evening_twilight, mjd_morning_twilight)
+    fields, errors = await scheduler.schedNoQueue(mjd_evening_twilight, mjd_morning_twilight)
 
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
@@ -97,7 +67,7 @@ async def lookAhead():
     #     # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
     #     viz = ApogeeViz(schedule, queue.fields).export()
 
-    schedViz = ApogeeViz(schedule, fields).export()
+    schedViz = await ApogeeViz(schedule, fields).export()
 
     templateDict.update({
         "apogeeViz": None,

@@ -4,10 +4,12 @@ potential errors before implementing the JS.  Also greatly simplifies the JS/D3.
 """
 import datetime
 from collections import OrderedDict
+import asyncio
+
 import numpy
 
+from kronos import wrapBlocking
 from kronos.scheduler import Scheduler
-
 
 
 class SVGAttrs(object):
@@ -106,9 +108,10 @@ class VizWindow(object):
         else:
             return True
 
-    def export(self):
+    async def export(self):
         """Pack up info for jsonification
         """
+        await asyncio.sleep(0)
         return {
             "fill": self.svgAttr.fill,
             "opacity": self.svgAttr.opacity,
@@ -131,7 +134,8 @@ class TimeScale(object):
         verifyUTRange(utRange, "timescale")
         self.range = utRange
 
-    def export(self):
+    async def export(self):
+        await asyncio.sleep(0)
         # print("time scale", self.range)
         return [datetime2dict(datetimeObj) for datetimeObj in self.range]
 
@@ -145,7 +149,8 @@ class HAScale(object):
         assert haRange[0] < haRange[1]
         self.range = haRange
 
-    def export(self):
+    async def export(self):
+        await asyncio.sleep(0)
         return list(self.range)
 
 
@@ -232,17 +237,19 @@ class VizRow(object):
             # marker falls inside time scale
             self.currentHA = currentHA
 
-    def export(self):
+    async def export(self):
         # look for float table values, convert them to strings.
+        await asyncio.sleep(0)
         tableValues = []
         for value in self.tableValues:
+            await asyncio.sleep(0)
             if type(value) == float:
                 value = "%.2f"%value
             tableValues.append(value)
         return {
             "fieldID": self.fieldID,
             "tableItems": self.tableKeys if self.isHeader else tableValues,
-            "vizWindows": [vizWindow.export() for vizWindow in self.vizWindows],
+            "vizWindows": [await vizWindow.export() for vizWindow in self.vizWindows],
             "currentTime": datetime2dict(self.currentTime),
             "currentHA": self.currentHA,  # used for current HA marker (may be None)
             "expanded": False,  # flag, to be used in d3/J
@@ -250,7 +257,7 @@ class VizRow(object):
             "autoscheduled": True,
             "coPlugged": False,
             "yValue": 0.,  # initialize all rows to lie at y=0 (JS will update)
-            "childViz": self.childViz.export() if self.hasChild else None,
+            "childViz": await self.childViz.export() if self.hasChild else None,
             "isChild": self.isChild,
             "isHeader": self.isHeader,
             "hasChild": self.hasChild,
@@ -259,7 +266,7 @@ class VizRow(object):
             "isSpecial": False,
             "setCurrent": self.setCurrent,
             "surveyMode": "",
-            "timeScale": self.timeScale.export()
+            "timeScale": await self.timeScale.export()
             # "alt": -99,  # for updating in JS
             # "az": -99,  # for updating in JS
         }
@@ -300,12 +307,14 @@ class Viz(object):
             self.nTableItems = len(tableDict)  # set length
         return tableDict
 
-    def exportAllRows(self):
+    async def exportAllRows(self):
+        await asyncio.sleep(0)
         allRows = []
         for row in self.fieldRows:
+            await asyncio.sleep(0)
             if row.hasChild:  # place children in front (so they are drawn first)
-                allRows.extend([r.export() for r in row.childViz.fieldRows])
-            allRows.append(row.export())
+                allRows.extend([await r.export() for r in row.childViz.fieldRows])
+            allRows.append(await row.export())
         return allRows
 
     @property
@@ -328,13 +337,14 @@ class Viz(object):
                     break
         return nChildTableItems
 
-    def export(self):
+    async def export(self):
+        await asyncio.sleep(0)
         # print(self.surveyName, self.isChild)
         return {
-            "haScale": self.haScale.export(),
-            "timeScale": self.timeScale.export(),
-            "plateRows": [fieldRow.export() for fieldRow in self.fieldRows],
-            "allRows": self.exportAllRows(),
+            "haScale": await self.haScale.export(),
+            "timeScale": await self.timeScale.export(),
+            "plateRows": [await fieldRow.export() for fieldRow in self.fieldRows],
+            "allRows": await self.exportAllRows(),
             "isChild": self.isChild,
             "hasChild": self.hasChild,
             "nTableItems": self.nTableItems,  # define length of side table
@@ -345,27 +355,28 @@ class Viz(object):
     def getHeaderRow(self):
         headerRow = VizRow(self.fieldList[0], self.getTableDict(self.fieldList[0]), self.timeScale, self.haScale, self.setCurrent, isHeader=True, isChild=self.isChild)
         headerRow.addVizWindow( # draw on a white background, do overlapping bars with opacity don't bleed
-            name = "background",
-            utRange = self.timeScale.range,
-            haRange = self.haScale.range
+            name="background",
+            utRange=self.timeScale.range,
+            haRange=self.haScale.range
         )
         if not "morningTwilightUTC" in self.schedule:
-            headerRow.addVizWindow( # draw on a white background, do overlapping bars with opacity don't bleed
-                name = "background",
-                utRange = self.timeScale.range,
-                haRange = self.haScale.range,
+            # draw on a white background, do overlapping bars with opacity don't bleed
+            headerRow.addVizWindow(
+                name="background",
+                utRange=self.timeScale.range,
+                haRange=self.haScale.range,
                 text="add twilight..."
             )
         else:
             # add twilight bars
             headerRow.addVizWindow(
-                name = "twilight",
+                name="twilight",
                 utRange=(self.schedule["timeBarStartUTC"], self.schedule["eveningTwilightUTC"]),
                 haRange=None,
                 text="twilight"
             )
             headerRow.addVizWindow(
-                name = "twilight",
+                name="twilight",
                 utRange=(self.schedule["morningTwilightUTC"], self.schedule["timeBarEndUTC"]),
                 haRange=None,
                 text="twilight"
@@ -373,17 +384,17 @@ class Viz(object):
             # add in scheduled survey times
             if self.schedule["apogeeStartUTC"] is not None:
                 headerRow.addVizWindow(
-                    name = "apogee",
-                    utRange = (self.schedule["apogeeStartUTC"], self.schedule["apogeeEndUTC"]),
+                    name="apogee",
+                    utRange=(self.schedule["apogeeStartUTC"], self.schedule["apogeeEndUTC"]),
                     haRange=None,
-                    text = "Apogee"
+                    text="Apogee"
                 )
             # create ha bar
             headerRow.addVizWindow(
-                name = "ha",
-                utRange = None,
-                haRange = self.haScale.range, # full range
-                text = "HA"
+                name="ha",
+                utRange=None,
+                haRange=self.haScale.range,  # full range
+                text="HA"
             )
         return headerRow
 
@@ -480,15 +491,16 @@ class FieldViz(VizRow):
         self._basicFieldRow(field)
 
 
-    def export(self):
+    async def export(self):
+        await asyncio.sleep(0)
         return {
-            "vizWindows": [vizWindow.export() for vizWindow in self.vizWindows],
+            "vizWindows": [await vizWindow.export() for vizWindow in self.vizWindows],
             "currentTime": datetime2dict(self.currentTime),
             "currentHA": self.currentHA, # used for current HA marker (may be None)
             "trueHA": self.field.haNow, # used for real time altitude display in Petunia (may not be None)
             "dec": self.field.dec,
             "isDone": False,   # self.plate.isComplete(),
-            "timeScale": self.timeScale.export(),
+            "timeScale": await self.timeScale.export(),
             # "altitudePoints": self.getPlateAltitudePoints(),
             # "altitudePath": self.getPlateAltitudePoints(dense=True)
         }
@@ -499,20 +511,20 @@ class FieldViz(VizRow):
 
         fieldHaRange = field.haRange
         fieldUtRange = (field.obsTimes["start"], field.obsTimes["end"])
-        self.addVizWindow( # draw on a white background
-            name = "background",
-            utRange = self.timeScale.range,
-            haRange = self.haScale.range
+        self.addVizWindow(  # draw on a white background
+            name="background",
+            utRange=self.timeScale.range,
+            haRange=self.haScale.range
         )
-        self.addVizWindow( # background bar
-            name = "grey",
-            utRange = self.timeScale.range,
-            haRange = self.haScale.range
+        self.addVizWindow(  # background bar
+            name="grey",
+            utRange=self.timeScale.range,
+            haRange=self.haScale.range
         )
-        self.addVizWindow( # viz window
-            name = "apogee",
-            utRange = fieldUtRange,
-            haRange = fieldHaRange
+        self.addVizWindow(  # viz window
+            name="apogee",
+            utRange=fieldUtRange,
+            haRange=fieldHaRange
         )
 
         # # use 10 and 3 degree limits

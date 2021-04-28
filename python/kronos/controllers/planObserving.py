@@ -163,7 +163,7 @@ async def planObserving():
         viz = None
     else:
         # queue.scheduleFields(mjd_evening_twilight, mjd_morning_twilight)
-        viz = ApogeeViz(schedule, queue.fields).export()
+        viz = await ApogeeViz(schedule, queue.fields).export()
 
     if replace:
         # make replace the fieldID to be replaced, or False

@@ -369,7 +369,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             now += len(designs) * self.exp_nom
         return errors
 
-    def schedNoQueue(self, mjdStart, mjdEnd):
+    async def schedNoQueue(self, mjdStart, mjdEnd):
         """Schedule the night from mjdStart to mjdEnd but DO NOT populate
         the queue. For planning.
 
@@ -383,7 +383,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             the MJD stop time
         """
         # re-cache fields in case priorities changed
-        self.scheduler.fields.fromdb()
+        await wrapBlocking(self.scheduler.fields.fromdb)
 
         now = mjdStart
 
@@ -394,12 +394,18 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         errors = list()
 
         while now < mjdEnd:
+            await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
-            field_id, designs = self.scheduler.nextfield(mjd=now,
-                                                         maxExp=exp_max,
-                                                         live=True,
-                                                         ignore=inQueue)
+            # field_id, designs = self.scheduler.nextfield(mjd=now,
+            #                                              maxExp=exp_max,
+            #                                              live=True,
+            #                                              ignore=inQueue)
+            field_id, designs = await wrapBlocking(self.scheduler.nextfield,
+                                                   mjd=now,
+                                                   maxExp=exp_max,
+                                                   live=True,
+                                                   ignore=inQueue)
             if field_id is None:
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
