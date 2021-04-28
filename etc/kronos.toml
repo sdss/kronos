@@ -1,0 +1,2 @@
+bind = "127.0.0.1:5001"
+pid_path = "/home/sdss5/tmp/kronos.pid"
