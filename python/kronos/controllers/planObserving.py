@@ -174,7 +174,7 @@ async def planObserving():
     else:
         backups = list()
 
-    exps = getRecentExps(mjd)
+    exps = await wrapBlocking(getRecentExps, mjd)
 
     almanac = await wrapBlocking(getAlmanac, mjd)
 

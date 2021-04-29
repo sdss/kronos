@@ -5,8 +5,9 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import targetdb, opsdb
 
+from kronos import wrapBlocking
 from kronos.scheduler import Scheduler
-from kronos.dbConvenience import getCadences, fieldQuery
+from kronos.dbConvenience import getCadences, fieldQuery, prioritizeField, disableField, resetField
 from . import getTemplateDictBase
 
 fieldQuery_page = Blueprint("fieldQuery_page", __name__)
@@ -25,11 +26,13 @@ async def fieldDetail():
     offset = 3 / 24
     mjd = round(mjd_now - offset)
 
-    scheduler = Scheduler(observatory="apo")
+    scheduler = Scheduler()
 
-    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd)
-    ra_start = float(scheduler.scheduler.lst(mjd_evening_twilight) - 45 + 360) % 360
-    ra_end = float(scheduler.scheduler.lst(mjd_morning_twilight) + 45) % 360
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+    ra_start = await wrapBlocking(scheduler.scheduler.lst, mjd_evening_twilight)
+    ra_start = float(ra_start - 45 + 360) % 360
+    ra_end = await wrapBlocking(scheduler.scheduler.lst, mjd_morning_twilight)
+    ra_end = float(ra_end + 45) % 360
 
     cadences = getCadences()
 
@@ -39,25 +42,17 @@ async def fieldDetail():
 
     if "prioritizeField" in form:
         fieldPk = form["prioritizeField"]
-        dbPriority = opsdb.FieldPriority.get(label="top")
-        f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
-        f2p.FieldPriority = dbPriority
-        f2p.save()
+        await wrapBlocking(prioritizeField, fieldPk)
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     elif "disableField" in form:
         fieldPk = form["disableField"]
-        dbPriority = opsdb.FieldPriority.get(label="disabled")
-        f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
-        f2p.FieldPriority = dbPriority
-        f2p.save()
+        await wrapBlocking(disableField, fieldPk)
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     elif "resetField" in form:
         fieldPk = form["resetField"]
-        q = opsdb.FieldToPriority.delete().where(opsdb.FieldToPriority.field_pk == fieldPk)
-        removed = q.execute()
-        assert removed != 0, "Should not have been able to delete"
+        await wrapBlocking(resetField, fieldPk)
         specialStatus = form["specialStatus"]
         chosenCadence = form["chosenCadence"]
     else:
@@ -86,7 +81,10 @@ async def fieldDetail():
         dbPriority = None
     else:
         dbPriority = specialStatus
-    fields = fieldQuery(cadence=queryCadence, priority=dbPriority, ra_range=[ra_start, ra_end])
+    fields = await wrapBlocking(fieldQuery,
+                                cadence=queryCadence,
+                                priority=dbPriority,
+                                ra_range=[ra_start, ra_end])
     fields.sort(key=sortFunc)
 
     templateDict.update({

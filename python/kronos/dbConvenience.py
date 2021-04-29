@@ -4,7 +4,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version
+from kronos import rs_version  # , wrapBlocking
 
 
 def getRecentExps(mjd):
@@ -92,3 +92,29 @@ def getCadences():
     cadQuery = targetdb.Cadence.select()
     # select returns query object, we want a list
     return [c for c in cadQuery]
+
+
+def prioritizeField(fieldPk):
+    """set a field to top priority
+    """
+    dbPriority = opsdb.FieldPriority.get(label="top")
+    f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
+    f2p.FieldPriority = dbPriority
+    f2p.save()
+
+
+def disableField(fieldPk):
+    """set a field to disabled
+    """
+    dbPriority = opsdb.FieldPriority.get(label="disabled")
+    f2p, created = opsdb.FieldToPriority.get_or_create(field_pk=fieldPk)
+    f2p.FieldPriority = dbPriority
+    f2p.save()
+
+
+def resetField(fieldPk):
+    """remove any special status on a field
+    """
+    q = opsdb.FieldToPriority.delete().where(opsdb.FieldToPriority.field_pk == fieldPk)
+    removed = q.execute()
+    assert removed != 0, "Should not have been able to delete"
