@@ -41,10 +41,10 @@ html, body {
     width: 30%;
 }
 
-.queue-row .hover-field {
+.queue-item .hover-field {
     visibility: hidden;
     width: 120px;
-    background-color: black;
+    background-color: rgba(0, 0, 0, 0.7);
     color: #fff;
     text-align: center;
     border-radius: 6px;
@@ -54,7 +54,7 @@ html, body {
     z-index: 1;
 }
 
-.queue-row:hover .hover-field {
+.queue-item:hover .hover-field {
   visibility: visible;
 }
 
@@ -74,6 +74,23 @@ html, body {
 .delete-field:hover {
     background-color: rgba(255, 0, 0, .5);
     cursor: pointer;
+}
+
+.button-container .button-hover-field {
+    visibility: hidden;
+    width: 60px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    position: absolute;
+    z-index: 1;
+}
+
+.button-container:hover .button-hover-field {
+  visibility: visible;
 }
 
 .refresh-field:hover {

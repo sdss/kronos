@@ -23,8 +23,8 @@ def wrapHA(ha):
 
 class APOSite(object):
     lat = 32.789278
-    lon = -105.820278
-    altitude = 2788
+    # lon = -105.820278
+    # altitude = 2788
     # site = pyobs.Site(lat, -105.820278, alt=altitude)
     # APO = EarthLocation(lat=lat*u.deg, lon=lon*u.deg, height=altitude*u.m)
     apo = Observer.at_site("APO", timezone="US/Mountain")
