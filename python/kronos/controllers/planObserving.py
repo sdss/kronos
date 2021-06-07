@@ -12,7 +12,7 @@ from sdssdb.peewee.sdss5db import opsdb
 from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
-from kronos.apoSite import APOSite
+from kronos.site import Site
 from kronos.dbConvenience import getRecentExps
 
 from . import getTemplateDictBase
@@ -43,7 +43,7 @@ def getAlmanac(mjd):
     morning_times = [mjdToHMstr(m) for m in morning_mjds]
     twilights = evening_times + morning_times
 
-    moon_rise, moon_set = APOSite.moonRiseSet(evening_mjds[0])
+    moon_rise, moon_set = Site.moonRiseSet(evening_mjds[0])
 
     other = OrderedDict(
         (

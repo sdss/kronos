@@ -11,7 +11,6 @@ from sdssdb.peewee.sdss5db import opsdb
 from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue
-from kronos.apoSite import APOSite
 from kronos.dbConvenience import getRecentExps
 from kronos.controllers.planObserving import mjdToHMstr, getAlmanac, backupDicts
 

@@ -7,6 +7,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord, AltAz, get_sun, get_moon
 from astroplan import Observer
 
+from kronos import observatory
 
 def wrapHA(ha):
     """Force ha into range -180 to 180. Just to be sure.
@@ -21,27 +22,22 @@ def wrapHA(ha):
     return ha
 
 
-class APOSite(object):
-    lat = 32.789278
-    # lon = -105.820278
-    # altitude = 2788
-    # site = pyobs.Site(lat, -105.820278, alt=altitude)
-    # APO = EarthLocation(lat=lat*u.deg, lon=lon*u.deg, height=altitude*u.m)
-    apo = Observer.at_site("APO", timezone="US/Mountain")
-    # sun = ephem.Sun()
-    # moon = ephem.Moon()
-    # ephAPO = ephem.Observer()
-    # ephAPO.lon = '254.180000305'
-    # ephAPO.lat = '32.7899987793' # this doesnt exactly match pyobs?
-    # ephAPO.lat = '32.789278'
-    # ephAPO.elevation = set it?
+class Site(object):
+    # lat = 32.789278
+
+    if observatory == "APO":
+        site = Observer.at_site("APO", timezone="US/Mountain")
+    else:
+        site = Observer.at_site("LCO", timezone="America/Santiago")
+
+    lat = site.location.lat.deg
 
     @classmethod
     def zenithAngleHA(cls, dec, zenithAngle):
         """Return hour angle (degrees) at which a given declination (dec, degrees) will fall within zenithAngle (degrees from zenith at APO)
         """
         # don't bother doing any work if dec never comes within zenithAngle of zenith at apo
-        if numpy.abs(dec - cls.lat) > zenithAngle:
+        if numpy.abs(dec - cls.lat) > zenithAngle or observatory == "APO":
             # spherical trig is tricky, check that this is valid?
             return 0
         # numpy routines use radians:
@@ -90,7 +86,7 @@ class APOSite(object):
             target = SkyCoord(ra*u.deg, dec*u.deg)
 
         # which means relative to sunrise, "nearest" seems to work best
-        t_time = cls.apo.target_meridian_transit_time(time, target, which="nearest")
+        t_time = cls.site.target_meridian_transit_time(time, target, which="nearest")
 
         return t_time
 
@@ -123,11 +119,11 @@ class APOSite(object):
         """calculate moon rise and set appropriately after mjd_evening_twilight
         """
         time = Time(mjd_evening_twilight, format="mjd")
-        moon_pos = cls.apo.moon_altaz(time)
+        moon_pos = cls.site.moon_altaz(time)
         if moon_pos.alt.value > 0:
-            moon_set = cls.apo.moon_set_time(time, which="next")
-            moon_rise = cls.apo.moon_rise_time(time, which="previous")
+            moon_set = cls.site.moon_set_time(time, which="next")
+            moon_rise = cls.site.moon_rise_time(time, which="previous")
         else:
-            moon_set = cls.apo.moon_set_time(time, which="next")
-            moon_rise = cls.apo.moon_rise_time(time, which="next")
+            moon_set = cls.site.moon_set_time(time, which="next")
+            moon_rise = cls.site.moon_rise_time(time, which="next")
         return moon_rise.datetime, moon_set.datetime

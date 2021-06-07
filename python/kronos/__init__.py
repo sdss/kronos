@@ -6,6 +6,8 @@ from functools import partial
 __version__ = "0.1.0"
 rs_version = os.getenv("RS_VERSION")
 
+observatory = os.getenv("OBSERVATORY")
+
 
 async def wrapBlocking(func, *args, **kwargs):
     loop = asyncio.get_event_loop()

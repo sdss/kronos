@@ -8,8 +8,8 @@ from astropy.coordinates import SkyCoord
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version, wrapBlocking
-from kronos.apoSite import APOSite
+from kronos import rs_version, wrapBlocking, observatory
+from kronos.site import Site
 
 if not opsdb.database.connected:
     print("!! CONFIG !!", opsdb.database._config)
@@ -170,7 +170,7 @@ class Field(object):
         """Return the ha range for which this field has a zenith
         angle of input angle(degrees) or less, or None
         """
-        ha = APOSite.zenithAngleHA(self.dec, zenithAngle=angle)
+        ha = Site.zenithAngleHA(self.dec, zenithAngle=angle)
         if ha == 0:
             return None
         else:
@@ -178,7 +178,7 @@ class Field(object):
 
     def _zenAngleUTC(self, ha):
 
-        return APOSite.targetHa2UTC(ha, target=self.SkyCoord, mjd=self.startTime)
+        return Site.targetHa2UTC(ha, target=self.SkyCoord, mjd=self.startTime)
 
 
 class Queue(object):
@@ -223,7 +223,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
     def __init__(self, **kwargs):
         self.plan = rs_version
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory="apo",
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
                                                            airmass_limit=1.5)
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
