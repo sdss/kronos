@@ -4,7 +4,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version  # , wrapBlocking
+from kronos import rs_version, observatory  # , wrapBlocking
 
 
 def getRecentExps(mjd):
@@ -57,6 +57,9 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
     dbField = targetdb.Field
     dbVersion = targetdb.Version.get(plan=rs_version)
 
+    obsDB = targetdb.Observatory()
+    obs = obsDB.get(label=observatory)
+
     if priority is not None:
         fp = opsdb.FieldPriority
         f2p = opsdb.FieldToPriority
@@ -65,11 +68,13 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
                                  .join(fp, on=(fp.pk == f2p.field_priority_pk))\
                                  .where(fp.pk == priority.pk,
                                         dbField.cadence << matchingCad,
-                                        dbField.version == dbVersion)\
+                                        dbField.version == dbVersion,
+                                        dbField.observatory == obs)\
                                  .limit(limit)
     else:
         fields = dbField.select().where(dbField.cadence << matchingCad,
-                                        dbField.version == dbVersion)\
+                                        dbField.version == dbVersion,
+                                        dbField.observatory == obs)\
                                  .limit(limit)
 
     if ra_range:
@@ -118,3 +123,19 @@ def resetField(fieldPk):
     q = opsdb.FieldToPriority.delete().where(opsdb.FieldToPriority.field_pk == fieldPk)
     removed = q.execute()
     assert removed != 0, "Should not have been able to delete"
+
+
+def getField(fieldId):
+    """grab a field from targetdb and touch some foreign keys while
+       in the blocking call so that's taken care of
+    """
+
+    dbField = targetdb.Field
+
+    field = dbField.get(field_id=fieldId)
+
+    return {"id": fieldId,
+            "ra": field.racen,
+            "dec": field.deccen,
+            "observatory": field.observatory.label,
+            "cadence": field.cadence.label}
