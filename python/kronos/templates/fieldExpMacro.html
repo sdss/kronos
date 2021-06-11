@@ -6,8 +6,8 @@
           <th class="text-center">Design</th>
           <th class="text-center">Time</th>
           <th class="text-center">AP</th>
-          <th class="text-center">b1</th>
           <th class="text-center">r1</th>
+          <th class="text-center">b1</th>
         </tr>
       </thead>
       <tbody>
@@ -20,8 +20,12 @@
           <td class="text-center">{{e.b1}}</td>
         </tr>
     {% endfor %}
+        <!-- <tr>
+          <td></td>
+          <td>{{sums.b1}}</td> <td>{{sums.r1}}</td> <td>{{exposures[-1].b1}}</td> <td>{{exposures[-1].r1}}</td>
+        </tr> -->
         <tr>
-          <td class="text-center"></td>
+          <td class="text-center"><button class="btn btn-primary btn-round" onclick="guessNext({{sums.b1}}, {{sums.r1}}, {{exposures[-1].b1}}, {{exposures[-1].r1}})">Next?</button></td>
           <td class="text-center">&Sigma;</td>
           <td class="text-center"><b>{{sums.AP}}</b></td>
           <td class="text-center"><b>{{sums.r1}}</b></td>

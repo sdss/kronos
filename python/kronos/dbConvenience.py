@@ -151,9 +151,9 @@ def getField(fieldId):
     for e in exp_query:
         exp_dict = {"design": 0,
                     "timeStamp": "",
-                    "r1": None,
-                    "b1": None,
-                    "AP": None}
+                    "r1": 0,
+                    "b1": 0,
+                    "AP": 0}
         exp_dict["design"] = int(e.configuration.design.pk)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
@@ -169,9 +169,12 @@ def getField(fieldId):
     sums = dict()
     for d, eps in exps.items():
         sums[d] = dict()
-        sums[d]["r1"] = sum([e["r1"] if e["r1"] else 0 for e in eps])
-        sums[d]["b1"] = sum([e["b1"] if e["b1"] else 0 for e in eps])
-        sums[d]["AP"] = sum([e["AP"] if e["AP"] else 0 for e in eps])
+        sums[d]["r1"] = sum([e["r1"] for e in eps])
+        sums[d]["b1"] = sum([e["b1"] for e in eps])
+        sums[d]["AP"] = sum([e["AP"] for e in eps])
+        # sums[d]["r1"] = sum([e["r1"] if e["r1"] else 0 for e in eps])
+        # sums[d]["b1"] = sum([e["b1"] if e["b1"] else 0 for e in eps])
+        # sums[d]["AP"] = sum([e["AP"] if e["AP"] else 0 for e in eps])
 
     return {"id": fieldId,
             "ra": field.racen,
