@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{% macro mjdExp(exposures, sums) %}
+    <table class="table" style="height: 300px; overflow-y:scroll; display:block;">
+      <thead>
+        <tr>
+          <th class="text-center">Design</th>
+          <th class="text-center">Time</th>
+          <th class="text-center">AP</th>
+          <th class="text-center">b1</th>
+          <th class="text-center">r1</th>
+        </tr>
+      </thead>
+      <tbody>
+    {% for e in exposures %}
+        <tr>
+          <td class="text-center">{{e.design}}</td>
+          <td class="text-center">{{e.timeStamp}}</td>
+          <td class="text-center">{{e.AP}}</td>
+          <td class="text-center">{{e.r1}}</td>
+          <td class="text-center">{{e.b1}}</td>
+        </tr>
+    {% endfor %}
+        <tr>
+          <td class="text-center"></td>
+          <td class="text-center">&Sigma;</td>
+          <td class="text-center"><b>{{sums.AP}}</b></td>
+          <td class="text-center"><b>{{sums.r1}}</b></td>
+          <td class="text-center"><b>{{sums.b1}}</b></td>
+        </tr>
+      </tbody>
+    </table>
+{% endmacro %}

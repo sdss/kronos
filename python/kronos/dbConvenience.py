@@ -130,12 +130,53 @@ def getField(fieldId):
        in the blocking call so that's taken care of
     """
 
+    r1_db = opsdb.Camera.get(label="r1")
+    b1_db = opsdb.Camera.get(label="b1")
+    ap_db = opsdb.Camera.get(label="APOGEE")
+    db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbField = targetdb.Field
 
     field = dbField.get(field_id=fieldId)
+    designs = field.Designs.select()
+
+    exp_query = opsdb.Exposure.select()\
+                     .join(opsdb.Configuration)\
+                     .join(targetdb.Design,
+                           on=(targetdb.Design.pk == opsdb.Configuration.design_pk))\
+                     .join(dbField)\
+                     .where(dbField.field_id == fieldId,
+                            opsdb.Exposure.exposure_flavor == db_flavor)
+
+    exps = defaultdict(list)
+    for e in exp_query:
+        exp_dict = {"design": 0,
+                    "timeStamp": "",
+                    "r1": None,
+                    "b1": None,
+                    "AP": None}
+        exp_dict["design"] = int(e.configuration.design.pk)
+        exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
+        exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
+        for f in e.CameraFrames:
+            if f.camera == r1_db:
+                exp_dict["r1"] = f.ql_sn2
+            if f.camera == b1_db:
+                exp_dict["b1"] = f.ql_sn2
+            if f.camera == ap_db:
+                exp_dict["AP"] = f.ql_sn2
+        exps[exp_mjd].append(exp_dict)
+
+    sums = dict()
+    for d, eps in exps.items():
+        sums[d] = dict()
+        sums[d]["r1"] = sum([e["r1"] if e["r1"] else 0 for e in eps])
+        sums[d]["b1"] = sum([e["b1"] if e["b1"] else 0 for e in eps])
+        sums[d]["AP"] = sum([e["AP"] if e["AP"] else 0 for e in eps])
 
     return {"id": fieldId,
             "ra": field.racen,
             "dec": field.deccen,
             "observatory": field.observatory.label,
-            "cadence": field.cadence.label}
+            "cadence": field.cadence.label,
+            "exps": exps,
+            "sums": sums}

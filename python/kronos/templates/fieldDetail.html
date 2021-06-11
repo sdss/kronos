@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% set active_page = "fieldDetail" %}
+{% from 'fieldExpMacro.html' import mjdExp %}
 
 {% block head %}
   <meta name="robots" content="noindex" />
@@ -24,8 +25,18 @@
 </div>
 </div>
 
-
-
+<div class="col-lg-3">
+  {% for m in exps.keys() %}
+    <div class="card">
+      <div class="card card-nav-tabs">
+        <div class="card-header card-header-danger">
+          <h3>{{m}}</h3>
+        </div>
+        {{mjdExp(exps[m], sums[m])}}
+      </div>
+    </div>   
+  {% endfor %}
+</div>
 
 <style>
     .xaxis text {
