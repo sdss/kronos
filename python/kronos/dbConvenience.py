@@ -137,7 +137,7 @@ def getField(fieldId):
     dbField = targetdb.Field
 
     field = dbField.get(field_id=fieldId)
-    designs = field.Designs.select()
+    designs = field.designs.select()
 
     exp_query = opsdb.Exposure.select()\
                      .join(opsdb.Configuration)\

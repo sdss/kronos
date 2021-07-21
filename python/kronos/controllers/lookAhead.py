@@ -39,7 +39,6 @@ async def lookAhead():
     # parse POST/GET args
 
     if "mjd" in args:
-        print(int(args["mjd"]))
         mjd = int(args["mjd"])
 
     templateDict = getTemplateDictBase()
