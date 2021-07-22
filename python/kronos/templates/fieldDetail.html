@@ -23,7 +23,9 @@
     let r = r_last + r_sum
     alert(" R: " + r + "B: " + b )
   }
-  const allSkies = {{skies | tojson}}
+  const allSkies = {{skies | tojson}};
+  const times = {{times | tojson}};
+  const countSkies = times.length - 1;
 </script>
 
 <div class="well">
@@ -37,9 +39,7 @@
       </div>
     </div>
     <div class="col-lg-6">
-      {% for s in skies %}
-        <button class="btn btn-primary btn-round" onclick="reRenderFieldBrightness('{{s.time}}')">{{s.time}}</button>
-      {% endfor %}
+      <input type="range" min="0" max="{{skies | length}}" step="1" value="4" oninput="reRenderFieldBrightness(times[this.value])" style="vertical-align: middle">
     </div>
   </div>
   <div class="row">
@@ -79,7 +79,7 @@
 
 
 <script>
-  renderFieldBrightness({{skies[0] | tojson}})
+  renderFieldBrightness({{skies[4] | tojson}})
 </script>
 
 {% endblock body %}

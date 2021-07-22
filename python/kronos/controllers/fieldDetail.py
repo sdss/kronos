@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 from collections import OrderedDict
 import datetime
 
@@ -39,6 +40,7 @@ async def fieldDetail():
     # all necessary calls should be done inside getField funct so wrap here
     field = await wrapBlocking(getField, fieldID)
 
+    # roboscheduler scheduler
     RS = Scheduler().scheduler
 
     ra = np.arange(0, 360, 5)
@@ -49,12 +51,21 @@ async def fieldDetail():
     ras = ras.flatten()
     decs = decs.flatten()
 
-    mjd = mjd - 1/24
+    # kronos scheduler
+    scheduler = Scheduler()
+
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+
+    mjd = mjd - 4/24
+    if mjd < mjd_morning_twilight:
+        mjd = mjd_morning_twilight
     mjds = mjd + np.arange(0, 0.5, 1/24)
 
     skies = list()
+    times = list()  # because I don't want to do that in JS
 
     for m in mjds:
+        await asyncio.sleep(0)
         moon_pos = RS.moon_radec(mjd=m)
         lunar_phase = float(RS.moon_illumination(mjd=m))
         malt, maz = RS.radec2altaz(mjd=m, ra=moon_pos[0], dec=moon_pos[1])
@@ -78,6 +89,7 @@ async def fieldDetail():
         t.format = "iso"
         t = t.datetime
         ut = "{:2d}/{:02d} {:2d}:{:02d}".format(t.month, t.day, t.hour, t.minute)
+        times.append(ut)
 
         ks91 = {"mjd": m,
                 "time": ut,
@@ -99,6 +111,7 @@ async def fieldDetail():
     templateDict.update({
         "fieldID": fieldID,
         "skies": skies,
+        "times": times,
         **field
     })
 

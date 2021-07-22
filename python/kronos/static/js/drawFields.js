@@ -151,26 +151,29 @@ function drawGrid(ctx){
 
 function moon(ctx, alt, az){
     if(alt<0){
+        console.log("moon down", alt, az)
         return
     }
     var altaz = altAzToXY(alt, az);
+    console.log("moon ", alt, az, altaz)
     ctx.font = '24px serif';
     ctx.fillText("🌝", x_0+altaz[0], y_0+altaz[1]);
 }
 
 function field(ctx, alt, az){
     var altaz = altAzToXY(alt, az);
+    console.log("field ", alt, az, altaz)
     ctx.beginPath();
-    ctx.arc(altaz[0], altaz[1], 8, 0, 2 * Math.PI, false);
+    ctx.arc(x_0+altaz[0], y_0+altaz[1], 8, 0, 2 * Math.PI, false);
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#000000';
     ctx.stroke();
 }
 
-function annotate(ctx, mjd, phase, falt, faz){
+function annotate(ctx, time, phase, falt, faz){
     ctx.font = '20px serif';
     ctx.fillStyle = "black";
-    var text = "mjd " + mjd.toFixed(2)
+    var text = time
     text += " ,    field (alt, az): " 
     text += "(" + falt.toFixed(1) + ", " + faz.toFixed(1) + ")"
     text += ",    phase: " + phase.toFixed(2);
@@ -183,8 +186,6 @@ function renderFieldBrightness(ks91){
     var ctx = cnvs.getContext('2d');
 
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
-
-    console.log("drawing ", ks91.time)
 
     var diff = ks91.dmax-ks91.dmin;
     var scale = 255/diff;
@@ -212,17 +213,13 @@ function renderFieldBrightness(ks91){
     field(ctx, ks91.falt, ks91.faz)
     drawGrid(ctx);
     moon(ctx, ks91.malt, ks91.maz);
-    annotate(ctx, ks91.mjd, ks91.phase, ks91.falt, ks91.faz);
-    console.log("drew ", ks91.time, ks91.falt, ks91.faz)
+    annotate(ctx, ks91.time, ks91.phase, ks91.falt, ks91.faz);
     return ctx
 }
 
 function reRenderFieldBrightness(time){
-    console.log("reRender", allSkies.length)
     for(j=0;j<allSkies.length;j++){
-        console.log(i, allSkies[j].time)
         if(allSkies[j].time == time){
-            console.log("re-drawing", time)
             renderFieldBrightness(allSkies[j])
         }
     }
