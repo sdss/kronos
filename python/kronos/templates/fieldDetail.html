@@ -23,11 +23,12 @@
     let r = r_last + r_sum
     alert(" R: " + r + "B: " + b )
   }
+  const allSkies = {{skies | tojson}}
 </script>
 
 <div class="well">
   <div class="row">
-    <div class="col-lg-3">
+    <div class="col-lg-6">
       <div align=center>
         <h2>Field {{fieldID}}</h2>
         <h4><b>{{observatory}}</b></h4>
@@ -35,6 +36,14 @@
         <h4>Cadence: {{cadence}}</h4>
       </div>
     </div>
+    <div class="col-lg-6">
+      {% for s in skies %}
+        <button class="btn btn-primary btn-round" onclick="reRenderFieldBrightness('{{s.time}}')">{{s.time}}</button>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-3"></div>
     <div class="col-lg-3"></div>
     <div id="cloudCam" class="col-lg-3">
       <canvas id='brightCanvas' width="680" height="580"></canvas>
@@ -70,7 +79,7 @@
 
 
 <script>
-  renderFieldBrightness({{ks91 | tojson}})
+  renderFieldBrightness({{skies[0] | tojson}})
 </script>
 
 {% endblock body %}

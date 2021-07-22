@@ -114,6 +114,14 @@ function colorBar(ctx, reverse){
             ctx.closePath();
             ctx.stroke();
         }
+        ctx.save();
+        ctx.translate(650, 290);
+        ctx.rotate(-Math.PI/2);
+        ctx.font = '14px serif';
+        ctx.fillStyle = "black";
+        // ctx.textAlign = "center";
+        ctx.fillText("ΔV estimated", 0, 0);
+        ctx.restore();
     }
 }
 
@@ -135,13 +143,16 @@ function drawGrid(ctx){
 
     ctx.beginPath();
     ctx.moveTo(290, 0);
-    ctx.lineTo(290, 480);
+    ctx.lineTo(290, 535);
     ctx.strokeStyle = "black";
     ctx.closePath();
     ctx.stroke(); 
 }
 
 function moon(ctx, alt, az){
+    if(alt<0){
+        return
+    }
     var altaz = altAzToXY(alt, az);
     ctx.font = '24px serif';
     ctx.fillText("🌝", x_0+altaz[0], y_0+altaz[1]);
@@ -171,6 +182,10 @@ function renderFieldBrightness(ks91){
 
     var ctx = cnvs.getContext('2d');
 
+    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+
+    console.log("drawing ", ks91.time)
+
     var diff = ks91.dmax-ks91.dmin;
     var scale = 255/diff;
     function translate(d){
@@ -198,5 +213,17 @@ function renderFieldBrightness(ks91){
     drawGrid(ctx);
     moon(ctx, ks91.malt, ks91.maz);
     annotate(ctx, ks91.mjd, ks91.phase, ks91.falt, ks91.faz);
+    console.log("drew ", ks91.time, ks91.falt, ks91.faz)
     return ctx
+}
+
+function reRenderFieldBrightness(time){
+    console.log("reRender", allSkies.length)
+    for(j=0;j<allSkies.length;j++){
+        console.log(i, allSkies[j].time)
+        if(allSkies[j].time == time){
+            console.log("re-drawing", time)
+            renderFieldBrightness(allSkies[j])
+        }
+    }
 }

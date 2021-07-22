@@ -49,43 +49,56 @@ async def fieldDetail():
     ras = ras.flatten()
     decs = decs.flatten()
 
-    moon_pos = RS.moon_radec(mjd=mjd)
-    lunar_phase = float(RS.moon_illumination(mjd=mjd))
+    mjd = mjd - 1/24
+    mjds = mjd + np.arange(0, 0.5, 1/24)
 
-    malt, maz = RS.radec2altaz(mjd=mjd, ra=moon_pos[0], dec=moon_pos[1])
-    talt, taz = RS.radec2altaz(mjd=mjd, ra=ras, dec=decs)
+    skies = list()
 
-    horizon = np.where(talt > 0)
-    talt = talt[horizon]
-    taz = taz[horizon]
+    for m in mjds:
+        moon_pos = RS.moon_radec(mjd=m)
+        lunar_phase = float(RS.moon_illumination(mjd=m))
+        malt, maz = RS.radec2altaz(mjd=m, ra=moon_pos[0], dec=moon_pos[1])
 
-    ras = ras[horizon]
-    decs = decs[horizon]
+        talt, taz = RS.radec2altaz(mjd=m, ra=ras, dec=decs)
 
-    delta = RS.deltaV_sky_pos(mjd, ras, decs)
+        horizon = np.where(talt > 0)
+        talt = talt[horizon]
+        taz = taz[horizon]
 
-    fra = field["ra"]
-    fdec = field["dec"]
-    falt, faz = RS.radec2altaz(mjd=mjd, ra=fra, dec=fdec)
+        m_ras = ras[horizon]
+        m_decs = decs[horizon]
 
-    ks91 = {"mjd": mjd,
-            "malt": float(malt),
-            "maz": float(maz),
-            "phase": lunar_phase,
-            "skies": [{"alt": a,
-                       "az": z,
-                       "delta": d} for a, z, d in zip (talt, taz, delta)],
-            "dmin": float(np.min(delta)),
-            "dmax": float(np.max(delta)),
-            "falt": float(falt),
-            "faz": float(faz)
-            }
+        delta = RS.deltaV_sky_pos(m, m_ras, m_decs)
+
+        fra = field["ra"]
+        fdec = field["dec"]
+        falt, faz = RS.radec2altaz(mjd=m, ra=fra, dec=fdec)
+
+        t = Time(m, format="mjd")
+        t.format = "iso"
+        t = t.datetime
+        ut = "{:2d}/{:02d} {:2d}:{:02d}".format(t.month, t.day, t.hour, t.minute)
+
+        ks91 = {"mjd": m,
+                "time": ut,
+                "malt": float(malt),
+                "maz": float(maz),
+                "phase": lunar_phase,
+                "skies": [{"alt": a,
+                           "az": z,
+                           "delta": d} for a, z, d in zip(talt, taz, delta)],
+                "dmin": float(np.min(delta)),
+                "dmax": float(np.max(delta)),
+                "falt": float(falt),
+                "faz": float(faz)
+                }
+        skies.append(ks91)
 
     templateDict = getTemplateDictBase()
 
     templateDict.update({
         "fieldID": fieldID,
-        "ks91": ks91,
+        "skies": skies,
         **field
     })
 
