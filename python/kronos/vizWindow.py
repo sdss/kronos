@@ -156,7 +156,7 @@ class HAScale(object):
 
 class VizRow(object):
     def __init__(self, field, tableDict, timeScale, haScale, setCurrent=True,
-                 isHeader=False, isChild=False):
+                 isHeader=False, isChild=False, mjd_start=None):
         """inputs:
         field: a scheduler.field object
         tableDict: dictionary that corresponds to keys/values wanted for tabular display
@@ -178,6 +178,7 @@ class VizRow(object):
         self.isHeader = isHeader
         self.isChild = isChild
         self.hasChild = False
+        self.mjd_start = mjd_start
 
         if self.isHeader:
             self.fieldID = -1
@@ -266,7 +267,8 @@ class VizRow(object):
             "isSpecial": False,
             "setCurrent": self.setCurrent,
             "surveyMode": "",
-            "timeScale": await self.timeScale.export()
+            "timeScale": await self.timeScale.export(),
+            "mjd_start": self.mjd_start
             # "alt": -99,  # for updating in JS
             # "az": -99,  # for updating in JS
         }
@@ -416,7 +418,7 @@ class Viz(object):
 
         fieldRow = VizRow(field, self.getTableDict(field), self.timeScale,
                           self.haScale, setCurrent=self.setCurrent,
-                          isChild=self.isChild)
+                          isChild=self.isChild, mjd_start=field.startTime)
         fieldRow.addVizWindow(  # draw on a white background
             name="background",
             utRange=self.timeScale.range,

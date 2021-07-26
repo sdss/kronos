@@ -24,17 +24,18 @@ async def fieldDetail():
         fieldID = int(request.args["fieldID"])
 
     if "mjd" in request.args:
-        mjd = int(request.args["mjd"])
+        mjd = float(request.args["mjd"])
+        mjd_int = round(mjd)
     else:
         mjd = None
 
     if mjd is None:
         now = Time.now()
         now.format = "mjd"
-        mjd_now = now.value
+        mjd = now.value
         # use an offset so "tonight" is used until 15:00 UTC
         offset = 3 / 24
-        mjd = round(mjd_now - offset)
+        mjd_int = round(mjd - offset)
 
     # grab a dict of field params, ra, dec, observatory, and cadence at least
     # all necessary calls should be done inside getField funct so wrap here
@@ -54,11 +55,15 @@ async def fieldDetail():
     # kronos scheduler
     scheduler = Scheduler()
 
-    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd_int)
 
     mjd = mjd - 4/24
-    if mjd < mjd_morning_twilight:
-        mjd = mjd_morning_twilight
+    start_idx = 4
+    while abs(mjd - mjd_evening_twilight) > 1/24:
+        mjd += 1/24
+        start_idx -= 1
+    if start_idx < 0:
+        start_idx = 0
     mjds = mjd + np.arange(0, 0.5, 1/24)
 
     skies = list()
@@ -112,6 +117,7 @@ async def fieldDetail():
         "fieldID": fieldID,
         "skies": skies,
         "times": times,
+        "start_idx": start_idx,
         **field
     })
 

@@ -39,7 +39,7 @@
       </div>
     </div>
     <div class="col-lg-6">
-      <input type="range" min="0" max="{{skies | length}}" step="1" value="4" oninput="reRenderFieldBrightness(times[this.value])" style="vertical-align: middle">
+      <input type="range" min="0" max="{{skies | length}}" step="1" value="{{start_idx}}" oninput="reRenderFieldBrightness(times[this.value])" style="vertical-align: middle">
     </div>
   </div>
   <div class="row">
@@ -79,7 +79,7 @@
 
 
 <script>
-  renderFieldBrightness({{skies[4] | tojson}})
+  renderFieldBrightness({{skies[start_idx] | tojson}})
 </script>
 
 {% endblock body %}

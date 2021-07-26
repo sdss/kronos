@@ -552,67 +552,6 @@ function generateViz(vizObj, targetDiv, backups){
                 });
         }
 
-        // function makeSendFieldButton(){
-        //     svg.selectAll(".sendRect").remove();
-        //     svg.selectAll(".sendTxt").remove();
-        //     svg.selectAll(".invisSendRect").remove();
-        //     var y = 0;
-        //     var height = layout.margin-layout.rowBuffer;
-        //     var x = layout.margin+2*layout.rowBuffer+layout.tableWidth + 250;
-        //     var width = 200;
-        //     svg
-        //         .append("rect")
-        //         .attr("class", "sendRect")
-        //         .attr("fill", "steelblue")
-        //         .attr("stroke", "black")
-        //         .attr("opacity", 0.7)
-        //         .attr("rx", 5)
-        //         .attr("ry", 5)
-        //         .attr("y", y)
-        //         .attr("x", x)
-        //         .attr("width", width)
-        //         .attr("height", height);
-        //     svg
-        //         .append("text")
-        //         .text("Send field " + selectedField)
-        //         .attr("class", "sendTxt")
-        //         .attr("y", (y + 0.65*height))
-        //         .attr("x", x + 0.5*width)
-        //         .attr("font-family", "sans-serif")
-        //         .attr("font-size", "14px")
-        //         .attr("font-weight", "bold")
-        //         .attr("fill", "white")
-        //         // .attr("stroke", "black")
-        //         .attr("stroke-width", "1px")
-        //         .attr("text-anchor", "middle");
-        //     svg // overlay an invisible rectangle for clicking
-        //         .append("rect")
-        //         .attr("class", "invisSendRect")
-        //         .attr("fill", "white")
-        //         .attr("opacity", 0)
-        //         .attr("rx", 5)
-        //         .attr("ry", 5)
-        //         .attr("y", y)
-        //         .attr("x", x)
-        //         .attr("width", width)
-        //         .attr("height", height)
-        //         .on("mouseover", function(){
-        //             d3.select(this)
-        //                 .attr("cursor", "pointer");
-        //             svg.select(".sendRect")
-        //                 .attr("fill", "orange");
-        //         })
-        //         .on("mouseout", function(){
-        //             d3.select(this)
-        //                 .attr("cursor", "none");
-        //             svg.select(".sendRect")
-        //                 .attr("fill", "steelblue");
-        //         })
-        //         .on("click", function(){
-        //             alert("field would be sent!")
-        //         });
-        // }
-
         function makeTextButton(){
             var y = 0;
             var height = layout.margin-layout.rowBuffer;
@@ -946,7 +885,7 @@ function generateViz(vizObj, targetDiv, backups){
                     .on("click", function(d, i){
                         var isPlateID = i==0 && !row.isHeader;
                         if(isPlateID){
-                            var url = "fieldDetail.html?fieldID="+d;
+                            var url = "fieldDetail.html?fieldID="+d+"&mjd="+row.mjd_start.toFixed(2);
                             d3.select(this)
                                 .attr("fill", "blue");
                             window.open (url,'_self',false);

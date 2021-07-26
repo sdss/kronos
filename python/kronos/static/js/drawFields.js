@@ -161,8 +161,10 @@ function moon(ctx, alt, az){
 }
 
 function field(ctx, alt, az){
+    if(alt<0){
+        return
+    }
     var altaz = altAzToXY(alt, az);
-    console.log("field ", alt, az, altaz)
     ctx.beginPath();
     ctx.arc(x_0+altaz[0], y_0+altaz[1], 8, 0, 2 * Math.PI, false);
     ctx.lineWidth = 2;
