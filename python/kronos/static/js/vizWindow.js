@@ -28,7 +28,12 @@ function getAlt(ha, dec){
 }
 
 function getAltAz(ha, dec){
-    var lat = radians(32.789278); // degrees to radians
+    if(observatory == "APO"){
+        var lat = radians(90-32.789278) // degrees to radians
+    }
+    else{
+        var lat = radians(90+29.0146) // degrees to radians
+    };
     var haRad = radians(ha);
     var decRad = radians(dec);
     // convert ha/dec to cartesian

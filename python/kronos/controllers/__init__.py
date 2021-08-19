@@ -5,6 +5,8 @@ import os
 
 from quart import current_app
 
+from kronos import observatory
+
 # comple pattern for matching revision
 revPattern = re.compile(r"^Revision: (?P<revisionNum>\d+)$", re.MULTILINE)
 
@@ -32,5 +34,5 @@ def getTemplateDictBase():
     return {
         "isStable": False,
         "isDev": True,
-        "petuniaVersion": -1,
+        "observatory": observatory
     }

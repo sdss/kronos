@@ -18,8 +18,13 @@
 <script src="../static/js/core/d3.min.js"></script>
 <script src="../static/js/core/chroma.js"></script>
 <script src="../static/js/vizWindow.js"></script>
-<script src="../static/js/drawFields.js"></script>
 <script src="../static/js/formControls.js"></script>
+
+{%if observatory == 'APO'%}
+<script src="../static/js/drawFields.js"></script>
+{% else %}
+<script src="../static/js/drawFields_lco.js"></script>
+{% endif %}
 
 <div class="row">
   <div class="col-lg-3">
@@ -50,11 +55,13 @@
   </div>
 
   <div class="col-lg-6">
-    <div class="row">
-      <div id="cloudCam" class="col-md-6">
+      <div id="cloudCam">
         <!-- <h3> Cloud Cam </h3> -->
-        <canvas id='myCanvas' width="640" height="480"></canvas>
-      </div>
+        {%if observatory == 'APO'%}
+          <canvas id='myCanvas' width="640" height="480"></canvas>
+        {% else %}
+          <canvas id='myCanvas' width="480" height="480"></canvas>
+        {% endif %}
     </div>
     <div class="row">
       {% for b in backups %}

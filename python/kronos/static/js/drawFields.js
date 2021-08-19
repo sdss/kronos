@@ -4,8 +4,6 @@ const y_0 = 240;
 function renderCloudCam(dataset, backups){
     var image = new Image();
     image.src = "https://irsc.apo.nmsu.edu/tonight/current.gif";
-    // image.src = "../static/images/cP105500.gif";
-    // console.log(image)
     var cnvs = document.getElementById("myCanvas");
 
     var ctx = cnvs.getContext('2d');
@@ -21,7 +19,7 @@ function renderCloudCam(dataset, backups){
         // var c = "#73db04";
         function updateField(row){
             row.alt = Math.abs(row.alt);
-            var altaz = altAzToXY(row.alt, row.az);
+            var altaz = altAzToXY_backwards(row.alt, row.az);
             var show = row.selected || row.expanded
             if(!show){
                 // console.log("skipping", row.id, row);
@@ -84,6 +82,16 @@ function drawSky(ctx, x, y, c){
 
 function radians(x){
     return x*Math.PI/180;
+}
+
+function altAzToXY_backwards(alt, az){
+    // assumes input in degrees
+    var phi = radians(az + 90);
+    var r = (90 - alt)*292/90;
+    // console.log("alt %f az %f phi %f r %f", alt, az, phi, r);
+    var x = r*Math.cos(phi);
+    var y = r*Math.sin(phi);
+    return [x, y];
 }
 
 function altAzToXY(alt, az){

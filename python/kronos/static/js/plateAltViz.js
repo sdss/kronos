@@ -18,11 +18,16 @@ function getAlt(ha, dec){
     // code translated from RO.AzAltFromHADec
     // phi is angle between zenith @ apo and a given ha, dec
     // note using a dot b = cos phi
-    var apoLatRad = radians(90-32.789278); // degrees to radians
+    if(observatory == "APO"){
+        var siteLatRad = radians(90-32.789278) // degrees to radians
+    }
+    else{
+        var siteLatRad = radians(90+29.0146) // degrees to radians
+    };
     var haRad = radians(ha);
     var decRad = radians(90-dec);
     // convert ha/dec to cartesian
-    var z = Math.sin(apoLatRad)*Math.sin(decRad)*Math.cos(haRad) + Math.cos(apoLatRad)*Math.cos(decRad);
+    var z = Math.sin(siteLatRad)*Math.sin(decRad)*Math.cos(haRad) + Math.cos(apoLatRad)*Math.cos(decRad);
     return 90 - degrees(Math.acos(z));
 }
 

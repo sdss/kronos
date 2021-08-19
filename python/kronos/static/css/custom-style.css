@@ -12,6 +12,14 @@ html, body {
     background-color: #DCDCDC;
 }
 
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
 .lg-txt {
     font-size:18px;
 }
