@@ -8,7 +8,7 @@ import asyncio
 
 import numpy
 
-from kronos import wrapBlocking
+from kronos import wrapBlocking, observatory
 from kronos.scheduler import Scheduler
 
 
@@ -26,8 +26,8 @@ svgAttrDict = {  # colors that svg knows about
     "backgroundset": SVGAttrs("green", .3),
     "twilight": SVGAttrs("teal", 0.1),
     "apogee": SVGAttrs("green", 0.8),
-    "vizwindow": SVGAttrs("blue", 0.3),
-    "lowalt": SVGAttrs("yellow", 0.2),
+    "vizwindow": SVGAttrs("blue", 0.6),
+    "lowalt": SVGAttrs("orange", 0.4),
     "missing": SVGAttrs("yellow", 1.0),
     "infobar": SVGAttrs("black", 0.6),
     "ha": SVGAttrs("teal", 0.1),
@@ -449,13 +449,13 @@ class Viz(object):
             primary=True
         )
 
-        if field.haRange5DegZenith:  # 85 degree warning
+        if field.haRange5DegZenith and observatory == "APO":  # 85 degree warning
             fieldRow.addVizWindow(
                 name="zWarn1",
                 utRange=field.utRange5DegZenith,
                 haRange=field.haRange5DegZenith,
             )
-        if field.haRange3DegZenith:  # 85 degree warning
+        if field.haRange3DegZenith and observatory == "APO":  # 87 degree warning
             fieldRow.addVizWindow(
                 name="zWarn2",
                 utRange=field.utRange3DegZenith,

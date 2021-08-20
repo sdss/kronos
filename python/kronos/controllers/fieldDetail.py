@@ -45,7 +45,7 @@ async def fieldDetail():
     RS = Scheduler().scheduler
 
     ra = np.arange(0, 360, 5)
-    dec = np.arange(-60, 90, 5)
+    dec = np.arange(-90, 90, 5)
 
     ras, decs = np.meshgrid(ra, dec)
 
