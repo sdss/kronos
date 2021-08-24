@@ -1,0 +1,26 @@
+<div class="navbar navbar-default">
+  <div class="logo">
+    <a href="/" class="simple-text logo-normal"><img src="../static/images/clock.svg" style="width:30px;height:30px;">KRONOS {% if isDev %} <span style="color:red"> DEV </span> {% elif isStable %} <span style="color:green"> STABLE </span> {% endif %}</a>
+  </div>
+
+  <div class="nav">
+    <ul class="nav justify-content-center">
+      <li class="nav-item">
+        <a class="nav-link {% if active_page == "planObserving" %} active {% endif %}" href="/planObserving.html">
+          <p>Plan Observing</p>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if active_page == "lookAhead" %} active {% endif %}" href="/lookAhead.html">
+          <p>Look Ahead</p>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if active_page == "fieldQuery" %} active {% endif %}" href="/fieldQuery.html">
+          <p>Fields</p>
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+</div>

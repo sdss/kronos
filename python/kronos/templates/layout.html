@@ -83,25 +83,20 @@
 <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
 <!-- <script src="../static/js/core/material-dashboard.js?v=2.1.1" type="text/javascript"></script> -->
 
-<!-- {% include 'header.html' %} -->
+{% include 'header.html' %}
 <div class="wrapper ">
-  {% include 'sidebar.html' %}
-
-  <div class="main-panel">
-
-    <div class="content">
-      <div class="container-fluid">
-        {% if errorMsg %}
-        <div class="row">
-            <div class="col-md-12">
-                <p class=error><strong><font color="red">ERROR:</font> </strong> {{ errorMsg }} </p>
-            </div>
-        </div>
-        {% endif %}
-      {% block body %}{%endblock body %}
+  <div class="content">
+    <div class="container-fluid">
+      {% if errorMsg %}
+      <div class="row">
+          <div class="col-md-12">
+              <p class=error><strong><font color="red">ERROR:</font> </strong> {{ errorMsg }} </p>
+          </div>
       </div>
-      {% include 'footer.html' %}
+      {% endif %}
+    {% block body %}{%endblock body %}
     </div>
+    {% include 'footer.html' %}
   </div>
 </div>
 
