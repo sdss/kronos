@@ -37,7 +37,7 @@ class Site(object):
         """Return hour angle (degrees) at which a given declination (dec, degrees) will fall within zenithAngle (degrees from zenith at APO)
         """
         # don't bother doing any work if dec never comes within zenithAngle of zenith at apo
-        if numpy.abs(dec - cls.lat) > zenithAngle or observatory == "APO":
+        if numpy.abs(dec - cls.lat) > zenithAngle:
             # spherical trig is tricky, check that this is valid?
             return 0
         # numpy routines use radians:
