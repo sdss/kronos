@@ -120,6 +120,8 @@ class Field(object):
     def utRange45DegZenith(self):
         if self.haRange45DegZenith is None:
             return None
+        elif np.any([np.isnan(ha) for ha in self.haRange45DegZenith]):
+            return None
         ha_pos = self.haRange45DegZenith[1]
         return self._zenAngleUTC(ha_pos)
 
@@ -131,6 +133,8 @@ class Field(object):
     def utRange60DegZenith(self):
         if self.haRange60DegZenith is None:
             return None
+        elif np.any([np.isnan(ha) for ha in self.haRange60DegZenith]):
+            return None
         ha_pos = self.haRange60DegZenith[1]
         return self._zenAngleUTC(ha_pos)
 
@@ -141,6 +145,8 @@ class Field(object):
     @property
     def utRange5DegZenith(self):
         if self.haRange5DegZenith is None:
+            return None
+        elif np.any([np.isnan(ha) for ha in self.haRange5DegZenith]):
             return None
         ha_pos = self.haRange5DegZenith[1]
         return self._zenAngleUTC(ha_pos)
@@ -155,6 +161,8 @@ class Field(object):
     @property
     def utRange3DegZenith(self):
         if self.haRange3DegZenith is None:
+            return None
+        elif np.any([np.isnan(ha) for ha in self.haRange3DegZenith]):
             return None
         ha_pos = self.haRange3DegZenith[1]
         return self._zenAngleUTC(ha_pos)
