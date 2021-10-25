@@ -41,6 +41,9 @@ function renderCloudCam(dataset, backups){
         }
 
         for(i=0;i<backups.length;i++){
+            let altAz = getAltAz(backups[i].trueHA, backups[i].dec);
+            backups[i].alt = altAz[0];
+            backups[i].az = altAz[1];
             backups[i].redraw = updateField;
             updateField(backups[i]);
         }

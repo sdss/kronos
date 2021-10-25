@@ -195,8 +195,8 @@ class VizRow(object):
             haRange = list(haRange)
         # handle cases where viz window is partially or fully outside time scale
         if utRange is None or (utRange[0] > self.timeScale.range[1]) or (utRange[1] < self.timeScale.range[0]):
-            if utRange is not None:
-                print("WARNING viz window %s completely outside time scale!"%name)
+            # if utRange is not None:
+            #     print("WARNING viz window %s completely outside time scale!"%name)
             # set range values equal to each other
             utRange = (self.timeScale.range[0], self.timeScale.range[0])
         if utRange[1] > self.timeScale.range[1]:
@@ -207,8 +207,8 @@ class VizRow(object):
         # handle cases where viz window is partially or fully outside ha scale
         # this should probably never be an issue
         if haRange is None or (haRange[0] > self.haScale.range[1]) or (haRange[1] < self.haScale.range[0]):
-            if haRange is not None:
-                print("WARNING viz window %s completely outside ha scale!"%name)
+            # if haRange is not None:
+            #     print("WARNING viz window %s completely outside ha scale!"%name)
             # set range values equal to each other
             haRange = (self.haScale.range[0], self.haScale.range[0])
         if haRange[1] > self.haScale.range[1]:

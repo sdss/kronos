@@ -62,9 +62,13 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
     for field, coord in zip(*args):
         await asyncio.sleep(0)
         alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
+        lst = sched.scheduler.lst(mjd=mjd)
+        ha = sched.scheduler.ralst2ha(ra=coord[0], lst=lst)
         backup.append({"field": int(field),
                        "alt": float(alt),
                        "az": float(az),
+                       "trueHA": float(ha),
+                       "dec": float(coord[1]),
                        "selected": False,
                        "expanded": True,
                        "color": "#FF0000",
@@ -169,8 +173,14 @@ async def planObserving():
         # make replace the fieldID to be replaced, or False
         field = queue.fieldDict[replace]
         args = await scheduler.choiceFields(field.startTime, exp=len(field.designs))
-        backups = await backupDicts(*args, sched=scheduler, mjd=field.startTime,
+        # backups = await backupDicts(*args, sched=scheduler, mjd=field.startTime,
+        #                             prev=replace)
+        backups = await backupDicts(*args, sched=scheduler, mjd=mjd_now,
                                     prev=replace)
+        # for f in viz["plateRows"]:
+        #     if f["fieldID"] == field.fieldID:
+        #         for k in ["mjd_start", "dec", "tableItems", "trueHA"]:
+        #             print(f["fieldID"], k, f[k])
     else:
         backups = list()
 
