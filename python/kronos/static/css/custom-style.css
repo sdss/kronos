@@ -110,3 +110,13 @@ canvas {
     background-color: rgba(0, 255, 0, .5);
     cursor: pointer;
 }
+
+.targ-name{
+    float: left;
+    width: 150px;
+}
+
+.targ-count{
+    float: left;
+    width: 50px;
+}

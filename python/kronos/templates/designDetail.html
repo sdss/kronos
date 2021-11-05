@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+{% extends "layout.html" %}
+{% set active_page = "designDetail" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Kronos : Design Detail</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Design Detail")} #}
+{% endblock head %}
+
+{% block body %}
+
+
+<div class="well">
+  <div class="row">
+    <div class="col-lg-3">
+      <div align=center>
+        <h2>Field {{fieldID}}</h2>
+        <h4><b>{{observatory}}</b></h4>
+        <h4>RA: {{"%.2f" % ra}}, Dec: {{"%.2f" % dec}}</h4>
+        <h4>Cadence: {{cadence}}</h4>
+      </div>
+    </div>
+    <div class="col-lg-3">
+      <div align=center>
+        <h2>Design {{designID}}</h2>
+        <h4>Exposure Number: {{designNumber}}</h4>
+        <h4>Status: {{status}}</h4>
+      </div>
+    </div>
+    <div class="col-lg-3">
+      <div>
+        <h2>Configurations</h2>
+        <table class="table" style="display:block;">
+          <thead>
+            <tr>
+              <th class="text-center">ID</th>
+              <th class="text-center">Time</th>
+              <th class="text-center">AP</th>
+              <th class="text-center">b1</th>
+              <th class="text-center">r1</th>
+            </tr>
+          </thead>
+          <tbody style="height: 350px; overflow-y:scroll; display:block;">
+        {% for c in configurations %}
+            <tr>
+              <td class="text-center">{{c.id}}</td>
+              <td class="text-center">{{c.timeStamp}}</td>
+              <td class="text-center">{{c.AP}}</td>
+              <td class="text-center">{{c.b1}}</td>
+              <td class="text-center">{{c.r1}}</td>
+            </tr>
+        {% endfor %}
+            </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-lg-3">
+      queue buttons?
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-lg-3">
+      <h2>Target Summary</h2>
+        <ul>
+          {% for t in targets %}
+            <li><a><span class="targ-name">{{t.name}}:</span></a>
+              <a><span class="targ-count">{{t.count}}</span></a></li>
+          {% endfor %}
+        </ul>
+    </div>
+  </div>
+</div>
+
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+{% endblock body %}
