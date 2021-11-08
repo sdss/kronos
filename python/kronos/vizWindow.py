@@ -23,7 +23,6 @@ class SVGAttrs(object):
 svgAttrDict = {  # colors that svg knows about
     "grey": SVGAttrs("#191919", 0.2),
     "background": SVGAttrs("white", 1.),
-    "backgroundset": SVGAttrs("green", .3),
     "twilight": SVGAttrs("teal", 0.1),
     "apogee": SVGAttrs("green", 0.8),
     "vizwindow": SVGAttrs("blue", 0.6),

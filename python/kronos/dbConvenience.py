@@ -172,9 +172,6 @@ def getField(fieldId):
         sums[d]["r1"] = sum([e["r1"] for e in eps])
         sums[d]["b1"] = sum([e["b1"] for e in eps])
         sums[d]["AP"] = sum([e["AP"] for e in eps])
-        # sums[d]["r1"] = sum([e["r1"] if e["r1"] else 0 for e in eps])
-        # sums[d]["b1"] = sum([e["b1"] if e["b1"] else 0 for e in eps])
-        # sums[d]["AP"] = sum([e["AP"] if e["AP"] else 0 for e in eps])
 
     return {"id": fieldId,
             "ra": field.racen,
@@ -183,3 +180,48 @@ def getField(fieldId):
             "cadence": field.cadence.label,
             "exps": exps,
             "sums": sums}
+
+
+def getConfigurations(design_id=None):
+    r1_db = opsdb.Camera.get(label="r1")
+    b1_db = opsdb.Camera.get(label="b1")
+    ap_db = opsdb.Camera.get(label="APOGEE")
+    db_flavor = opsdb.ExposureFlavor.get(pk=1)
+    dbDesign = targetdb.Design
+
+    exp_query = opsdb.Exposure.select()\
+                     .join(opsdb.Configuration)\
+                     .join(targetdb.Design,
+                           on=(targetdb.Design.pk == opsdb.Configuration.design_pk))\
+                     .where(dbDesign.pk == design_id,
+                            opsdb.Exposure.exposure_flavor == db_flavor)
+
+    exps = defaultdict(list)
+    for e in exp_query:
+        exp_dict = {"timeStamp": "",
+                    "r1": 0,
+                    "b1": 0,
+                    "AP": 0}
+        conf_id = int(e.configuration.pk)
+        exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
+        exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
+        for f in e.CameraFrames:
+            if f.camera == r1_db:
+                exp_dict["r1"] = f.ql_sn2
+            if f.camera == b1_db:
+                exp_dict["b1"] = f.ql_sn2
+            if f.camera == ap_db:
+                exp_dict["AP"] = f.ql_sn2
+        exps[conf_id].append(exp_dict)
+
+    configurations = list()
+    for c, eps in exps.items():
+        conf = dict()
+        conf["timeStamp"] = eps[-1]["timeStamp"]
+        conf["id"] = c
+        conf["r1"] = sum([e["r1"] for e in eps])
+        conf["b1"] = sum([e["b1"] for e in eps])
+        conf["AP"] = sum([e["AP"] for e in eps])
+        configurations.append(conf)
+
+    return configurations

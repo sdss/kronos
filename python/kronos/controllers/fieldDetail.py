@@ -20,8 +20,7 @@ fieldDetail_page = Blueprint("fieldDetail_page", __name__)
 @fieldDetail_page.route('/fieldDetail.html', methods=['GET', 'POST'])
 async def fieldDetail():
 
-    if "fieldID" in request.args:
-        fieldID = int(request.args["fieldID"])
+    fieldID = int(request.args["fieldID"])
 
     if "mjd" in request.args:
         mjd = float(request.args["mjd"])
