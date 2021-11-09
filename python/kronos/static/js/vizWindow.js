@@ -1072,13 +1072,13 @@ function generateViz(vizObj, targetDiv, backups){
         makeAxis();
         makeTickNow();
         // makeSendFieldButton();
-        if (vizObj.setCurrent){
-            makeToggleScaleButton();
-        }
-        else {
-            makeClickFilterButton();
-            makeTextButton();
-        }
+        // if (vizObj.setCurrent){
+        //     makeToggleScaleButton();
+        // }
+        // else {
+        //     makeClickFilterButton();
+        //     makeTextButton();
+        // }
         // start tick timer
         // first clear any potentially existing one
         if(tickNowTimer != null){
