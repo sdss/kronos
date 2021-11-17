@@ -33,11 +33,11 @@ class Design(object):
 
     def __init__(self, design, scheduler=None, mjd_plan=None):
         if isinstance(design, targetdb.Design):
-            self.designID = int(design.pk)
+            self.designID = int(design.design_id)
             self.dbDesign = design
         else:
             self.designID = int(design)
-            self.dbDesign = targetdb.Design.get(pk=self.designID)
+            self.dbDesign = targetdb.Design.get(design_id=self.designID)
         self.field = self.dbDesign.field
         self.fieldID = self.field.field_id
         self.ra = self.field.racen
@@ -199,7 +199,7 @@ class Queue(object):
         self.dbDesigns = self.queue.select()\
                                    .where(opsdb.Queue.position > 0)\
                                    .order_by(opsdb.Queue.position)
-        self.designs = [Design(d.design.pk,
+        self.designs = [Design(d.design.design_id,
                                scheduler=self.scheduler.scheduler,
                                mjd_plan=d.mjd_plan)
                         for d in self.dbDesigns]

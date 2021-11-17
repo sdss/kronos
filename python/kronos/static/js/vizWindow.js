@@ -1018,7 +1018,6 @@ function generateViz(vizObj, targetDiv, backups){
                         }
                         row.redraw(row);
                         renderCloudCam(dataset, backups);
-                        // makeSendFieldButton();
                         var fields = document.getElementsByClassName("queue-field");
                         for (i=0;i<fields.length;i++){
                             if(fields[i].classList.contains("field-"+selectedField) && !toggleOff){
@@ -1071,7 +1070,6 @@ function generateViz(vizObj, targetDiv, backups){
         makeTickOverlays();
         makeAxis();
         makeTickNow();
-        // makeSendFieldButton();
         // if (vizObj.setCurrent){
         //     makeToggleScaleButton();
         // }

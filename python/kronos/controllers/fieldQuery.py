@@ -13,12 +13,7 @@ from . import getTemplateDictBase
 fieldQuery_page = Blueprint("fieldQuery_page", __name__)
 
 
-def sortFunc(elem):
-    return elem.field_id
-
-@fieldQuery_page.route('/fieldQuery.html', methods=['GET', 'POST'])
-async def fieldDetail():
-
+async def getRaRange():
     now = Time.now()
     now.format = "mjd"
     mjd_now = now.value
@@ -33,6 +28,18 @@ async def fieldDetail():
     ra_start = float(ra_start - 45 + 360) % 360
     ra_end = await wrapBlocking(scheduler.scheduler.lst, mjd_morning_twilight)
     ra_end = float(ra_end + 45) % 360
+
+    return ra_start, ra_end
+
+
+def sortFunc(elem):
+    return elem.field_id
+
+
+@fieldQuery_page.route('/fieldQuery.html', methods=['GET', 'POST'])
+async def fieldDetail():
+
+    ra_start, ra_end = await getRaRange()
 
     cadences = getCadences()
 

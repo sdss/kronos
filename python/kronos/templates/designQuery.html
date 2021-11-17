@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+{% from 'designListMacro.html' import designList %}
+{% extends "layout.html" %}
+{% set active_page = "designQuery" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Kronos : Design Query</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+<style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font: 16px Arial;  
+  }
+
+  /*the container must be positioned relative:*/
+  .autocomplete {
+    position: relative;
+    display: inline-block;
+  }
+
+  input {
+    border: 1px solid transparent;
+    background-color: #f1f1f1;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  input[type=text] {
+    background-color: #f1f1f1;
+    width: 100%;
+  }
+
+  input[type=submit] {
+    background-color: DodgerBlue;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+  }
+
+  .autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff; 
+    border-bottom: 1px solid #d4d4d4; 
+  }
+
+  /*when hovering an item:*/
+  .autocomplete-items div:hover {
+    background-color: #e9e9e9; 
+  }
+
+  /*when navigating through the items using the arrow keys:*/
+  .autocomplete-active {
+    background-color: DodgerBlue !important; 
+    color: #ffffff; 
+  }
+</style>
+
+{% endblock head %}
+
+{% block body %}
+
+<div class="card">
+<form autocomplete="off" action="/designQuery.html">
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="fieldidSelect">Field ID</label>
+      <input id="fieldidSelect" type="text" name="fieldid" {% if fieldid != "none" %} value="{{fieldid}}" {% else %} placeholder="field ID" {% endif %}>
+      <div class="form-group col-md-3">
+        <label for="ra0Select">RA start</label>
+        <input id="ra0Select" type="text" name="ra0Select" value="{{ra_range[0]}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="ra1Select">RA end</label>
+        <input id="ra1Select" type="text" name="ra1Select" value="{{ra_range[1]}}">
+      </div>
+    </div>
+    <div class="form-group col-md-6">
+      <div class="form-check form-check-radio">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="completionStatus" id="notStarted" value="notStarted" {% if completionStatus == "notStarted" %} checked {% endif %}>
+            Show only not started designs?
+          <span class="circle">
+              <span class="check"></span>
+          </span>
+        </label>
+      </div>
+      <div class="form-check form-check-radio">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="completionStatus" id="inProgress" value="inProgress" {% if completionStatus == "inProgress" %} checked {% endif %}>
+            Show only in progress designs?
+          <span class="circle">
+              <span class="check"></span>
+          </span>
+        </label>
+      </div>
+      <div class="form-check form-check-radio">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="completionStatus" id="done" value="done" {% if completionStatus == "done" %} checked {% endif %}>
+            Show only completed designs?
+          <span class="circle">
+              <span class="check"></span>
+          </span>
+        </label>
+      </div>
+      <div class="form-check form-check-radio">
+        <label class="form-check-label">
+          <input class="form-check-input" type="radio" name="completionStatus" id="all" value="all" {% if completionStatus == "all" %} checked {% endif %}>
+            Show all designs?
+          <span class="circle">
+              <span class="check"></span>
+          </span>
+        </label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit Query</button>
+</form>
+</div>
+
+
+<div class="card card-nav-tabs">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Design ID</th>
+        <th>Field ID</th>
+        <th>RA</th>
+        <th>Dec</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{designList(designs)}}
+    </tbody>
+  </table>
+</div>
+
+
+{% endblock body %}

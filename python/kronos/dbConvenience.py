@@ -18,7 +18,7 @@ def getRecentExps(mjd):
     exps = opsdb.Exposure.select()\
                 .join(opsdb.Configuration)\
                 .join(targetdb.Design,
-                      on=(targetdb.Design.pk == opsdb.Configuration.design_pk))\
+                      on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
                 .where(opsdb.Exposure.start_time > useTime,
                        opsdb.Exposure.exposure_flavor == db_flavor)
 
@@ -30,7 +30,7 @@ def getRecentExps(mjd):
                     "r1": "--",
                     "b1": "--",
                     "AP": "--"}
-        exp_dict["design"] = int(e.configuration.design.pk)
+        exp_dict["design"] = int(e.configuration.design.design_id)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         for f in e.CameraFrames:
             if f.camera == r1_db:
@@ -125,7 +125,7 @@ def resetField(fieldPk):
     assert removed != 0, "Should not have been able to delete"
 
 
-def getField(fieldId):
+def getField(field_id):
     """grab a field from targetdb and touch some foreign keys while
        in the blocking call so that's taken care of
     """
@@ -136,15 +136,15 @@ def getField(fieldId):
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbField = targetdb.Field
 
-    field = dbField.get(field_id=fieldId)
-    designs = field.designs.select()
+    field = dbField.get(field_id=field_id)
+    # designs = field.designs.select()
 
     exp_query = opsdb.Exposure.select()\
                      .join(opsdb.Configuration)\
                      .join(targetdb.Design,
-                           on=(targetdb.Design.pk == opsdb.Configuration.design_pk))\
+                           on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
                      .join(dbField)\
-                     .where(dbField.field_id == fieldId,
+                     .where(dbField.field_id == field_id,
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
     exps = defaultdict(list)
@@ -154,7 +154,7 @@ def getField(fieldId):
                     "r1": 0,
                     "b1": 0,
                     "AP": 0}
-        exp_dict["design"] = int(e.configuration.design.pk)
+        exp_dict["design"] = int(e.configuration.design.design_id)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
@@ -173,7 +173,7 @@ def getField(fieldId):
         sums[d]["b1"] = sum([e["b1"] for e in eps])
         sums[d]["AP"] = sum([e["AP"] for e in eps])
 
-    return {"id": fieldId,
+    return {"id": field_id,
             "ra": field.racen,
             "dec": field.deccen,
             "observatory": field.observatory.label,
@@ -192,8 +192,8 @@ def getConfigurations(design_id=None):
     exp_query = opsdb.Exposure.select()\
                      .join(opsdb.Configuration)\
                      .join(targetdb.Design,
-                           on=(targetdb.Design.pk == opsdb.Configuration.design_pk))\
-                     .where(dbDesign.pk == design_id,
+                           on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
+                     .where(dbDesign.design_id == design_id,
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
     exps = defaultdict(list)
@@ -225,3 +225,42 @@ def getConfigurations(design_id=None):
         configurations.append(conf)
 
     return configurations
+
+
+def designQuery(field_id=None, ra_range=None, limit=100):
+
+    compStatus = opsdb.CompletionStatus
+    d2s = opsdb.DesignToStatus
+
+    dbDesign = targetdb.Design
+    dbField = targetdb.Field
+
+    obsDB = targetdb.Observatory()
+    obs = obsDB.get(label=observatory)
+
+    designs = compStatus.select(compStatus.label, dbDesign.design_id, dbField.field_id,
+                                dbField.racen, dbField.deccen)\
+                        .join(d2s, on=(d2s.completion_status_pk == compStatus.pk))\
+                        .join(dbDesign, on=(d2s.design_id == dbDesign.design_id))\
+                        .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
+                        .where(dbField.observatory == obs)\
+                        .limit(limit)
+
+    if field_id is not None:
+        designs = designs.where(dbField.field_id == field_id)
+
+    if ra_range:
+        assert len(ra_range) == 2, "must specify only begin and end of RA range"
+        if ra_range[0] > ra_range[1]:
+            # implied between ra_range[1] and 360, or between 0 and ra_range[0]
+            designs = designs.where((dbField.racen > ra_range[0]) |
+                                   (dbField.racen < ra_range[1])).order_by(dbField.racen)
+        else:
+            designs = designs.where((dbField.racen > ra_range[0]) &
+                                   (dbField.racen < ra_range[1])).order_by(dbField.racen)
+
+    return [{"label": d[0],
+             "design_id": d[1],
+             "field_id": d[2],
+             "racen": d[3],
+             "deccen": d[4]} for d in designs.tuples()]

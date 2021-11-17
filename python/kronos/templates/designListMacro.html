@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+{% macro designList(designs) %}
+    {% for design in designs %}
+        <tr>
+            <td><a href="designDetail.html?designID={{design.design_id}}">{{design.design_id}}</a></td>
+            <td class="text-left"> <a href="fieldDetail.html?fieldID={{design.field_id}}">{{design.field_id}}</a></td>
+            <td class="text-left">{{"%.2f" % design.racen}}</td>
+            <td class="text-left">{{"%.2f" % design.deccen}}</td>
+            <td class="text-left">
+                {% if design.label == "done" %}
+                    <span style="color:green">{{design.label}}</span>
+                {% elif design.label == "started" %}
+                    <span style="color:yellow;">{{design.label}}</span>
+                {% else %}
+                    <span>{{design.label}}</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+{% endmacro %}
