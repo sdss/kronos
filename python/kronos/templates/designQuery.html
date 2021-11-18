@@ -81,8 +81,14 @@
 <form autocomplete="off" action="/designQuery.html">
   <div class="form-row">
     <div class="form-group col-md-6">
-      <label for="fieldidSelect">Field ID</label>
-      <input id="fieldidSelect" type="text" name="fieldid" {% if fieldid != "none" %} value="{{fieldid}}" {% else %} placeholder="field ID" {% endif %}>
+      <div class="form-group col-md-3">
+        <label for="fieldidSelect">Field ID</label>
+        <input id="fieldidSelect" type="text" name="fieldid" {% if fieldid != "none" %} value="{{fieldid}}" {% else %} placeholder="field ID" {% endif %}>
+      </div>
+      <div class="form-group col-md-3">
+        <label for="cartonSelect">Carton</label>
+        <input id="cartonSelect" type="text" name="carton" {% if carton != "none" %} value="{{carton}}" {% else %} placeholder="carton name" {% endif %}>
+      </div>
       <div class="form-group col-md-3">
         <label for="ra0Select">RA start</label>
         <input id="ra0Select" type="text" name="ra0Select" value="{{ra_range[0]}}">

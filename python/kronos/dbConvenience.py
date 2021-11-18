@@ -227,7 +227,7 @@ def getConfigurations(design_id=None):
     return configurations
 
 
-def designQuery(field_id=None, ra_range=None, limit=100):
+def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=100):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -238,16 +238,30 @@ def designQuery(field_id=None, ra_range=None, limit=100):
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
 
-    designs = compStatus.select(compStatus.label, dbDesign.design_id, dbField.field_id,
-                                dbField.racen, dbField.deccen)\
-                        .join(d2s, on=(d2s.completion_status_pk == compStatus.pk))\
-                        .join(dbDesign, on=(d2s.design_id == dbDesign.design_id))\
-                        .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
-                        .where(dbField.observatory == obs)\
-                        .limit(limit)
+    designs = dbDesign.select(compStatus.label, dbDesign.design_id, dbField.field_id,
+                              dbField.racen, dbField.deccen)\
+                      .join(d2s, on=(d2s.design_id == dbDesign.design_id))\
+                      .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
+                      .switch(dbDesign)\
+                      .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
+                      .where(dbField.observatory == obs)\
+                      .limit(limit)
 
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
+
+    if dbStatus is not None:
+        designs = designs.where(compStatus.label == dbStatus)
+
+    if carton is not None:
+        Assign = targetdb.Assignment
+        C2T = targetdb.CartonToTarget
+        Carton = targetdb.Carton
+        designs = designs.switch(dbDesign)\
+                         .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
+                         .join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
+                         .join(Carton, on=(C2T.carton_pk == Carton.pk))\
+                         .where(Carton.carton == carton)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
@@ -264,3 +278,11 @@ def designQuery(field_id=None, ra_range=None, limit=100):
              "field_id": d[2],
              "racen": d[3],
              "deccen": d[4]} for d in designs.tuples()]
+
+
+def cartonLabels():
+    Carton = targetdb.Carton
+
+    cartons = Carton.select(Carton.label)
+
+    return [c.label for c in cartons]

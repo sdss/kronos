@@ -7,7 +7,7 @@ from sdssdb.peewee.sdss5db import targetdb, opsdb
 
 from kronos import wrapBlocking
 from kronos.scheduler import Scheduler
-from kronos.dbConvenience import designQuery
+from kronos.dbConvenience import designQuery, cartonLabels
 from kronos.controllers.fieldQuery import getRaRange
 from . import getTemplateDictBase
 
@@ -42,11 +42,7 @@ async def designDetail():
             ra_start = 0
             ra_end = 360
 
-    # fields = await wrapBlocking(fieldQuery,
-    #                             cadence=queryCadence,
-    #                             priority=dbPriority,
-    #                             ra_range=[ra_start, ra_end])
-    # fields.sort(key=sortFunc)
+    # cartons = await wrapBlocking(cartonLabels)
 
     if fieldid == "none":
         queryid = None
@@ -55,15 +51,27 @@ async def designDetail():
 
     ra_range = [int(ra_start), int(ra_end)]
 
+    if completionStatus == "notStarted":
+        dbStatus = "not started"
+    elif completionStatus == "inProgress":
+        dbStatus = "started"
+    elif completionStatus == "done":
+        dbStatus = "done"
+    else:
+        dbStatus = None
+
     designs = await wrapBlocking(designQuery,
                                  field_id=queryid,
-                                 ra_range=ra_range)
+                                 ra_range=ra_range,
+                                 dbStatus=dbStatus,
+                                 carton=None)
 
     templateDict.update({
         "fieldid": fieldid,
         "completionStatus": completionStatus,
         "ra_range": ra_range,
-        "designs": designs
+        "designs": designs,
+        "carton": "not implemented yet"
     })
 
     return await render_template("designQuery.html", **templateDict)
