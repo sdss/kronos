@@ -280,6 +280,36 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
              "deccen": d[4]} for d in designs.tuples()]
 
 
+def designDetails(design):
+    if isinstance(design, targetdb.Design):
+        design = design.design_id
+
+    Design = targetdb.Design
+    Carton = targetdb.Carton
+    c2t = targetdb.CartonToTarget
+    Assignment = targetdb.Assignment
+
+    cartons = Carton.select(Carton.carton)\
+                    .join(c2t, on=(Carton.pk == c2t.carton_pk))\
+                    .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
+                    .join(Design, on=(Assignment.design_id == Design.design_id))\
+                    .where(Design.design_id == design)
+
+    CompStatus = opsdb.CompletionStatus
+    d2s = opsdb.DesignToStatus
+
+    status = CompStatus.select(CompStatus.label)\
+                       .join(d2s, on=(d2s.completion_status_pk == CompStatus.pk))\
+                       .where(d2s.design_id == design.design_id)
+
+    status = status[0].label
+
+    cartons = [c.carton for c in cartons]
+
+    return status, cartons
+
+
+
 def cartonLabels():
     Carton = targetdb.Carton
 

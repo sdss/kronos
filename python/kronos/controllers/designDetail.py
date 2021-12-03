@@ -8,7 +8,7 @@ import numpy as np
 from sdssdb.peewee.sdss5db import targetdb
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getConfigurations
+from kronos.dbConvenience import getConfigurations, designDetails
 # from kronos.scheduler import Scheduler
 
 from . import getTemplateDictBase
@@ -26,6 +26,8 @@ async def designDetail():
 
     design = await wrapBlocking(dbDesign.get, designID)
 
+    status, cartons = await wrapBlocking(designDetails, design)
+
     field = await wrapBlocking(dbField.get, pk=design.field.pk)
 
     field = {"ra": field.racen,
@@ -36,19 +38,16 @@ async def designDetail():
 
     configurations = await wrapBlocking(getConfigurations, designID)
 
-    # configurations = [{"id": i,
-    #                    "timeStamp": "2021-11-05T18:00:02",
-    #                    "AP": 100,
-    #                    "b1": 2.5,
-    #                    "r1": 5.1} for i in range(3)]
-    targets = [{"name": "class_" + str(i),
-                "count": np.random.randint(2, 30)} for i in range(20)]
+    c_names, counts = np.unique(cartons, return_counts=True)
+    targets = [{"name": n, "count": c} for n, c in zip(c_names, counts)]
 
     templateDict = getTemplateDictBase()
     templateDict.update({
         "designID": designID,
         "configurations": configurations,
         "targets": targets,
+        "designNumber": design.exposure,
+        "status": status,
         **field
     })
 
