@@ -49,6 +49,7 @@ class Design(object):
             self.dbDesign = targetdb.Design.get(design_id=self.designID)
         self.field = self.dbDesign.field
         self.fieldID = self.field.field_id
+        self.field_pk = self.field.pk
         self.ra = self.field.racen
         self.dec = self.field.deccen
         self.cadence = self.field.cadence.label
@@ -74,11 +75,13 @@ class Field(object):
         # if we ever need more than a few, get this from
         # scheduler.fields array probably; all info should be there
         if isinstance(field, targetdb.Field):
+            self.pk = int(field.pk)
             self.fieldID = int(field.field_id)
             self.dbField = field
         else:
-            self.fieldID = int(field)
-            self.dbField = targetdb.Field.get(field_id=self.fieldID)
+            self.pk = int(field)
+            self.dbField = targetdb.Field.get(pk=self.pk)
+            self.fieldID = int(self.dbField.field_id)
         self.ra = self.dbField.racen
         self.dec = self.dbField.deccen
         self.SkyCoord = SkyCoord(self.ra*u.deg, self.dec*u.deg)
@@ -216,12 +219,12 @@ class Queue(object):
         self._fieldDict = None
 
         for d in self.designs:
-            if d.fieldID not in [f.fieldID for f in self.fields]:
+            if d.field_pk not in [f.pk for f in self.fields]:
                 self.fields.append(Field(d.field,
                                          scheduler=self.scheduler.scheduler))
                 self.fields[-1].designs.append(d)
             else:
-                w = np.where(d.fieldID == np.array([f.fieldID for f in self.fields]))
+                w = np.where(d.field_pk == np.array([f.field_pk for f in self.fields]))
                 self.fields[int(w[0])].designs.append(d)
 
     @property
@@ -240,8 +243,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
     def __init__(self, **kwargs):
         self.plan = rs_version
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
-                                                           airmass_limit=1.5)
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower())
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
@@ -263,7 +265,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         if exp < 4:
             exp = 4
-        field_ids, designs = await wrapBlocking(self.scheduler.nextfield,
+        field_pks, designs = await wrapBlocking(self.scheduler.nextfield,
                                                 mjd=mjd,
                                                 maxExp=exp,
                                                 live=True,
@@ -271,14 +273,14 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         fields = list()
         # design_count = list()
         coords = list()
-        for f, d in zip(field_ids, designs):
+        for f, d in zip(field_pks, designs):
             await asyncio.sleep(0)
             if len(fields) > 3:
                 continue
             # try to fit in this slot as closely as possible
             # if abs(d - exp) > 2:
             #     continue
-            idx = np.where(self.scheduler.fields.field_id == f)
+            idx = np.where(self.scheduler.fields.pk == f)
             ra = self.scheduler.fields.racen[idx]
             dec = self.scheduler.fields.deccen[idx]
             far_enough = True
@@ -349,7 +351,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         queue = Queue()
 
-        inQueue = [f.fieldID for f in queue.fields]
+        inQueue = [f.pk for f in queue.fields]
 
         Field = targetdb.Field
         Design = targetdb.Design
@@ -362,26 +364,26 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
-            field_id, designs = await wrapBlocking(self.scheduler.nextfield,
+            field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
                                                    mjd=now,
                                                    maxExp=exp_max,
                                                    live=True,
                                                    ignore=inQueue)
 
-            if field_id is None:
+            if field_pk is None:
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
                 continue
             designs = await wrapBlocking(Design.select().join(Field).where,
-                                         Field.field_id == field_id,
+                                         Field.pk == field_pk,
                                          Field.version == dbVersion,
                                          Design.exposure << designs)
             for i, d in enumerate(designs):
                 await asyncio.sleep(0)
-                mjd_plan = now + i*self.exp_nom
+                mjd_plan = now + i * self.exp_nom
                 await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
 
-            inQueue.append(field_id)
+            inQueue.append(field_pk)
 
             now += len(designs) * self.exp_nom
         return errors
@@ -418,19 +420,19 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             #                                              maxExp=exp_max,
             #                                              live=True,
             #                                              ignore=inQueue)
-            field_id, designs = await wrapBlocking(self.scheduler.nextfield,
+            field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
                                                    mjd=now,
                                                    maxExp=exp_max,
                                                    live=True,
                                                    ignore=inQueue)
-            if field_id is None:
+            if field_pk is None:
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
                 continue
 
-            inQueue.append(field_id)
+            inQueue.append(field_pk)
 
-            field_wrap = Field(field_id, self.scheduler)
+            field_wrap = Field(field_pk, self.scheduler)
             # manually, to save us from designs
             field_wrap._startTime = now
 
