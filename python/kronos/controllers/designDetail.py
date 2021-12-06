@@ -4,6 +4,7 @@ import asyncio
 from quart import request, render_template, Blueprint
 
 import numpy as np
+from peewee import DoesNotExist
 
 from sdssdb.peewee.sdss5db import targetdb, opsdb
 
@@ -39,7 +40,10 @@ async def designDetail():
 
     designID = int(request.args["designID"])
 
-    design = await wrapBlocking(dbDesign.get, designID)
+    try:
+        design = await wrapBlocking(dbDesign.get, designID)
+    except DoesNotExist:
+        return await render_template('404.html'), 404
 
     status, cartons = await wrapBlocking(designDetails, design)
 

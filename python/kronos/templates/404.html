@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block title %}Page Not Found{% endblock %}
+{% block body %}
+<div class="row">
+  <div class="col-lg-3"></div>
+  <div class="col-lg-6">
+    <div class="card card-nav-tabs">
+      <div class="card-header card-header-danger">
+        <h1>Page Not Found</h1>
+      </div>
+      <p>The page you are looking for does not exist.
+      <p>If you are looking for a field ID, that ID likely does not exist, try a <a href="/fieldQuery.html">field query</a>
+      <p>If you are looking for a design ID, that ID likely does not exist, try a <a href="/designQuery.html">design query</a>
+      <p>If you are looking for a feature you wish existed, send John an email</p>
+    </div>
+  </div>
+  <div class="col-lg-3"></div>
+</div>
+{% endblock %}
+
+

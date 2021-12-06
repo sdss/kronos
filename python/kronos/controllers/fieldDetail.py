@@ -5,6 +5,7 @@ import datetime
 
 import numpy as np
 from astropy.time import Time
+from peewee import DoesNotExist
 
 from quart import request, render_template, Blueprint
 
@@ -38,7 +39,10 @@ async def fieldDetail():
 
     # grab a dict of field params, ra, dec, observatory, and cadence at least
     # all necessary calls should be done inside getField funct so wrap here
-    field = await wrapBlocking(getField, fieldID)
+    try:
+        field = await wrapBlocking(getField, fieldID)
+    except DoesNotExist:
+        return await render_template('404.html'), 404
 
     # roboscheduler scheduler
     RS = Scheduler().scheduler

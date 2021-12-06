@@ -86,6 +86,11 @@ app.register_blueprint(fieldQuery_page)
 app.register_blueprint(designQuery_page)
 
 
+@app.errorhandler(404)
+async def page_not_found(e):
+    return await render_template('404.html'), 404
+
+
 @app.errorhandler(500)
 async def err_page(e):
     """ Err page. """
