@@ -13,6 +13,7 @@
 
 {% block body %}
 
+<script src="../static/js/formControls.js"></script>
 
 <div class="well">
   <div class="row">
@@ -59,11 +60,19 @@
       </div>
     </div>
     <div class="col-lg-3">
-      queue buttons?
+      <div class="row">
+        <button type="button" title="prepend to queue" class="btn btn-success btn-queue-manip" onclick="confirmInsertDesign({{designID}}, 1)">Prepend to queue</button>
+      </div>
+      <div class="row">
+        <button type="button" title="insert in queue" class="btn btn-success btn-queue-manip" onclick="insertWhere({{designID}})">Insert in queue</button>
+      </div>
+      <div class="row">
+        <button type="button" title="append to queue" class="btn btn-success btn-queue-manip" onclick="confirmAppendDesign({{designID}})">Append to queue</button>
+      </div>
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-3">
+    <div class="col-lg-6">
       <h2>Target Summary</h2>
         <ul>
           {% for t in targets %}

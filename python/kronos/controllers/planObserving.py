@@ -11,7 +11,7 @@ from sdssdb.peewee.sdss5db import opsdb
 
 from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
-from kronos.scheduler import Scheduler, Design, Queue
+from kronos.scheduler import Scheduler, Design, Queue, offsetNow
 from kronos.site import Site
 from kronos.dbConvenience import getRecentExps
 
@@ -78,13 +78,7 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
 
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
 async def planObserving():
-
-    now = Time.now()
-    now.format = "mjd"
-    mjd_now = now.value
-    # use an offset so "tonight" is used until 15:00 UTC
-    offset = 3 / 24
-    mjd = round(mjd_now - offset)
+    mjd = round(offsetNow())
 
     form = await request.form
     args = request.args

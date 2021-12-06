@@ -5,11 +5,11 @@ from quart import request, render_template, Blueprint
 
 import numpy as np
 
-from sdssdb.peewee.sdss5db import targetdb
+from sdssdb.peewee.sdss5db import targetdb, opsdb
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getConfigurations, designDetails
-# from kronos.scheduler import Scheduler
+from kronos.dbConvenience import getConfigurations, designDetails, safeInsertInQueue, safeAppendQueue
+from kronos.scheduler import offsetNow
 
 from . import getTemplateDictBase
 
@@ -21,6 +21,21 @@ async def designDetail():
 
     dbField = targetdb.Field
     dbDesign = targetdb.Design
+
+    form = await request.form
+
+    mjd = offsetNow()
+
+    if "insert_design_id" in form:
+        insert_design = int(form["insert_design_id"])
+        pos = int(form["position"])
+        q_mjd = None
+        if pos == 1:
+            q_mjd = mjd
+        await wrapBlocking(safeInsertInQueue, insert_design, pos, mjd_plan=q_mjd)
+    elif "append_design_id" in form:
+        append_design = int(form["append_design_id"])
+        await wrapBlocking(safeAppendQueue, append_design, mjd_plan=mjd)
 
     designID = int(request.args["designID"])
 

@@ -17,6 +17,15 @@ if not opsdb.database.connected:
 design_time = 18. / 60. / 24.  # days, keep in mjd
 
 
+def offsetNow():
+    now = Time.now()
+    now.format = "mjd"
+    mjd_now = now.value
+    # use an offset so "tonight" is used until 15:00 UTC
+    offset = 3 / 24
+    return mjd_now - offset
+
+
 # Class to define a singleton
 class SchedulerSingleton(type):
     _instances = {}

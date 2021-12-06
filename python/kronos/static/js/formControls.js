@@ -264,3 +264,82 @@ function resetField(fieldPk, specialStatus, cadence){
     document.body.appendChild(form);
     form.submit();
 }
+
+function appendDesign(design_id){
+    var prev = 0;
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/designDetail.html?designID=" + design_id;
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "append_design_id";
+    hiddenField.value = design_id;
+    form.appendChild(hiddenField);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmAppendDesign(design_id){
+
+    var forReal = confirm("Add " + design_id + " to end of queue?")
+        if (forReal) {
+            appendDesign(design_id);
+        }
+}
+
+function insertDesign(design_id, pos){
+    var prev = 0;
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/designDetail.html?designID=" + design_id;
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "insert_design_id";
+    hiddenField.value = design_id;
+    form.appendChild(hiddenField);
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "position";
+    hiddenField.value = pos;
+    form.appendChild(hiddenField);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmInsertDesign(design_id, pos){
+
+    let message = "";
+    if(pos == 1){
+        message = "Insert " + design_id + " to front of queue?";
+    }
+    else{
+        message = "Insert " + design_id + " at " + pos + " in queue?";
+    }
+
+    var forReal = confirm(message)
+        if (forReal) {
+            insertDesign(design_id, pos);
+        }
+}
+
+function insertWhere(design_id){
+    let message = "Insert design " + design_id + " at what position?";
+    var pos = parseInt(prompt(message));
+
+    if(isNaN(pos)){
+        alert("Invalid input");
+    }
+    else if(pos < 1){
+        alert("Invalid input; pos must be > 0");
+    }
+    else{
+        confirmInsertDesign(design_id, pos);
+    }
+}

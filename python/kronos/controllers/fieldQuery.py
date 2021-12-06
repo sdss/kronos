@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from quart import request, render_template, Blueprint
-from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import targetdb, opsdb
 
 from kronos import wrapBlocking
-from kronos.scheduler import Scheduler
+from kronos.scheduler import Scheduler, offsetNow
 from kronos.dbConvenience import getCadences, fieldQuery, prioritizeField, disableField, resetField
 from . import getTemplateDictBase
 
@@ -14,12 +13,7 @@ fieldQuery_page = Blueprint("fieldQuery_page", __name__)
 
 
 async def getRaRange():
-    now = Time.now()
-    now.format = "mjd"
-    mjd_now = now.value
-    # use an offset so "tonight" is used until 15:00 UTC
-    offset = 3 / 24
-    mjd = round(mjd_now - offset)
+    mjd = round(offsetNow())
 
     scheduler = Scheduler()
 

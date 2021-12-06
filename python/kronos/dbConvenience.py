@@ -5,7 +5,7 @@ from astropy.time import Time
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
 from kronos import rs_version, observatory  # , wrapBlocking
-
+from kronos.scheduler import design_time
 
 def getRecentExps(mjd):
     r1_db = opsdb.Camera.get(label="r1")
@@ -300,7 +300,7 @@ def designDetails(design):
 
     status = CompStatus.select(CompStatus.label)\
                        .join(d2s, on=(d2s.completion_status_pk == CompStatus.pk))\
-                       .where(d2s.design_id == design.design_id)
+                       .where(d2s.design_id == design)
 
     status = status[0].label
 
@@ -309,10 +309,41 @@ def designDetails(design):
     return status, cartons
 
 
-
 def cartonLabels():
     Carton = targetdb.Carton
 
     cartons = Carton.select(Carton.label)
 
     return [c.label for c in cartons]
+
+
+def safeInsertInQueue(design_id, pos, mjd_plan=None):
+    # ######
+    # TODO: add mjd_plan to model classes to allow insert at 1 in empty queue
+    # ######
+    Queue = opsdb.Queue
+
+    count = Queue.select().count()
+
+    if pos >= count:
+        # queue starts at 1 not 0
+        pos = count
+    elif pos <= 0:
+        pos = 1
+
+    opsdb.Queue.insertInQueue(design_id, pos)
+
+
+def safeAppendQueue(design_id, mjd_plan=None):
+    """Basically all this does is allow appending to an empty queue
+       with mjd = "now" (or w/e is passed), otherwise it increments
+       the queue mjd.
+    """
+    Queue = opsdb.Queue
+
+    mjds = [m.mjd_plan for m in Queue.select(Queue.mjd_plan).order_by(Queue.position)]
+
+    if len(mjds) > 0:
+        mjd_plan = mjds[-1] + design_time
+
+    Queue.appendQueue(design_id, mjd_plan=mjd_plan)
