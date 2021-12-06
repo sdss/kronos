@@ -80,6 +80,10 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
 async def planObserving():
     mjd = round(offsetNow())
 
+    now = Time.now()
+    now.format = "mjd"
+    mjd_now = now.value
+
     form = await request.form
     args = request.args
 

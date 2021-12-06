@@ -10,7 +10,7 @@ from quart import request, render_template, Blueprint
 
 from kronos import wrapBlocking
 from kronos.dbConvenience import getField
-from kronos.scheduler import Scheduler, offsetNow
+from kronos.scheduler import Scheduler
 
 from . import getTemplateDictBase
 
@@ -29,7 +29,12 @@ async def fieldDetail():
         mjd = None
 
     if mjd is None:
-        mjd_int = int(offsetNow())
+        now = Time.now()
+        now.format = "mjd"
+        mjd = now.value
+        # use an offset so "tonight" is used until 15:00 UTC
+        offset = 3 / 24
+        mjd_int = round(mjd - offset)
 
     # grab a dict of field params, ra, dec, observatory, and cadence at least
     # all necessary calls should be done inside getField funct so wrap here
