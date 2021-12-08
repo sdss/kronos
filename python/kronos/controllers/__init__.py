@@ -5,34 +5,24 @@ import os
 
 from quart import current_app
 
-from kronos import observatory
-
-# comple pattern for matching revision
-revPattern = re.compile(r"^Revision: (?P<revisionNum>\d+)$", re.MULTILINE)
-
-def getVersion(path):
-    """Input:
-    path, a string representing an absolute path to a current version of software
-    """
-    realPath = os.path.realpath(path)
-    baseDir = realPath.split("/")[-1]
-    #see if this path is an svn repo, if so get version number
-    try:
-        stdoutStr = check_output(["svn", "info", realPath])
-        revisionNum = re.search(revPattern, stdoutStr).groupdict()["revisionNum"]
-    except:
-        # not an svn repo
-        return baseDir
-    else:
-        return baseDir + " r%s"%revisionNum
+from kronos import observatory, __version__
+from sdssdb import __version__ as dbVer
+from roboscheduler import __version__ as rsVer
 
 
 def getTemplateDictBase():
-    # isStable = current_app.config["AS_PORT"]=="8091"
-    # isDev = current_app.config["DB_PORT"]=="5440"
-    version = "current"
+    version = __version__
+    try:
+        os.getlogin()
+        isDev = True
+    except OSError:
+        # when run as a daemon, getlogin will fail
+        isDev = False
     return {
         "isStable": False,
-        "isDev": True,
-        "observatory": observatory
+        "isDev": isDev,
+        "observatory": observatory,
+        "version": version,
+        "RS_version": rsVer,
+        "sdssdb_version": dbVer
     }
