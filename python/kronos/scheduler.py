@@ -208,9 +208,11 @@ class Queue(object):
     def __init__(self):
         self.scheduler = Scheduler()
         self.queue = opsdb.Queue
+        # wrap blocking this is a DB call
         self.dbDesigns = self.queue.select()\
                                    .where(opsdb.Queue.position > 0)\
                                    .order_by(opsdb.Queue.position)
+        # or it might be here
         self.designs = [Design(d.design.design_id,
                                scheduler=self.scheduler.scheduler,
                                mjd_plan=d.mjd_plan)
@@ -244,6 +246,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def __init__(self, **kwargs):
         self.plan = rs_version
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower())
+
+        # wrap blocking this is a DB call
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
@@ -354,7 +358,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         now = mjdStart
 
-        queue = Queue()
+        queue = await wrapBlocking(Queue)
 
         inQueue = [f.pk for f in queue.fields]
 
@@ -437,7 +441,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             inQueue.append(field_pk)
 
-            field_wrap = Field(field_pk, self.scheduler)
+            field_wrap = await wrapBlocking(Field, field_pk, self.scheduler)
             # manually, to save us from designs
             field_wrap._startTime = now
 
@@ -478,7 +482,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             the MJD of the end of the night; the beginning will be the
             scheduled mjd of fieldID
         """
-        queue = Queue()
+        queue = await wrapBlocking(Queue)
 
         field = queue.fieldDict[field_pk]
         mjd_prev = field.startTime

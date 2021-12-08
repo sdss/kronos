@@ -37,7 +37,7 @@ async def lookAhead():
 
     templateDict = getTemplateDictBase()
 
-    scheduler = Scheduler()
+    scheduler = await wrapBlocking(Scheduler)
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
@@ -52,7 +52,7 @@ async def lookAhead():
             "timeBarEndUTC": endTime
         }
 
-    queue = Queue()
+    queue = await wrapBlocking(Queue)
     # if len(queue.fields) == 0:
     #     viz = None
     # else:

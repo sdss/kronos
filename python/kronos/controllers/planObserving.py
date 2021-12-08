@@ -102,10 +102,10 @@ async def planObserving():
 
     if "rmField" in form:
         rmField = int(form["rmField"])
-        opsdb.Queue.rm(rmField)
+        await wrapBlocking(opsdb.Queue.rm, rmField)
 
     elif "flush" in form:
-        opsdb.Queue.flushQueue()
+        await wrapBlocking(opsdb.Queue.flushQueue)
 
     elif "redo" in form:
         redo = True
@@ -129,7 +129,7 @@ async def planObserving():
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
-    scheduler = Scheduler()
+    scheduler = await wrapBlocking(Scheduler)
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
@@ -147,7 +147,7 @@ async def planObserving():
 
     if redo:
         # clear the queue
-        opsdb.Queue.flushQueue()
+        await wrapBlocking(opsdb.Queue.flushQueue)
         # redo the whole queue, but check if it's during the night
         if mjd_now > mjd_evening_twilight:
             start_mjd = mjd_now
@@ -161,7 +161,7 @@ async def planObserving():
             "timeBarEndUTC": endTime
         }
 
-    queue = Queue()
+    queue = await wrapBlocking(Queue)
     if len(queue.fields) == 0:
         viz = None
     else:
