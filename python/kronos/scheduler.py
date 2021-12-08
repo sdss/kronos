@@ -224,13 +224,13 @@ class Queue(object):
                                          scheduler=self.scheduler.scheduler))
                 self.fields[-1].designs.append(d)
             else:
-                w = np.where(d.field_pk == np.array([f.field_pk for f in self.fields]))
+                w = np.where(d.field_pk == np.array([f.pk for f in self.fields]))
                 self.fields[int(w[0])].designs.append(d)
 
     @property
     def fieldDict(self):
         if self._fieldDict is None:
-            self._fieldDict = {f.fieldID: f for f in self.fields}
+            self._fieldDict = {f.pk: f for f in self.fields}
         return self._fieldDict
 
 
@@ -295,7 +295,12 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 # design_count.append(d)
                 coords.append([ra, dec])
 
-        return fields, coords
+        dbField = targetdb.Field
+        id_query = await wrapBlocking(dbField.select(dbField.field_id).where,
+                                      dbField.pk << fields)
+        field_ids = [q.field_id for q in id_query]
+
+        return field_ids, coords, fields
 
     async def replaceField(self, oldField, backup):
         """replace oldField with backup in the queue
@@ -321,7 +326,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         Version = targetdb.Version
         dbVersion = await wrapBlocking(Version.get, plan=self.plan)
         designs = await wrapBlocking(Design.select().join(Field).where,
-                                     Field.field_id == backup,
+                                     Field.pk == backup,
                                      Field.version == dbVersion,
                                      Design.exposure << newDesigns)
 
@@ -460,7 +465,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjd_morning_twilight = self.scheduler.morning_twilight(mjd)
         return mjd_evening_twilight, mjd_morning_twilight
 
-    async def rescheduleAfterField(self, fieldID, night_end):
+    async def rescheduleAfterField(self, field_pk, night_end):
         """reschedule the rest of the night starting with fieldID
 
         Parameters:
@@ -475,14 +480,14 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         """
         queue = Queue()
 
-        field = queue.fieldDict[fieldID]
+        field = queue.fieldDict[field_pk]
         mjd_prev = field.startTime
 
         rm_fields = [f for f in queue.fields if f.startTime >= mjd_prev]
 
         for f in rm_fields:
             await asyncio.sleep(0)
-            await wrapBlocking(opsdb.Queue.rm, f.fieldID)
+            await wrapBlocking(opsdb.Queue.rm, f.pk)
 
         return await self.queueFromSched(mjd_prev, night_end)
 

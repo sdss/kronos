@@ -10,15 +10,15 @@
                 </span>
                 <span class="queue-buttons">
                     <a class="button-container">
-                        <i class="material-icons delete-field" onclick="confirmRM({{des.fieldID}})">clear</i>
+                        <i class="material-icons delete-field" onclick="confirmRM({{des.fieldID}}, {{des.field_pk}})">clear</i>
                         <span class="button-hover-field">remove</span>
                     </a>
                     <a class="button-container">
-                        <i class="material-icons refresh-field" onclick="confirmReplace({{des.fieldID}})">refresh</i>
+                        <i class="material-icons refresh-field" onclick="confirmReplace({{des.fieldID}}, {{des.field_pk}})">refresh</i>
                         <span class="button-hover-field">replace</span>
                     </a>
                     <a class="button-container">
-                        <i class="material-icons clear-from-here" onclick="confirmRedoFromHere({{des.fieldID}})">arrow_downward</i>
+                        <i class="material-icons clear-from-here" onclick="confirmRedoFromHere({{des.fieldID}}, {{des.field_pk}})">arrow_downward</i>
                         <span class="button-hover-field">replace from here</span>
                     </a>
                 </span>

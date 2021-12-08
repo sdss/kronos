@@ -59,12 +59,13 @@ def getAlmanac(mjd):
 
 async def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
-    for field, coord in zip(*args):
+    for field_id, coord, field_pk in zip(*args):
         await asyncio.sleep(0)
         alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
         lst = sched.scheduler.lst(mjd=mjd)
         ha = sched.scheduler.ralst2ha(ra=coord[0], lst=lst)
-        backup.append({"field": int(field),
+        backup.append({"field_id": int(field_id),
+                       "field_pk": int(field_pk),
                        "alt": float(alt),
                        "az": float(az),
                        "trueHA": float(ha),

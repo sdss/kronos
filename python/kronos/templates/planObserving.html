@@ -9,7 +9,7 @@
   <meta name="robots" content="noindex" />
   <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
   <title>Kronos : Plan Observing</title>
-  <meta http-equiv="refresh" CONTENT="600"/>
+  <meta http-equiv="refresh" CONTENT="45"/>
 
   {#  ${header("Plan Observing")} #}
 {% endblock head %}
@@ -66,7 +66,7 @@
     <div class="row">
       {% for b in backups %}
         <li class="list-group-item">
-          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field}})" id="backup-{{b.field}}" style="background-color: {{b.color}}; color: black;">{{b.field}}</button>
+          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field_pk}})" id="backup-{{b.field_pk}}" style="background-color: {{b.color}}; color: black;">{{b.field_id}}</button>
         </li>
       {% endfor %}
       {% if backups|length > 0 %}
@@ -111,6 +111,8 @@
   </div>
 </div>
 
+<div id="backup-field-pk"></div>
+
 
 <style>
     .xaxis text {
@@ -128,6 +130,7 @@
 <script>
     // show the cloud came image
     // testViz({{apogeeViz| tojson}})
+    document.getElementById("backup-field-pk").hidden=true;
 
     const showCloudCam = true;
 
@@ -139,7 +142,7 @@
     var colorScale = chroma.scale(['yellow', 'red', 'black']);
     for (i=0;i<backupFields.length;i++){
         backupFields[i].color = colorScale(i/backupFields.length).hex()
-        let thisButton = document.getElementById("backup-" + backupFields[i].field);
+        let thisButton = document.getElementById("backup-" + backupFields[i].field_pk);
         thisButton.style.backgroundColor = backupFields[i].color;
     }
 
@@ -156,13 +159,15 @@
         generateViz(vizObj,".apogeeViz", backupFields);
     }
 
-    function highlightBackup(fieldid){
+    function highlightBackup(field_pk){
         let idField = document.getElementById("submitReplacementField");
+        let pk_holder = document.getElementById("backup-field-pk")
         for (i=0;i<backupFields.length;i++){
-            if(backupFields[i].field == fieldid){
+            if(backupFields[i].field_pk == field_pk){
                 backupFields[i].selected = !backupFields[i].selected;
                 if (backupFields[i].selected){
-                  idField.innerText = "submit " + fieldid;
+                  idField.innerText = "submit " + backupFields[i].field_id;
+                  pk_holder.innerText = backupFields[i].field_pk;
                 }
             }
             else{
@@ -175,7 +180,8 @@
 
     function submitReplacement(){
       let idField = document.getElementById("submitReplacementField");
-      confirmBackup(idField.innerText.substring(6));
+      let pk_holder = document.getElementById("backup-field-pk")
+      confirmBackup(idField.innerText.substring(6), pk_holder.innerText);
     }
 
 </script>

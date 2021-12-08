@@ -1,4 +1,4 @@
-function rmField(fieldID){
+function rmField(field_pk){
     //submit post request to remove field from queue, behind the scenes
 
     var form = document.createElement('form');
@@ -8,18 +8,18 @@ function rmField(fieldID){
     var hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
     hiddenField.name = "rmField";
-    hiddenField.value = fieldID;
+    hiddenField.value = field_pk;
     form.appendChild(hiddenField);
     
     document.body.appendChild(form);
     form.submit();
 }
 
-function confirmRM(fieldID){
+function confirmRM(fieldID, field_pk){
 
     var forReal = confirm("Are you sure you want to remove " + fieldID + " from the queue?")
         if (forReal) {
-            rmField(fieldID);
+            rmField(field_pk);
         }
 }
 
@@ -71,7 +71,7 @@ function confirmRedo(){
     }
 }
 
-function replaceField(fieldID){
+function replaceField(field_pk){
     //submit post request to replace field, behind the scenes
 
     var form = document.createElement('form');
@@ -81,28 +81,28 @@ function replaceField(fieldID){
     var hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
     hiddenField.name = "replace";
-    hiddenField.value = fieldID;
+    hiddenField.value = field_pk;
     form.appendChild(hiddenField);
     
     document.body.appendChild(form);
     form.submit();
 }
 
-function confirmReplace(fieldID){
+function confirmReplace(fieldID, field_pk){
 
     var forReal = confirm("Would you like to replace field " + fieldID + "?")
         if (forReal) {
-            replaceField(fieldID);
+            replaceField(field_pk);
         }
 }
 
-function submitBackup(fieldID){
+function submitBackup(field_pk){
     //submit chosen replacement
 
     // var ndesigns = 0;
     var prev = 0;
     for (i=0;i<backupFields.length;i++){
-        if(backupFields[i].field == fieldID){
+        if(backupFields[i].field_pk == field_pk){
             // ndesigns = backupFields[i].designs;
             prev = backupFields[i].prev;
         }
@@ -115,7 +115,7 @@ function submitBackup(fieldID){
     var hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
     hiddenField.name = "backup";
-    hiddenField.value = fieldID;
+    hiddenField.value = field_pk;
     form.appendChild(hiddenField);
 
     var hiddenField2 = document.createElement('input');
@@ -129,16 +129,16 @@ function submitBackup(fieldID){
     form.submit();
 }
 
-function confirmBackup(fieldID){
+function confirmBackup(fieldID, field_pk){
 
     var forReal = confirm("Replace with field" + fieldID + "?")
         if (forReal) {
-            submitBackup(fieldID);
+            submitBackup(field_pk);
         }
 }
 
-function redoFromHere(fieldID){
-    //reschedule the night after field fieldID
+function redoFromHere(field_pk){
+    //reschedule the night after field field_pk
 
     // var ndesigns = 0;
     var prev = 0;
@@ -150,7 +150,7 @@ function redoFromHere(fieldID){
     var hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';
     hiddenField.name = "backup";
-    hiddenField.value = fieldID;
+    hiddenField.value = field_pk;
     form.appendChild(hiddenField);
 
     var hiddenField2 = document.createElement('input');
@@ -170,17 +170,15 @@ function redoFromHere(fieldID){
     form.submit();
 }
 
-function confirmRedoFromHere(fieldID){
+function confirmRedoFromHere(fieldID, field_pk){
 
     var forReal = confirm("Reschedule tonight after " + fieldID + "?")
         if (forReal) {
-            redoFromHere(fieldID);
+            redoFromHere(field_pk);
         }
 }
 
 function prioritizeField(fieldPk, specialStatus, cadence){
-    //submit post request to remove field from queue, behind the scenes
-
     var form = document.createElement('form');
     form.method = "post";
     form.action = "/fieldQuery.html";
@@ -208,8 +206,6 @@ function prioritizeField(fieldPk, specialStatus, cadence){
 }
 
 function disableField(fieldPk, specialStatus, cadence){
-    //submit post request to remove field from queue, behind the scenes
-
     var form = document.createElement('form');
     form.method = "post";
     form.action = "/fieldQuery.html";
@@ -237,8 +233,6 @@ function disableField(fieldPk, specialStatus, cadence){
 }
 
 function resetField(fieldPk, specialStatus, cadence){
-    //submit post request to remove field from queue, behind the scenes
-
     var form = document.createElement('form');
     form.method = "post";
     form.action = "/fieldQuery.html";
