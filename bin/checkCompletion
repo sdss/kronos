@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+
+from collections import defaultdict
+from datatime.datetime import now
+from datetime import timedelta
+
+from sdssdb.peewee.sdss5db import opsdb, targetdb
+
+
+r1_db = opsdb.Camera.get(label="r1")
+b1_db = opsdb.Camera.get(label="b1")
+ap_db = opsdb.Camera.get(label="APOGEE")
+Design = targetdb.Design
+Conf = opsdb.Configuration
+Exp = opsdb.Exposure
+
+
+def checkDone():
+    useTime = now() - timedelta(days=1)
+    db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
+
+    recent_designs = Design.select()\
+                           .join(Conf, on=(Design.design_id == Conf.design_id))\
+                           .join(Exp)\
+                           .where(Exp.start_time > useTime,
+                                  Exp.exposure_flavor == db_flavor)
+
+    exps = Exp.select()\
+              .join(Conf)\
+              .join(Design,
+                    on=(Design.design_id == Conf.design_id))\
+              .where(Design << recent_designs)
+
+    r1 = defaultdict(float)
+    b1 = defaultdict(float)
+    ap = defaultdict(float)
+
+    for e in exps:
+        des = int(e.configuration.design.design_id)
+        for f in e.CameraFrames:
+            if f.camera == r1_db:
+                r1[des] += f.ql_sn2
+            if f.camera == b1_db:
+                b1[des] += f.ql_sn2
+            if f.camera == ap_db:
+                ap[des] += f.ql_sn2
+
+    for a in ap:
+        if ap[a] > 150:
+            status = opsdb.CompletionStatus.get(label="done")
+        else:
+            status = opsdb.CompletionStatus.get(label="started")
+        design_status = opsdb.DesignToStatus.get_or_create(design=a)[0]
+        design_status.status = status
+        design_status.save()
+
+    for r in r1:
+        if r1[r] > 20 and b1[r] > 10:
+            status = opsdb.CompletionStatus.get(label="done")
+        else:
+            status = opsdb.CompletionStatus.get(label="started")
+        design_status = opsdb.DesignToStatus.get_or_create(design=r)[0]
+        design_status.status = status
+        design_status.save()
+
+
+if __name__ == "__main__":
+    checkDone()
