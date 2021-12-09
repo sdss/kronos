@@ -30,6 +30,8 @@ async def designDetail():
     fieldid = "none"
     completionStatus = "all"
 
+    chosenCarton = "none"
+
     if request.args:
         fieldid = request.args["fieldid"].strip()
         if len(fieldid) == 0:
@@ -41,8 +43,9 @@ async def designDetail():
         except:
             ra_start = 0
             ra_end = 360
+        chosenCarton = request.args["carton"].strip()
 
-    # cartons = await wrapBlocking(cartonLabels)
+    cartons = await wrapBlocking(cartonLabels)
 
     if fieldid == "none":
         queryid = None
@@ -60,18 +63,25 @@ async def designDetail():
     else:
         dbStatus = None
 
+    # empty string keeps being sent by form, deal with it later
+    if chosenCarton == "none" or len(chosenCarton) == 0:
+        queryCarton = None
+    else:
+        queryCarton = chosenCarton
+
     designs = await wrapBlocking(designQuery,
                                  field_id=queryid,
                                  ra_range=ra_range,
                                  dbStatus=dbStatus,
-                                 carton=None)
+                                 carton=queryCarton)
 
     templateDict.update({
         "fieldid": fieldid,
         "completionStatus": completionStatus,
         "ra_range": ra_range,
         "designs": designs,
-        "carton": "not implemented yet"
+        "cartons": cartons,
+        "carton": chosenCarton
     })
 
     return await render_template("designQuery.html", **templateDict)

@@ -77,6 +77,8 @@
 
 {% block body %}
 
+<script src="../static/js/autoComplete.js"></script>
+
 <div class="card">
 <form autocomplete="off" action="/designQuery.html">
   <div class="form-row">
@@ -159,5 +161,11 @@
   </table>
 </div>
 
+
+<script>
+  var cartons = [{% for cart in cartons %} "{{cart}}", {% endfor %}];
+
+  autocomplete(document.getElementById("cartonSelect"), cartons);
+</script>
 
 {% endblock body %}

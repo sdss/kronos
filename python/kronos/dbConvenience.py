@@ -257,11 +257,11 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
         Assign = targetdb.Assignment
         C2T = targetdb.CartonToTarget
         Carton = targetdb.Carton
+        matchingCartons = Carton.select().where(Carton.carton.contains(carton))
         designs = designs.switch(dbDesign)\
                          .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
                          .join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
-                         .join(Carton, on=(C2T.carton_pk == Carton.pk))\
-                         .where(Carton.carton == carton)
+                         .where(C2T.carton << matchingCartons)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
@@ -312,9 +312,9 @@ def designDetails(design):
 def cartonLabels():
     Carton = targetdb.Carton
 
-    cartons = Carton.select(Carton.label)
+    cartons = Carton.select(Carton.carton)
 
-    return [c.label for c in cartons]
+    return [c.carton for c in cartons]
 
 
 def safeInsertInQueue(design_id, pos, mjd_plan=None):
