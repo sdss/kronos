@@ -235,6 +235,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     dbDesign = targetdb.Design
     dbField = targetdb.Field
+    Assign = targetdb.Assignment
 
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
@@ -245,8 +246,14 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                       .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
                       .switch(dbDesign)\
                       .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
+                      .switch(dbDesign)\
+                      .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
                       .where(dbField.observatory == obs)\
                       .limit(limit)
+
+    designs.group_by(compStatus.label, dbDesign.design_id,
+                     dbField.field_id, dbField.racen,
+                     dbField.deccen, dbField.position_angle)
 
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
@@ -255,17 +262,11 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         designs = designs.where(compStatus.label == dbStatus)
 
     if carton is not None:
-        Assign = targetdb.Assignment
         C2T = targetdb.CartonToTarget
         Carton = targetdb.Carton
         matchingCartons = Carton.select().where(Carton.carton.contains(carton))
-        designs = designs.switch(dbDesign)\
-                         .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
-                         .join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
-                         .where(C2T.carton << matchingCartons)\
-                         .group_by(compStatus.label, dbDesign.design_id,
-                                   dbField.field_id, dbField.racen,
-                                   dbField.deccen, dbField.position_angle)
+        designs = designs.join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
+                         .where(C2T.carton << matchingCartons)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
