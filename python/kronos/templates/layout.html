@@ -91,7 +91,9 @@
       {% if errorMsg %}
       <div class="row">
           <div class="col-md-12">
-              <p class=error><strong><font color="red">ERROR:</font> </strong> {{ errorMsg }} </p>
+              {% for err in errorMsg %}
+                <p class=error><strong><font color="red">ERROR:</font> </strong> {{ err }} </p>
+              {% endfor %}
           </div>
       </div>
       {% endif %}

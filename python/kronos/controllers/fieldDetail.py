@@ -25,7 +25,8 @@ async def fieldDetail():
 
     if "mjd" in request.args:
         mjd = float(request.args["mjd"])
-        mjd_int = round(mjd)
+        offset = 3 / 24
+        mjd_int = round(mjd - offset)
     else:
         mjd = None
 
@@ -44,8 +45,11 @@ async def fieldDetail():
     except DoesNotExist:
         return await render_template('404.html'), 404
 
+    # kronos scheduler
+    scheduler = await wrapBlocking(Scheduler)
+
     # roboscheduler scheduler
-    RS = Scheduler().scheduler
+    RS = scheduler.scheduler
 
     ra = np.arange(0, 360, 5)
     dec = np.arange(-90, 90, 5)
@@ -55,15 +59,20 @@ async def fieldDetail():
     ras = ras.flatten()
     decs = decs.flatten()
 
-    # kronos scheduler
-    scheduler = Scheduler()
-
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd_int)
 
-    mjd = mjd - 4/24
-    start_idx = 4
-    while abs(mjd - mjd_evening_twilight) > 1/24:
-        mjd += 1/24
+    errors = list()
+    if mjd < mjd_evening_twilight or mjd > mjd_morning_twilight:
+        mjd = mjd_evening_twilight
+        start_idx = 0
+        errors.append("MJD not during night, using evening twilight")
+    else:
+        mjd = mjd - 4/24
+        start_idx = 4
+
+    while mjd - mjd_evening_twilight > 1/24:
+        await asyncio.sleep(0)
+        mjd -= 1/24
         start_idx -= 1
     if start_idx < 0:
         start_idx = 0
@@ -121,6 +130,7 @@ async def fieldDetail():
         "skies": skies,
         "times": times,
         "start_idx": start_idx,
+        "errorMsg": errors,
         **field
     })
 

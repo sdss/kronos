@@ -126,12 +126,20 @@ async def planObserving():
     else:
         redoFromField = False
 
+    errors = list()
+
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
     scheduler = await wrapBlocking(Scheduler)
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+
+    if mjd_morning_twilight - mjd_now < 1 / 24 / 2:  # 30 minutes
+        # Night's basically over, we're doing tomorrow
+        errors.append("END OF NIGHT. Scheduling tomorrow")
+        mjd += 1
+        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
@@ -140,7 +148,7 @@ async def planObserving():
         # replacing a field
         if redoFromField:
             # is it bad enough to redo the rest of the queue?
-            errors = await scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight)
+            errors.append(await scheduler.rescheduleAfterField(replacementField, mjd_morning_twilight))
         else:
             # ok just the one then!
             await scheduler.replaceField(oldField, replacementField)
@@ -153,7 +161,7 @@ async def planObserving():
             start_mjd = mjd_now
         else:
             start_mjd = mjd_evening_twilight
-        errors = await scheduler.queueFromSched(start_mjd, mjd_morning_twilight)
+        errors.append(await scheduler.queueFromSched(start_mjd, mjd_morning_twilight))
 
     schedule = {
             "queriedMJD": mjd,
@@ -195,7 +203,8 @@ async def planObserving():
         "almanac": almanac,  # if schedule else None,
         "queue": queue.designs,
         "backups": backups,
-        "exposures": exps
+        "exposures": exps,
+        "errorMsg": errors
     })
 
     # findAndConvertDatetimes(templateDict)
