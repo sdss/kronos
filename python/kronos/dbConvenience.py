@@ -261,7 +261,10 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
         designs = designs.switch(dbDesign)\
                          .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
                          .join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
-                         .where(C2T.carton << matchingCartons)
+                         .where(C2T.carton << matchingCartons)\
+                         .group_by(compStatus.label, dbDesign.design_id,
+                                   dbField.field_id, dbField.racen,
+                                   dbField.deccen)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
