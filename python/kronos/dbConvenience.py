@@ -285,8 +285,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     if pa_range:
         assert len(pa_range) == 2, "must specify only begin and end of position angle range"
-        designs = designs.where((dbField.position_angle > pa_range[0]) &
-                                (dbField.position_angle < pa_range[1]))
+        designs = designs.where((dbField.position_angle >= pa_range[0]) &
+                                (dbField.position_angle <= pa_range[1]))
 
     return [{"label": d[0],
              "design_id": d[1],

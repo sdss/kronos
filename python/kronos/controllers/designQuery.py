@@ -48,8 +48,8 @@ async def designDetail():
             ra_start = 0
             ra_end = 360
         try:
-            pa_start = int(request.args["pa0Select"])
-            pa_end = int(request.args["pa1Select"])
+            pa_start = float(request.args["pa0Select"])
+            pa_end = float(request.args["pa1Select"])
         except:
             pa_start = 0
             pa_end = 360
@@ -63,7 +63,7 @@ async def designDetail():
         queryid = fieldid
 
     ra_range = [int(ra_start), int(ra_end)]
-    pa_range = [int(pa_start), int(pa_end)]
+    pa_range = [float(pa_start), float(pa_end)]
 
     if completionStatus == "notStarted":
         dbStatus = "not started"
