@@ -29,7 +29,7 @@ async def designDetail():
 
     fieldid = "none"
     completionStatus = "all"
-
+    instrument = "BOSS"
     chosenCarton = "none"
 
     pa_start = 0
@@ -40,6 +40,7 @@ async def designDetail():
         if len(fieldid) == 0:
             fieldid = "none"
         completionStatus = request.args["completionStatus"]
+        instrument = request.args["instrument"]
         try:
             ra_start = int(request.args["ra0Select"])
             ra_end = int(request.args["ra1Select"])
@@ -93,7 +94,8 @@ async def designDetail():
         "pa_range": pa_range,
         "designs": designs,
         "cartons": cartons,
-        "carton": chosenCarton
+        "carton": chosenCarton,
+        "instrument": instrument
     })
 
     return await render_template("designQuery.html", **templateDict)

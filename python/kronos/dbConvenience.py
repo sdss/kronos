@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from astropy.time import Time
+from peewee import fn
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
@@ -228,7 +229,7 @@ def getConfigurations(design_id=None):
 
 
 def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
-                limit=100, pa_range=None):
+                limit=100, pa_range=None, instrument="BOSS"):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -236,24 +237,28 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
     dbDesign = targetdb.Design
     dbField = targetdb.Field
     Assign = targetdb.Assignment
+    Inst = targetdb.Instrument
 
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
 
+    qInst = Inst.get(label=instrument)
+
     designs = dbDesign.select(compStatus.label, dbDesign.design_id, dbField.field_id,
-                              dbField.racen, dbField.deccen, dbField.position_angle)\
+                              dbField.racen, dbField.deccen, dbField.position_angle,
+                              fn.COUNT(Assign.pk))\
                       .join(d2s, on=(d2s.design_id == dbDesign.design_id))\
                       .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
                       .switch(dbDesign)\
                       .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
                       .switch(dbDesign)\
                       .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
-                      .where(dbField.observatory == obs)\
+                      .where(dbField.observatory == obs, Assign.instrument_pk == qInst.pk)\
                       .limit(limit)
 
-    designs.group_by(compStatus.label, dbDesign.design_id,
-                     dbField.field_id, dbField.racen,
-                     dbField.deccen, dbField.position_angle)
+    designs = designs.group_by(compStatus.label, dbDesign.design_id,
+                               dbField.field_id, dbField.racen,
+                               dbField.deccen, dbField.position_angle)
 
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
@@ -281,14 +286,15 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
     if pa_range:
         assert len(pa_range) == 2, "must specify only begin and end of position angle range"
         designs = designs.where((dbField.position_angle > pa_range[0]) &
-                                (dbField.position_angle < pa_range[1])).order_by(dbField.position_angle)
+                                (dbField.position_angle < pa_range[1]))
 
     return [{"label": d[0],
              "design_id": d[1],
              "field_id": d[2],
              "racen": d[3],
              "deccen": d[4],
-             "position_angle": d[5]} for d in designs.tuples()]
+             "position_angle": d[5],
+             "assigned": d[6]} for d in designs.tuples()]
 
 
 def designDetails(design):

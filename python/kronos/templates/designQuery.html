@@ -113,41 +113,63 @@
       </div>
     </div>
     <div class="form-group col-md-6">
-      <div class="form-check form-check-radio">
-        <label class="form-check-label">
-          <input class="form-check-input" type="radio" name="completionStatus" id="notStarted" value="notStarted" {% if completionStatus == "notStarted" %} checked {% endif %}>
-            Show only not started designs?
-          <span class="circle">
-              <span class="check"></span>
-          </span>
-        </label>
+      <div class="form-group col-md-3">
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="completionStatus" id="notStarted" value="notStarted" {% if completionStatus == "notStarted" %} checked {% endif %}>
+              Show only not started designs?
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="completionStatus" id="inProgress" value="inProgress" {% if completionStatus == "inProgress" %} checked {% endif %}>
+              Show only in progress designs?
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="completionStatus" id="done" value="done" {% if completionStatus == "done" %} checked {% endif %}>
+              Show only completed designs?
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="completionStatus" id="all" value="all" {% if completionStatus == "all" %} checked {% endif %}>
+              Show all designs?
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
       </div>
-      <div class="form-check form-check-radio">
-        <label class="form-check-label">
-          <input class="form-check-input" type="radio" name="completionStatus" id="inProgress" value="inProgress" {% if completionStatus == "inProgress" %} checked {% endif %}>
-            Show only in progress designs?
-          <span class="circle">
-              <span class="check"></span>
-          </span>
-        </label>
-      </div>
-      <div class="form-check form-check-radio">
-        <label class="form-check-label">
-          <input class="form-check-input" type="radio" name="completionStatus" id="done" value="done" {% if completionStatus == "done" %} checked {% endif %}>
-            Show only completed designs?
-          <span class="circle">
-              <span class="check"></span>
-          </span>
-        </label>
-      </div>
-      <div class="form-check form-check-radio">
-        <label class="form-check-label">
-          <input class="form-check-input" type="radio" name="completionStatus" id="all" value="all" {% if completionStatus == "all" %} checked {% endif %}>
-            Show all designs?
-          <span class="circle">
-              <span class="check"></span>
-          </span>
-        </label>
+      <div class="form-group col-md-3">
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="instrument" id="BOSS" value="BOSS" {% if instrument == "BOSS" %} checked {% endif %}>
+              BOSS
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
+        <div class="form-check form-check-radio">
+          <label class="form-check-label">
+            <input class="form-check-input" type="radio" name="instrument" id="APOGEE" value="APOGEE" {% if instrument == "APOGEE" %} checked {% endif %}>
+              APOGEE
+            <span class="circle">
+                <span class="check"></span>
+            </span>
+          </label>
+        </div>
       </div>
     </div>
   </div>
@@ -165,6 +187,7 @@
         <th>RA</th>
         <th>Dec</th>
         <th>Position angle</th>
+        <th>#{{instrument}} Fibers</th>
         <th>Status</th>
       </tr>
     </thead>
