@@ -32,6 +32,9 @@ async def designDetail():
 
     chosenCarton = "none"
 
+    pa_start = 0
+    pa_end = 360
+
     if request.args:
         fieldid = request.args["fieldid"].strip()
         if len(fieldid) == 0:
@@ -43,6 +46,12 @@ async def designDetail():
         except:
             ra_start = 0
             ra_end = 360
+        try:
+            pa_start = int(request.args["pa0Select"])
+            pa_end = int(request.args["pa1Select"])
+        except:
+            pa_start = 0
+            pa_end = 360
         chosenCarton = request.args["carton"].strip()
 
     cartons = await wrapBlocking(cartonLabels)
@@ -53,6 +62,7 @@ async def designDetail():
         queryid = fieldid
 
     ra_range = [int(ra_start), int(ra_end)]
+    pa_range = [int(pa_start), int(pa_end)]
 
     if completionStatus == "notStarted":
         dbStatus = "not started"
@@ -73,12 +83,14 @@ async def designDetail():
                                  field_id=queryid,
                                  ra_range=ra_range,
                                  dbStatus=dbStatus,
-                                 carton=queryCarton)
+                                 carton=queryCarton,
+                                 pa_range=pa_range)
 
     templateDict.update({
         "fieldid": fieldid,
         "completionStatus": completionStatus,
         "ra_range": ra_range,
+        "pa_range": pa_range,
         "designs": designs,
         "cartons": cartons,
         "carton": chosenCarton

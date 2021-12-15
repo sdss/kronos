@@ -227,7 +227,8 @@ def getConfigurations(design_id=None):
     return configurations
 
 
-def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=100):
+def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
+                limit=100, pa_range=None):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -239,7 +240,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
     obs = obsDB.get(label=observatory)
 
     designs = dbDesign.select(compStatus.label, dbDesign.design_id, dbField.field_id,
-                              dbField.racen, dbField.deccen)\
+                              dbField.racen, dbField.deccen, dbField.position_angle)\
                       .join(d2s, on=(d2s.design_id == dbDesign.design_id))\
                       .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
                       .switch(dbDesign)\
@@ -264,7 +265,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
                          .where(C2T.carton << matchingCartons)\
                          .group_by(compStatus.label, dbDesign.design_id,
                                    dbField.field_id, dbField.racen,
-                                   dbField.deccen)
+                                   dbField.deccen, dbField.position_angle)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
@@ -276,11 +277,17 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None, limit=
             designs = designs.where((dbField.racen > ra_range[0]) &
                                    (dbField.racen < ra_range[1])).order_by(dbField.racen)
 
+    if pa_range:
+        assert len(pa_range) == 2, "must specify only begin and end of position angle range"
+        designs = designs.where((dbField.position_angle > pa_range[0]) &
+                                (dbField.position_angle < pa_range[1])).order_by(dbField.position_angle)
+
     return [{"label": d[0],
              "design_id": d[1],
              "field_id": d[2],
              "racen": d[3],
-             "deccen": d[4]} for d in designs.tuples()]
+             "deccen": d[4],
+             "position_angle": d[5]} for d in designs.tuples()]
 
 
 def designDetails(design):
