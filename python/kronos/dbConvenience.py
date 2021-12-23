@@ -35,9 +35,9 @@ def getRecentExps(mjd):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         for f in e.CameraFrames:
             if f.camera == r1_db:
-                exp_dict["r1"] = f.ql_sn2
+                exp_dict["r1"] = f.sn2
             if f.camera == b1_db:
-                exp_dict["b1"] = f.ql_sn2
+                exp_dict["b1"] = f.sn2
             if f.camera == ap_db:
                 exp_dict["AP"] = f.ql_sn2
         exp_list.append(exp_dict)
@@ -160,9 +160,9 @@ def getField(field_id):
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk:
-                exp_dict["r1"] = f.ql_sn2
+                exp_dict["r1"] = f.sn2
             if f.camera.pk == b1_db.pk:
-                exp_dict["b1"] = f.ql_sn2
+                exp_dict["b1"] = f.sn2
             if f.camera.pk == ap_db.pk:
                 exp_dict["AP"] = f.ql_sn2
         exps[exp_mjd].append(exp_dict)
@@ -199,6 +199,7 @@ def getConfigurations(design_id=None):
 
     exps = defaultdict(list)
     for e in exp_query:
+        print(e.pk, e.CameraFrames)
         exp_dict = {"timeStamp": "",
                     "r1": 0,
                     "b1": 0,
@@ -207,16 +208,18 @@ def getConfigurations(design_id=None):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
+            print(f.pk, f.camera.pk)
             if f.camera.pk == r1_db.pk:
-                exp_dict["r1"] = f.ql_sn2
+                exp_dict["r1"] = f.sn2
             if f.camera.pk == b1_db.pk:
-                exp_dict["b1"] = f.ql_sn2
+                exp_dict["b1"] = f.sn2
             if f.camera.pk == ap_db.pk:
                 exp_dict["AP"] = f.ql_sn2
         exps[conf_id].append(exp_dict)
 
     configurations = list()
     for c, eps in exps.items():
+        print(eps)
         conf = dict()
         conf["timeStamp"] = eps[-1]["timeStamp"]
         conf["id"] = c
