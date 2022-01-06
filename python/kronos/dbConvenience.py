@@ -199,7 +199,6 @@ def getConfigurations(design_id=None):
 
     exps = defaultdict(list)
     for e in exp_query:
-        print(e.pk, e.CameraFrames)
         exp_dict = {"timeStamp": "",
                     "r1": 0,
                     "b1": 0,
@@ -208,7 +207,6 @@ def getConfigurations(design_id=None):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
-            print(f.pk, f.camera.pk)
             if f.camera.pk == r1_db.pk:
                 exp_dict["r1"] = f.sn2
             if f.camera.pk == b1_db.pk:
@@ -219,7 +217,6 @@ def getConfigurations(design_id=None):
 
     configurations = list()
     for c, eps in exps.items():
-        print(eps)
         conf = dict()
         conf["timeStamp"] = eps[-1]["timeStamp"]
         conf["id"] = c
@@ -276,7 +273,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         designs = designs.join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
                          .where(C2T.carton << matchingCartons)
 
-    if ra_range:
+    if ra_range and field_id is None:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
         if ra_range[0] > ra_range[1]:
             # implied between ra_range[1] and 360, or between 0 and ra_range[0]
@@ -286,7 +283,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
             designs = designs.where((dbField.racen > ra_range[0]) &
                                    (dbField.racen < ra_range[1])).order_by(dbField.racen)
 
-    if pa_range:
+    if pa_range and field_id is None:
         assert len(pa_range) == 2, "must specify only begin and end of position angle range"
         designs = designs.where((dbField.position_angle >= pa_range[0]) &
                                 (dbField.position_angle <= pa_range[1]))
