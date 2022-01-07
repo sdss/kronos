@@ -50,9 +50,9 @@
             <tr>
               <td class="text-center">{{c.id}}</td>
               <td class="text-center">{{c.timeStamp}}</td>
-              <td class="text-center">{{c.AP}}</td>
-              <td class="text-center">{{c.b1}}</td>
-              <td class="text-center">{{c.r1}}</td>
+              <td class="text-center">{{"%.1f" % c.AP}}</td>
+              <td class="text-center">{{"%.2f" % c.b1}}</td>
+              <td class="text-center">{{"%.2f" % c.r1}}</td>
             </tr>
         {% endfor %}
             </tbody>

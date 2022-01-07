@@ -184,15 +184,17 @@
       confirmBackup(idField.innerText.substring(6), pk_holder.innerText);
     }
 
-    function addExps(){;
-      $.getJSON('/recentExps/{{mjd}}'), function (exps) {
+    function addExps(){
+      $.getJSON('/recentExposures/{{mjd}}', function (exps) {
         for (i=0;i<exps.length;i++) {
           let exp = exps[i];
           let expTable = document.getElementById("expTable");
-          let fid = expTable.rows[0].id
-          if exp.id > fid:
-            let row = expTable.insertRow(0);
-            row.id = exp.id;
+          let fid = parseInt(expTable.rows[1].id);
+          console.log(exp.pk)
+          console.log(fid);
+          if(exp.pk > fid){
+            let row = expTable.insertRow(1);
+            row.id = exp.pk;
 
             let design = row.insertCell(0);
             let time = row.insertCell(1);
@@ -200,15 +202,18 @@
             let b1 = row.insertCell(3);
             let r1 = row.insertCell(4);
 
-            design.innerHTML = exp.Design;
-            time.innerHTML = exp.Time;
-            ap.innerHTML = exp.AP;
-            b1.innerHTML = exp.b1;
-            r1.innerHTML = exp.r1;
+            design.innerHTML = exp.design;
+            time.innerHTML = exp.timeStamp;
+            ap.innerHTML = exp.AP.toFixed(1);
+            b1.innerHTML = exp.b1.toFixed(2);
+            r1.innerHTML = exp.r1.toFixed(2);
+          }
         };
-      };
+      });
     setTimeout(addExps, 5000);
     };
+
+  addExps()
 
 </script>
 {% endblock body %}
