@@ -37,12 +37,12 @@ def getRecentExps(mjd):
         exp_dict["design"] = int(e.configuration.design.design_id)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         for f in e.CameraFrames:
-            if f.camera == r1_db and f.sn2 is not None:
-                exp_dict["r1"] = f"{f.sn2:.1f}"
-            if f.camera == b1_db and f.sn2 is not None:
+            if f.camera.pk == r1_db.pk and f.sn2 is not None:
+                exp_dict["r1"] = f"{f.sn2:.2f}"
+            if f.camera.pk == b1_db.pk and f.sn2 is not None:
                 exp_dict["b1"] = f"{f.sn2:.2f}"
-            if f.camera == ap_db and f.ql_sn2 is not None:
-                exp_dict["AP"] = f"{f.ql_sn2:.2f}"
+            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None:
+                exp_dict["AP"] = f"{f.ql_sn2:.1f}"
         exp_list.append(exp_dict)
 
     return exp_list
