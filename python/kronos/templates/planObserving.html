@@ -9,7 +9,7 @@
   <meta name="robots" content="noindex" />
   <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
   <title>Plan Observing</title>
-  <meta http-equiv="refresh" CONTENT="45"/>
+  <meta http-equiv="refresh" CONTENT="300"/>
 
   {#  ${header("Plan Observing")} #}
 {% endblock head %}
@@ -183,6 +183,32 @@
       let pk_holder = document.getElementById("backup-field-pk")
       confirmBackup(idField.innerText.substring(6), pk_holder.innerText);
     }
+
+    function addExps(){;
+      $.getJSON('/recentExps/{{mjd}}'), function (exps) {
+        for (i=0;i<exps.length;i++) {
+          let exp = exps[i];
+          let expTable = document.getElementById("expTable");
+          let fid = expTable.rows[0].id
+          if exp.id > fid:
+            let row = expTable.insertRow(0);
+            row.id = exp.id;
+
+            let design = row.insertCell(0);
+            let time = row.insertCell(1);
+            let ap = row.insertCell(2);
+            let b1 = row.insertCell(3);
+            let r1 = row.insertCell(4);
+
+            design.innerHTML = exp.Design;
+            time.innerHTML = exp.Time;
+            ap.innerHTML = exp.AP;
+            b1.innerHTML = exp.b1;
+            r1.innerHTML = exp.r1;
+        };
+      };
+    setTimeout(addExps, 5000);
+    };
 
 </script>
 {% endblock body %}

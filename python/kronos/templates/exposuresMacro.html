@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 {% macro recentExps(exposures) %}
-    <table class="table" style="display:block;">
+    <table id="expTable" class="table" style="display:block;">
       <thead>
         <tr>
           <th class="text-center">Design</th>
@@ -12,7 +12,7 @@
       </thead>
       <tbody style="height: 350px; overflow-y:scroll; display:block;">
     {% for e in exposures %}
-        <tr>
+        <tr id={{e.pk}}>
           <td class="text-center">{{e.design}}</td>
           <td class="text-center">{{e.timeStamp}}</td>
           <td class="text-center">{{e.AP}}</td>

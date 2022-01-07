@@ -1,24 +1,13 @@
 #!/usr/bin/env/python
 
-import os
 import sys
-import socket
 from inspect import getmembers, isfunction
 
 import psycopg2
-from quart import Quart, render_template
+from quart import Quart, render_template, jsonify, request
 
-from kronos import jinja_filters
-
-# -----------------------------------------
-# The snippet below is to hide the warning:
-# /usr/local/python/lib/python2.7/site-packages/sqlalchemy/engine/reflection.py:40: SAWarning: Skipped unsupported reflection of expression-based index q3c_spectrum_idx
-# WARNING: SAWarning: Skipped unsupported reflection of expression-based index q3c_psc_idx [sqlalchemy.util.langhelpers]
-# -----------------------------------------
-import warnings
-warnings.filterwarnings(action="ignore", message="Skipped unsupported reflection")
-warnings.filterwarnings(action="ignore", message='Predicate of partial index')
-# -----------------------------------------
+from kronos import jinja_filters, wrapBlocking
+from kronos.dbConvenience import getRecentExps
 
 app = Quart(__name__)
 
@@ -95,3 +84,11 @@ async def page_not_found(e):
 async def err_page(e):
     """ Err page. """
     return await render_template("500.html", **getTemplateDictBase())
+
+
+@app.route('/recentExposures/<int:mjd>', methods=['GET'])
+async def recentExposures(mjd):
+    print(mjd)
+    exps = await wrapBlocking(getRecentExps, mjd)
+
+    return jsonify(exps)

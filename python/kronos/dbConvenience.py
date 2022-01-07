@@ -8,6 +8,7 @@ from sdssdb.peewee.sdss5db import opsdb, targetdb
 from kronos import rs_version, observatory  # , wrapBlocking
 from kronos.scheduler import design_time
 
+
 def getRecentExps(mjd):
     r1_db = opsdb.Camera.get(label="r1")
     b1_db = opsdb.Camera.get(label="b1")
@@ -21,12 +22,14 @@ def getRecentExps(mjd):
                 .join(targetdb.Design,
                       on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
                 .where(opsdb.Exposure.start_time > useTime,
-                       opsdb.Exposure.exposure_flavor == db_flavor)
+                       opsdb.Exposure.exposure_flavor == db_flavor)\
+                .order_by(opsdb.Exposure.pk.asc())
 
     exp_list = list()
 
     for e in exps:
-        exp_dict = {"design": 0,
+        exp_dict = {"pk": int(e.pk),
+                    "design": 0,
                     "timeStamp": "",
                     "r1": "--",
                     "b1": "--",
