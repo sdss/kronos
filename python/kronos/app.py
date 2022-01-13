@@ -2,12 +2,15 @@
 
 import sys
 from inspect import getmembers, isfunction
+from logging import getLogger, ERROR
 
 import psycopg2
 from quart import Quart, render_template, jsonify, request
 
 from kronos import jinja_filters, wrapBlocking
 from kronos.dbConvenience import getRecentExps
+
+getLogger('quart.serving').setLevel(ERROR)
 
 app = Quart(__name__)
 
@@ -88,7 +91,6 @@ async def err_page(e):
 
 @app.route('/recentExposures/<int:mjd>', methods=['GET'])
 async def recentExposures(mjd):
-    print(mjd)
     exps = await wrapBlocking(getRecentExps, mjd)
 
     return jsonify(exps)

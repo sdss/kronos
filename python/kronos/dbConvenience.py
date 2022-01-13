@@ -364,6 +364,7 @@ def safeAppendQueue(design_id, mjd_plan=None):
     mjds = [m.mjd_plan for m in Queue.select(Queue.mjd_plan).order_by(Queue.position)]
 
     if len(mjds) > 0:
-        mjd_plan = mjds[-1] + design_time
+        if mjds[-1] is not None:
+            mjd_plan = mjds[-1] + design_time
 
     Queue.appendQueue(design_id, mjd_plan=mjd_plan)
