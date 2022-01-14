@@ -338,9 +338,6 @@ def cartonLabels():
 
 
 def safeInsertInQueue(design_id, pos, mjd_plan=None):
-    # ######
-    # TODO: add mjd_plan to model classes to allow insert at 1 in empty queue
-    # ######
     Queue = opsdb.Queue
 
     count = Queue.select().count()
@@ -348,10 +345,10 @@ def safeInsertInQueue(design_id, pos, mjd_plan=None):
     if pos >= count:
         # queue starts at 1 not 0
         pos = count
-    elif pos <= 0:
+    if pos <= 0:
         pos = 1
 
-    opsdb.Queue.insertInQueue(design_id, pos)
+    opsdb.Queue.insertInQueue(design_id, pos, mjd=mjd_plan)
 
 
 def safeAppendQueue(design_id, mjd_plan=None):

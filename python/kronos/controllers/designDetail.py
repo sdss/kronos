@@ -10,7 +10,7 @@ from sdssdb.peewee.sdss5db import targetdb, opsdb
 
 from kronos import wrapBlocking
 from kronos.dbConvenience import getConfigurations, designDetails, safeInsertInQueue, safeAppendQueue
-from kronos.scheduler import offsetNow
+from kronos.scheduler import offsetNow, Scheduler
 
 from . import getTemplateDictBase
 
@@ -25,11 +25,20 @@ async def designDetail():
 
     form = await request.form
 
+    scheduler = await wrapBlocking(Scheduler)
+
     mjd = offsetNow()
+
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, round(mjd))
+
+    if mjd < mjd_evening_twilight:
+        mjd = mjd_evening_twilight
 
     if "insert_design_id" in form:
         insert_design = int(form["insert_design_id"])
         pos = int(form["position"])
+        if pos == 0:
+            pos = 1
         q_mjd = None
         if pos == 1:
             q_mjd = mjd
