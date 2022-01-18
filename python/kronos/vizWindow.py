@@ -34,17 +34,6 @@ svgAttrDict = {  # colors that svg knows about
     "zwarn2": SVGAttrs("red", 0.7),
 }
 
-# define what shows up in the table (in what order too)
-# commonTableItems = ["cart", "plate", "ra", "dec", "UT1", "UT2", "currAlt"] #, "platePriority", "moonDist", , ]
-# bossChannels = ["b1 (SN)", "r1 (SN)", "b2 (SN)", "r2 (SN)"]
-# ebossTableItems = commonTableItems + bossChannels #+ [x+" (%)" for x in bossChannels]
-# apogeeTableItems = commonTableItems + ["name", "startUT", "expLength", "visits", "S/N", "done (%)"]
-# mangaTableItems = commonTableItems + ["sets"] + bossChannels + ["done"] #+ [x+" (SN)" for x in bossChannels]
-# mangaSetTableItems = ["utc-range", "seeing", "missing"] #+ bossChannels #+ [x+" (SN)" for x in bossChannels]
-
-# newTableItems = ["cart", "plate", "ra", "dec", "currHA", "UTMid"]
-# planTableItems = ["plate", "ra", "dec", "priority", "done"]
-
 
 def datetime2dict(datetimeObj):
     """Return a dictionary keyed by year, month, day, hour, second, millisecond.
@@ -274,7 +263,7 @@ class VizRow(object):
 
 
 class Viz(object):
-    def __init__(self, schedule, fieldList, setCurrent=True, isChild=False, surveyName=None):
+    def __init__(self, schedule, fieldList, setCurrent=True, isChild=False, surveyName=None, useDesign=False):
         """schedule: output from Autoscheduler.getSchedulerObsDict()
         plateList: a list of dbWrappers.Plate objects, displayed in list order (not sorted here)
         setCurrent: bool, if True, current time/HA markers will be indicated, false for planning
@@ -289,6 +278,7 @@ class Viz(object):
         self.setCurrent = setCurrent
         self.timeScale = TimeScale((schedule["timeBarStartUTC"], schedule["timeBarEndUTC"]))
         self.fieldRows = []
+        self.useDesign = useDesign
         if not self.isChild:
             self.fieldRows.append(self.getHeaderRow())
         self.fieldRows.extend(self.getFieldRows())
@@ -296,13 +286,20 @@ class Viz(object):
     def getTableDict(self, field):
         """Return a dictionary.  Keys displayed as table headers, values: displayed in table.
         """
-
-        tableDict = OrderedDict((
-            ("field", field.fieldID),
-            ("currHA", field.haNow),
-            ("alt", -999),
-            ("utc-start", field.obsTimes["start"].strftime("%H:%M")),
-        ))
+        if self.useDesign:
+            tableDict = OrderedDict((
+                ("design", field.designs[0].designID),
+                ("currHA", field.haNow),
+                ("alt", -999),
+                ("utc-start", field.obsTimes["start"].strftime("%H:%M")),
+            ))
+        else:
+            tableDict = OrderedDict((
+                ("field", field.fieldID),
+                ("currHA", field.haNow),
+                ("alt", -999),
+                ("utc-start", field.obsTimes["start"].strftime("%H:%M")),
+            ))
 
         if not hasattr(self, "nTableItems"):
             self.nTableItems = len(tableDict)  # set length

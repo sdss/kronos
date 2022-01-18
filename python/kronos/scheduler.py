@@ -236,6 +236,32 @@ class Queue(object):
         return self._fieldDict
 
 
+class DesignList(object):
+    """Container for a list of designs, primarily for investigating viz windows
+    """
+
+    def __init__(self, design_ids=[], mjd=None):
+        self.scheduler = Scheduler()
+        # wrap blocking this is a DB call
+        # or it might be here
+        dbDesign = targetdb.Design
+        dbDesigns = dbDesign.select().where(dbDesign.design_id << design_ids)
+        self.designs = [Design(d.design_id,
+                               scheduler=self.scheduler.scheduler,
+                               mjd_plan=mjd)
+                        for d in dbDesigns]
+        self.fields = list()
+
+        for d in self.designs:
+            if d.field_pk not in [f.pk for f in self.fields]:
+                self.fields.append(Field(d.field,
+                                         scheduler=self.scheduler.scheduler))
+                self.fields[-1].designs.append(d)
+            else:
+                w = np.where(d.field_pk == np.array([f.pk for f in self.fields]))
+                self.fields[int(w[0])].designs.append(d)
+
+
 # singleton may not be necessary, but it is probably helpful
 class Scheduler(object, metaclass=SchedulerSingleton):
     """Facilitate scheduling during the night. roboscheduler picks the best

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+{% from 'almanacMacro.html' import almanacTable %}
+{% extends "layout.html" %}
+{% set active_page = "fieldViz" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Viz Windows</title>
+
+{% endblock head %}
+
+{% block body %}
+<script src="../static/js/core/d3.min.js"></script>
+<script src="../static/js/core/chroma.js"></script>
+<script src="../static/js/vizWindow.js"></script>
+<!-- <script src="../static/js/formControls.js"></script> -->
+
+<div class="card">
+<div class="col-md-1"></div>
+<form action="/fieldViz.html" method="post">
+  <div class="form-row">
+    <div class="form-group col-md-10">
+      <label for="designs">Design IDs (comma seperated)</label>
+      <input id="designs" name="designs" type="text" class="form-control" {% if designs|length > 0 %} value="{% for d in designs %}{{d}}, {% endfor %}"{% endif %}>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-3">
+      <label for="mjd">MJD</label>
+      <input id="mjd" name="mjd" type="text" class="form-control" value="{{mjd}}">
+    </div>
+    <button type="submit" class="btn btn-primary">Check Designs</button>
+  </div>
+</form>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+        {{almanacTable(almanac)}}
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-12">
+    <div class="apogeeViz">
+      <!-- <div class="row">
+        <div class = "col-md-8">
+        </div>
+      </div> -->
+    </div>
+  </div>
+</div>
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+<script>
+    const showCloudCam = false;
+
+    const vizObj = {{apogeeViz | tojson}};
+    const backupFields = {{[] | tojson}};
+
+    // this populates the .<nameViz> div with the visualization
+    generateViz(vizObj,".apogeeViz", backupFields);
+
+</script>
+{% endblock body %}

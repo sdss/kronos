@@ -1,6 +1,5 @@
-//57130 manga
-//57121 error, none type has no label
-//56850  friday
+var useDesignLabels = false;
+
 function ms2hours(ms){
     // convert milliseconds to decimal hours
     return ms/3600000;
@@ -821,6 +820,11 @@ function generateViz(vizObj, targetDiv, backups){
                         if(i==2 && !row.isChild && row.isHeader && row.setCurrent){
                             return "alt";
                         }
+                        if(i==0 && !row.isChild && row.isHeader){
+                            if(d=="design"){
+                                useDesignLabels = true;
+                            }
+                        }
                         if(i==2 && !row.isHeader && row.setCurrent){
                             // this is the current alt value
                             // calculate it now
@@ -839,9 +843,6 @@ function generateViz(vizObj, targetDiv, backups){
                             altNowTimers.push(altNowTimer);
                             return getCurrAlt();
                         }
-                        // if(i==5 && !row.isChild && row.isHeader){
-                        //     return "utc-mid";
-                        // }
                         else{
                             return d;
                         }
@@ -889,79 +890,16 @@ function generateViz(vizObj, targetDiv, backups){
                     })
                     .on("click", function(d, i){
                         var isPlateID = i==0 && !row.isHeader;
+                        var url = "fieldDetail.html?fieldID="+d+"&mjd="+row.mjd_start.toFixed(2);
+                        if(useDesignLabels){
+                            url = "designDetail.html?designID="+d;
+                        }
                         if(isPlateID){
-                            var url = "fieldDetail.html?fieldID="+d+"&mjd="+row.mjd_start.toFixed(2);
                             d3.select(this)
                                 .attr("fill", "blue");
                             window.open (url,'_self',false);
                         }
                     });
-
-
-                // add a triangle for expanding contracting
-                // if(row.hasChild){
-                //     var svgTriangle = d3.select(this)
-                //         .append("polygon")
-                //         .attr("class", "triangle")
-                //         .attr("points", getTriangleVertices(row.yValue, row.expanded))
-                //         .attr("fill", "black")
-                //         .on("mouseover", function(){
-                //             d3.select(this)
-                //                 .attr("fill", "orange")
-                //                 .attr("cursor", "pointer");
-                //         })
-                //         .on("mouseout", function(){
-                //             d3.select(this)
-                //                 .attr("fill", "black")
-                //                 .attr("cursor", "none");
-                //         })
-                //         .on("click", function(){
-                //             row.expanded = !row.expanded;
-
-                //             // next adjust all y rows!
-                //             // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
-                //             layout.setRows(dataset);
-                //             // console.log(row.id, dataset[row.id+4].yValue, row.yValue)
-
-                //             d3.select(this)
-                //                 .transition()
-                //                 .duration(duration)
-                //                 .attr("points", getTriangleVertices(row.yValue, row.expanded));
-
-                //             // // next adjust all y rows!
-                //             // layout.setRows(dataset);
-
-                //             svg.transition()
-                //                 .duration(duration)
-                //                 .attr("height", layout.totalHeight)
-
-                //             svgRow.each(function(row, i){
-                //                 // dont touch header row
-                //                 if(i==0){
-                //                     return;
-                //                 }
-                //                 d3.select(this)
-                //                     .selectAll("polygon")
-                //                     .transition()
-                //                     .duration(duration)
-                //                     .attr("points", getTriangleVertices(row.yValue, row.expanded));
-                //                 d3.select(this)
-                //                     .selectAll("rect")
-                //                     .transition()
-                //                     .duration(duration)
-                //                     .attr("y", row.yValue);
-
-                //                 d3.select(this)
-                //                     .selectAll("text")
-                //                     .transition()
-                //                     .duration(duration)
-                //                     .attr("y", row.yValue+0.5*layout.rowHeight);
-                //             });
-                //             makeTickOverlays();
-                //             makeTickNow();
-                //             renderCloudCam(dataset);
-                //         });
-                // }
 
                 //allow row clickability for filtering
                 // !row.setCurrent &&  don't know why this would be needed..

@@ -67,6 +67,7 @@ from kronos.controllers.planObserving import planObserving_page
 from kronos.controllers.lookAhead import lookAhead_page
 from kronos.controllers.fieldQuery import fieldQuery_page
 from kronos.controllers.designQuery import designQuery_page
+from kronos.controllers.fieldViz import fieldViz_page
 from kronos.controllers import getTemplateDictBase
 
 app.register_blueprint(index_page)
@@ -76,6 +77,7 @@ app.register_blueprint(planObserving_page)
 app.register_blueprint(lookAhead_page)
 app.register_blueprint(fieldQuery_page)
 app.register_blueprint(designQuery_page)
+app.register_blueprint(fieldViz_page)
 
 
 @app.errorhandler(404)
