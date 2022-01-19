@@ -250,7 +250,7 @@ class VizRow(object):
             "isChild": self.isChild,
             "isHeader": self.isHeader,
             "hasChild": self.hasChild,
-            "trueHA": self.field.haNow, # used for real time altitude display in Petunia (may not be None)
+            "trueHA": self.field.haNow,  # used for real time altitude display
             "dec": self.field.dec,
             "isSpecial": False,
             "setCurrent": self.setCurrent,

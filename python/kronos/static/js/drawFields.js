@@ -18,20 +18,21 @@ function renderCloudCam(dataset, backups){
         );
         // var c = "#73db04";
         function updateField(row){
-            row.alt = Math.abs(row.alt);
+            row.alt = row.alt;
             var altaz = altAzToXY_backwards(row.alt, row.az);
             var show = row.selected || row.expanded
             if(!show){
                 // console.log("skipping", row.id, row);
                 return
             }
-            // console.log("plotting", row.id, row);
-            drawField(ctx, x_0+altaz[0], y_0+altaz[1], row.color);
+            // console.log("plotting", row.id, row.alt, row.az);
+            // console.log(x_0, y_0, altaz[0], altaz[1]);
+            drawField(ctx, x_0-altaz[0], y_0+altaz[1], row.color);
             if(row.selected){
-                drawOutline(ctx, x_0+altaz[0], y_0+altaz[1], "#000000");
+                drawOutline(ctx, x_0-altaz[0], y_0+altaz[1], "#000000");
             }
             else{
-                drawOutline(ctx, x_0+altaz[0], y_0+altaz[1], row.color);
+                drawOutline(ctx, x_0-altaz[0], y_0+altaz[1], row.color);
             }
         }
         // drawField(ctx, x_0, y_0)
@@ -89,7 +90,7 @@ function radians(x){
 
 function altAzToXY_backwards(alt, az){
     // assumes input in degrees
-    var phi = radians(az + 90);
+    var phi = radians(az - 90);
     var r = (90 - alt)*292/90;
     // console.log("alt %f az %f phi %f r %f", alt, az, phi, r);
     var x = r*Math.cos(phi);

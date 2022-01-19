@@ -814,6 +814,18 @@ function generateViz(vizObj, targetDiv, backups){
                     .selectAll(".tableItems")
                     .data(row.tableItems)
                     .enter()
+                    .append("a")
+                    .attr("xlink:href", function(d, i){
+                        var isPlateID = i==0 && !row.isHeader;
+                        if(!isPlateID){
+                            return null;
+                        }
+                        var url = "fieldDetail.html?fieldID="+d+"&mjd="+row.mjd_start.toFixed(2);
+                        if(useDesignLabels){
+                            url = "designDetail.html?designID="+d;
+                        }
+                        return url;
+                        })
                     .append("text")
                     .text(function(d, i){
                         var thisText = d3.select(this);
@@ -888,18 +900,6 @@ function generateViz(vizObj, targetDiv, backups){
                                 .attr("cursor", "none");
                         }
                     })
-                    .on("click", function(d, i){
-                        var isPlateID = i==0 && !row.isHeader;
-                        var url = "fieldDetail.html?fieldID="+d+"&mjd="+row.mjd_start.toFixed(2);
-                        if(useDesignLabels){
-                            url = "designDetail.html?designID="+d;
-                        }
-                        if(isPlateID){
-                            d3.select(this)
-                                .attr("fill", "blue");
-                            window.open (url,'_self',false);
-                        }
-                    });
 
                 //allow row clickability for filtering
                 // !row.setCurrent &&  don't know why this would be needed..

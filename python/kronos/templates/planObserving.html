@@ -190,8 +190,6 @@
           let exp = exps[i];
           let expTable = document.getElementById("expTable");
           let fid = parseInt(expTable.rows[1].id);
-          console.log(exp.pk)
-          console.log(fid);
           if(exp.pk > fid){
             let row = expTable.insertRow(1);
             row.id = exp.pk;
