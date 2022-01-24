@@ -232,7 +232,7 @@ def getConfigurations(design_id=None):
 
 
 def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
-                limit=100, pa_range=None, instrument="BOSS"):
+                limit=100, pa_range=None, instrument="BOSS", orderby=None):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -281,15 +281,22 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         if ra_range[0] > ra_range[1]:
             # implied between ra_range[1] and 360, or between 0 and ra_range[0]
             designs = designs.where((dbField.racen > ra_range[0]) |
-                                   (dbField.racen < ra_range[1])).order_by(dbField.racen)
+                                    (dbField.racen < ra_range[1]))
         else:
             designs = designs.where((dbField.racen > ra_range[0]) &
-                                   (dbField.racen < ra_range[1])).order_by(dbField.racen)
+                                    (dbField.racen < ra_range[1]))
 
     if pa_range and field_id is None:
         assert len(pa_range) == 2, "must specify only begin and end of position angle range"
         designs = designs.where((dbField.position_angle >= pa_range[0]) &
                                 (dbField.position_angle <= pa_range[1]))
+
+    if orderby is not None:
+        translate = {"designID": dbDesign.design_id,
+                     "fieldID": dbField.field_id,
+                     "RA": dbField.racen,
+                     "PA": dbField.position_angle}
+        designs = designs.order_by(translate[orderby])
 
     return [{"label": d[0],
              "design_id": d[1],

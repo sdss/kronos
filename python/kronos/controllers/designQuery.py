@@ -31,6 +31,7 @@ async def designDetail():
     completionStatus = "all"
     instrument = "BOSS"
     chosenCarton = "none"
+    orderby = "RA"
 
     pa_start = 0
     pa_end = 360
@@ -41,6 +42,7 @@ async def designDetail():
             fieldid = "none"
         completionStatus = request.args["completionStatus"]
         instrument = request.args["instrument"]
+        orderby = request.args["orderby"]
         try:
             ra_start = int(request.args["ra0Select"])
             ra_end = int(request.args["ra1Select"])
@@ -85,7 +87,8 @@ async def designDetail():
                                  ra_range=ra_range,
                                  dbStatus=dbStatus,
                                  carton=queryCarton,
-                                 pa_range=pa_range)
+                                 pa_range=pa_range,
+                                 orderby=orderby)
 
     templateDict.update({
         "fieldid": fieldid,
@@ -95,7 +98,8 @@ async def designDetail():
         "designs": designs,
         "cartons": cartons,
         "carton": chosenCarton,
-        "instrument": instrument
+        "instrument": instrument,
+        "orderby": orderby
     })
 
     return await render_template("designQuery.html", **templateDict)
