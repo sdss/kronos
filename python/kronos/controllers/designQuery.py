@@ -89,6 +89,10 @@ async def designDetail():
                                  carton=queryCarton,
                                  pa_range=pa_range,
                                  orderby=orderby)
+    if instrument == "BOSS":
+        oinstrument = "APOGEE"
+    else:
+        oinstrument = "BOSS"
 
     templateDict.update({
         "fieldid": fieldid,
@@ -99,6 +103,7 @@ async def designDetail():
         "cartons": cartons,
         "carton": chosenCarton,
         "instrument": instrument,
+        "oinstrument": oinstrument,
         "orderby": orderby
     })
 

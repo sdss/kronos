@@ -298,13 +298,32 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                      "PA": dbField.position_angle}
         designs = designs.order_by(translate[orderby])
 
-    return [{"label": d[0],
-             "design_id": d[1],
-             "field_id": d[2],
-             "racen": d[3],
-             "deccen": d[4],
-             "position_angle": d[5],
-             "assigned": d[6]} for d in designs.tuples()]
+    resTuples = designs.tuples()
+
+    designIDS = [r[1] for r in resTuples]
+    if instrument == "BOSS":
+        qInst = Inst.get(label="APOGEE")
+    else:
+        qInst = Inst.get(label="BOSS")
+
+    ocounts = dbDesign.select(fn.COUNT(Assign.pk), dbDesign.design_id)\
+                      .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
+                      .group_by(dbDesign.design_id)\
+                      .where(Assign.instrument_pk == qInst.pk,
+                             dbDesign.design_id << designIDS)
+
+    dCounts = {c[1]: c[0] for c in ocounts.tuples()}
+
+    res = [{"label": d[0],
+            "design_id": d[1],
+            "field_id": d[2],
+            "racen": d[3],
+            "deccen": d[4],
+            "position_angle": d[5],
+            "assigned": d[6],
+            "oassigned": dCounts.get(d[1], 0)} for d in resTuples]
+
+    return res
 
 
 def designDetails(design):

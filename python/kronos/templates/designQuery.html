@@ -155,7 +155,7 @@
         <div class="form-check form-check-radio">
           <label class="form-check-label">
             <input class="form-check-input" type="radio" name="instrument" id="BOSS" value="BOSS" {% if instrument == "BOSS" %} checked {% endif %}>
-              BOSS
+              Ensure BOSS fibers?
             <span class="circle">
                 <span class="check"></span>
             </span>
@@ -164,7 +164,7 @@
         <div class="form-check form-check-radio">
           <label class="form-check-label">
             <input class="form-check-input" type="radio" name="instrument" id="APOGEE" value="APOGEE" {% if instrument == "APOGEE" %} checked {% endif %}>
-              APOGEE
+              Ensure APOGEE fibers?
             <span class="circle">
                 <span class="check"></span>
             </span>
@@ -172,6 +172,7 @@
         </div>
       </div>
       <div class="form-group col-md-3">
+        <label class="form-check-label">Order by:</label>
         <div class="form-check form-check-radio">
           <label class="form-check-label">
             <input class="form-check-input" type="radio" name="orderby" id="RA" value="RA" {% if orderby == "RA" %} checked {% endif %}>
@@ -226,6 +227,7 @@
         <th>Dec</th>
         <th>Position angle</th>
         <th>#{{instrument}} Fibers</th>
+        <th>#{{oinstrument}} Fibers</th>
         <th>Status</th>
       </tr>
     </thead>
