@@ -482,6 +482,19 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             now += len(designs) * self.exp_nom
         return fields, errors
 
+    def getDarkBounds(self, mjd):
+        """find the beginning and end of the night
+
+        Parameters:
+        ----------
+
+        mjd : numeric
+            the MJD day we want bounds for
+        """
+        mjd_evening_twilight = self.scheduler.evening_twilight(mjd=mjd, twilight=-15)
+        mjd_morning_twilight = self.scheduler.morning_twilight(mjd=mjd, twilight=-15)
+        return mjd_evening_twilight, mjd_morning_twilight
+
     def getNightBounds(self, mjd):
         """find the beginning and end of the night
 

@@ -366,6 +366,12 @@ class Viz(object):
                 text="add twilight..."
             )
         else:
+            headerRow.addVizWindow(
+                name="background",
+                utRange=self.timeScale.range,
+                haRange=self.haScale.range,
+                text=""
+            )
             # add twilight bars
             headerRow.addVizWindow(
                 name="twilight",
@@ -379,14 +385,14 @@ class Viz(object):
                 haRange=None,
                 text="twilight"
             )
-            # add in scheduled survey times
-            if self.schedule["apogeeStartUTC"] is not None:
-                headerRow.addVizWindow(
-                    name="apogee",
-                    utRange=(self.schedule["apogeeStartUTC"], self.schedule["apogeeEndUTC"]),
-                    haRange=None,
-                    text="Apogee"
-                )
+            # # add in scheduled survey times
+            # if self.schedule["apogeeStartUTC"] is not None:
+            #     headerRow.addVizWindow(
+            #         name="apogee",
+            #         utRange=(self.schedule["apogeeStartUTC"], self.schedule["apogeeEndUTC"]),
+            #         haRange=None,
+            #         text="Apogee"
+            #     )
             # create ha bar
             headerRow.addVizWindow(
                 name="ha",

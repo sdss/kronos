@@ -20,11 +20,10 @@ fieldViz_page = Blueprint("fieldViz_page", __name__)
 
 ALLSURVEYS = ["APOGEE"]
 
-svgAttrDict["apogee"] = SVGAttrs("green", 0.0)
-
-
 @fieldViz_page.route('/fieldViz.html', methods=['GET', 'POST'])
 async def fieldViz():
+    svgAttrDict["apogee"] = SVGAttrs("green", 0.0)
+
     mjd = round(offsetNow())
 
     # now = Time.now()
