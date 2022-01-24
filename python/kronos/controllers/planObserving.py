@@ -146,8 +146,8 @@ async def planObserving():
 
     evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
 
-    evening_twilight_dark = Time(evening_twilight_dark, format="mjd").datetime
-    morning_twilight_dark = Time(morning_twilight_dark, format="mjd").datetime
+    evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
+    morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
 
     if replacementField is not None:
         # replacing a field
@@ -162,6 +162,19 @@ async def planObserving():
         # clear the queue
         await wrapBlocking(opsdb.Queue.flushQueue)
         # redo the whole queue, but check if it's during the night
+
+        winter = evening_twilight_utc.month < 3
+        if not winter and evening_twilight_utc.month < 4:
+            winter = evening_twilight_utc.day < 20
+        fall = evening_twilight_utc.month > 10
+        if not fall and evening_twilight_utc.month > 9:
+            fall = evening_twilight_utc.day > 22
+
+        if winter or fall:
+            # either before 3/20 or after 9/22
+            mjd_evening_twilight = evening_twilight_dark
+            mjd_morning_twilight = morning_twilight_dark
+
         if mjd_now > mjd_evening_twilight:
             start_mjd = mjd_now
         else:
@@ -172,8 +185,8 @@ async def planObserving():
             "queriedMJD": mjd,
             "timeBarStartUTC": startTime,
             "timeBarEndUTC": endTime,
-            "eveningTwilightUTC": evening_twilight_dark,
-            "morningTwilightUTC": morning_twilight_dark
+            "eveningTwilightUTC": evening_twilight_utc,
+            "morningTwilightUTC": morning_twilight_utc
         }
 
     queue = await wrapBlocking(Queue)
