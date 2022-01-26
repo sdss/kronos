@@ -25,7 +25,7 @@ function renderCloudCam(dataset, backups){
                 // console.log("skipping", row.id, row);
                 return
             }
-            // console.log("plotting", row.id, row.alt, row.az);
+            // console.log("plotting", row.trueHA, row.alt, row.az);
             // console.log(x_0, y_0, altaz[0], altaz[1]);
             drawField(ctx, x_0-altaz[0], y_0+altaz[1], row.color);
             if(row.selected){

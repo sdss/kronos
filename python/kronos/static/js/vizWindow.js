@@ -28,24 +28,37 @@ function getAlt(ha, dec){
 
 function getAltAz(ha, dec){
     if(observatory == "APO"){
-        var lat = radians(90-32.789278) // degrees to radians
+        var lat = radians(32.7892)
     }
     else{
-        var lat = radians(90+29.0146) // degrees to radians
+        var lat = radians(-29.0146) // degrees to radians
     };
-    var haRad = radians(ha);
-    var decRad = radians(dec);
-    // convert ha/dec to cartesian
-    var sinalt = Math.sin(lat)*Math.sin(decRad) + Math.cos(lat)*Math.cos(decRad)*Math.cos(haRad);
-    var alt = Math.asin(sinalt);
-    var cosaz = (Math.sin(decRad)-Math.sin(alt)*Math.sin(lat))/(Math.cos(alt)*Math.cos(lat));
-    if(Math.sin(haRad) < 0){
-        var az = degrees(Math.acos(cosaz))
+
+    //Ported from the IDL Astronomy User's Library.
+
+    let haRad = radians(ha);
+    let decRad = radians(dec);
+
+    let sh = Math.sin(haRad);
+    let ch = Math.cos(haRad);
+    let sd = Math.sin(decRad);
+    let cd = Math.cos(decRad);
+    let sl = Math.sin(lat);
+    let cl = Math.cos(lat);
+
+    let x = - ch * cd * sl + sd * cl;
+    let y = - sh * cd;
+    let z = ch * cd * cl + sd * sl;
+    let r = Math.sqrt(x**2 + y**2);
+
+    let az = degrees(Math.atan2(y,x));
+    let alt = degrees(Math.atan2(z,r));
+
+    if(az < 0){
+        az += 360
     }
-    else{
-        var az = 360 - degrees(Math.acos(cosaz))
-    }
-    return [degrees(alt), az];
+
+    return [alt, az]
 }
 
 function jsDate(datetime){
