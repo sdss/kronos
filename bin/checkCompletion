@@ -1,67 +1,186 @@
 #!/usr/bin/env python
 
 from collections import defaultdict
-from datatime.datetime import now
+from datetime import datetime
 from datetime import timedelta
+
+import numpy as np
+from peewee import fn, JOIN
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
+from kronos.designCompletion import checker
 
-r1_db = opsdb.Camera.get(label="r1")
-b1_db = opsdb.Camera.get(label="b1")
+
+r1_db = opsdb.Camera.get(label="r1").pk
+b1_db = opsdb.Camera.get(label="b1").pk
 ap_db = opsdb.Camera.get(label="APOGEE")
 Design = targetdb.Design
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
+Field = targetdb.Field
+Cadence = targetdb.Cadence
+DesignToStatus = opsdb.DesignToStatus
+CompletionStatus = opsdb.CompletionStatus
+Quickred = opsdb.Quickred
+CameraFrame = opsdb.CameraFrame
 
 
-def checkDone():
-    useTime = now() - timedelta(days=1)
+def brightCollate(exps):
+    sn2 = np.array([e["sn2"] for e in exps])
+    times = np.array([e["start_time"] for in exps])
+    pos = np.array([e["dither_pixpos"] for e in exps])
+    a_val = np.min(pos)
+    a = np.abs(pos - a_val) < 0.2
+    b = ~a
+    atimes = times[a]
+    btimes = times[b]
+    sn2a = sn2[a]
+    sn2b = sn2[b]
+
+    aMatch = list()
+    bMatch = list()
+    for i, t in enumerate(atimes):
+        diff = [(t - bt).hour for bt in btimes]
+        matched = np.where(np.array(diff) < 2)
+        if len(matched[0] > 0):
+            aMatch.append(i)
+            # matched are indices into btimes/sn2b now
+            for j in matched[0]:
+                if j not in bMatch:
+                    bMatch.append(j)
+
+    goodA = np.sum([sn2a[i] for i in aMatch])
+    goodB = np.sum([sn2b[i] for i in bMatch])
+
+    return goodA + goodB
+
+
+def darkCollate(exps):
+    camera_pk = [e["camera_pk"] for e in exps]
+    sn2 = [e["sn2"] for e in exps]
+
+    r = 0
+    b = 0
+
+    for c, s in zip(camera_pk, sn2):
+        if s > 0.2:
+            if c == r1_db:
+                r += s
+            elif c == b1_db:
+                b += s
+            else:
+                assert False, "made up a camera!"
+
+    return r, b
+
+
+def checkDone(hours=1):
+    start = datetime.now()
+    useTime = start - timedelta(hours=hours)
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
+    doneStatus = CompletionStatus.get(label="done").pk
 
-    recent_designs = Design.select()\
+    recent_designs = Design.select(Design.design_id, Design.exposure,
+                                   Cadence.nexp, Cadence.obsmode_pk,
+                                   Cadence.max_length, Design.field_pk,
+                                   fn.MAX(Exp.start_time))\
                            .join(Conf, on=(Design.design_id == Conf.design_id))\
                            .join(Exp)\
+                           .switch(Design)\
+                           .join(DesignToStatus, on=(Design.design_id == DesignToStatus.design_id))\
+                           .switch(Design)\
+                           .join(Field, on=(Design.field_pk == Field.pk))\
+                           .join(Cadence, on=(Field.cadence_pk == Cadence.pk))\
                            .where(Exp.start_time > useTime,
-                                  Exp.exposure_flavor == db_flavor)
+                                  Exp.exposure_flavor == db_flavor,
+                                  DesignToStatus.status != doneStatus)\
+                           .group_by(Design.design_id, Design.exposure,
+                                     Cadence.nexp, Cadence.obsmode_pk,
+                                     Cadence.max_length, Design.field_pk)
 
-    exps = Exp.select()\
-              .join(Conf)\
-              .join(Design,
-                    on=(Design.design_id == Conf.design_id))\
-              .where(Design << recent_designs)
+    print(start, recent_designs.count())
 
     r1 = defaultdict(float)
     b1 = defaultdict(float)
-    ap = defaultdict(float)
-
-    for e in exps:
-        des = int(e.configuration.design.design_id)
-        for f in e.CameraFrames:
-            if f.camera == r1_db:
-                r1[des] += f.ql_sn2
-            if f.camera == b1_db:
-                b1[des] += f.ql_sn2
-            if f.camera == ap_db:
-                ap[des] += f.ql_sn2
-
-    for a in ap:
-        if ap[a] > 150:
-            status = opsdb.CompletionStatus.get(label="done")
+    apsn2 = defaultdict(list)
+    modes = dict()
+    lastInEpoch = dict()
+    for d in recent_designs.dicts():
+        bright = d["obs_mode_pk"] == "bright_time"
+        modes[d["design_id"]] = d["obs_mode_pk"]
+        # nexp is cadence nexp, an array
+        expCount = [np.sum(d["nexp"][:i+1]) for i in range(len(d["nexp"]))]
+        # exposure is 0 indexed, so the first exposure of an epoch will
+        # have exposure number equal to the sum of previous epochs
+        # so design.exposure will be >= sum(previous epochs) for all
+        # designs in an epoch
+        current_epoch = np.where(np.array(expCount) >= d["exposure"])[0][0]
+        epochMaxLength = d["max_length"][current_epoch]
+        if epochMaxLength < 0.1:
+            epochMaxLength = 0.1
+        # max is the max start time for all exps on the design
+        maxLength = d["max"] - timedelta(days=epochMaxLength)
+        if d["exposure"] == expCount[current_epoch] - 1 and != bright:
+            # not bright because at the moment we treat all bright designs individually
+            lastInEpoch[d["design_id"]] = True
+            beginExp = expCount[current_epoch - 1]
+            exps = Exp.select(CameraFrame.camera_pk, CameraFrame.sn2)\
+                      .join(Conf)\
+                      .join(Design)\
+                      .join(Field)\
+                      .switch(Exp)\
+                      .join(CameraFrame)\
+                      .where(Field.pk == d["field_pk"],
+                             Design.exposure >= beginExp,
+                             Design.exposure <= d["exposure"],
+                             Exp.start_time > maxLength)
         else:
-            status = opsdb.CompletionStatus.get(label="started")
-        design_status = opsdb.DesignToStatus.get_or_create(design=a)[0]
+            lastInEpoch[d["design_id"]] = False
+            exps = Exp.select(Exp.start_time, CameraFrame.camera_pk,
+                              CameraFrame.sn2, Quickred.dither_pixpos)\
+                      .join(Conf)\
+                      .join(Design)\
+                      .switch(Exp)\
+                      .join(Quickred, JOIN.LEFT_OUTER)\
+                      .switch(Exp)\
+                      .join(CameraFrame)\
+                      .where(Design.design_id == d["design_id"],
+                             Exp.start_time > maxLength)
+        if bright:
+            apsn2[d["design_id"]] = brightCollate(exps.dicts())
+        else:
+            r1["design_id"], b1["design_id"] = darkCollate(exps.dicts())
+
+    for a in apsn2:
+        if modes[a] != "bright_time":
+            continue
+        if checker[modes[a]].design(ap=ap[a]):
+            status = CompletionStatus.get(label="done")
+        else:
+            status = CompletionStatus.get(label="started")
+        design_status = DesignToStatus.get(design=a)[0]
         design_status.status = status
         design_status.save()
 
     for r in r1:
-        if r1[r] > 20 and b1[r] > 10:
-            status = opsdb.CompletionStatus.get(label="done")
+        if modes[r] == "bright_time":
+            continue
+        if lastInEpoch[r]:
+            done = checker[modes[a]].epoch(r=r1[r],
+                                           b=b1[r])
         else:
-            status = opsdb.CompletionStatus.get(label="started")
-        design_status = opsdb.DesignToStatus.get_or_create(design=r)[0]
+            done = checker[modes[a]].design(r=r1[r],
+                                            b=b1[r])
+        if done:
+            status = CompletionStatus.get(label="done")
+        else:
+            status = CompletionStatus.get(label="started")
+        design_status = DesignToStatus.get(design=r)[0]
         design_status.status = status
         design_status.save()
+
+    print("TOOK ", (datetime.now() - start).seconds)
 
 
 if __name__ == "__main__":
