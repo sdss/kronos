@@ -210,11 +210,11 @@ def getConfigurations(design_id=None):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
-            if f.camera.pk == r1_db.pk:
+            if f.camera.pk == r1_db.pk and f.sn2 is not None:
                 exp_dict["r1"] = f.sn2
-            if f.camera.pk == b1_db.pk:
+            if f.camera.pk == b1_db.pk and f.sn2 is not None:
                 exp_dict["b1"] = f.sn2
-            if f.camera.pk == ap_db.pk:
+            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None:
                 exp_dict["AP"] = f.ql_sn2
         exps[conf_id].append(exp_dict)
 
