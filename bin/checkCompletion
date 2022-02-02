@@ -3,6 +3,9 @@
 from collections import defaultdict
 from datetime import datetime
 from datetime import timedelta
+import os
+import sys
+import argparse
 
 import numpy as np
 from peewee import fn, JOIN
@@ -14,7 +17,7 @@ from kronos.designCompletion import checker
 
 r1_db = opsdb.Camera.get(label="r1").pk
 b1_db = opsdb.Camera.get(label="b1").pk
-ap_db = opsdb.Camera.get(label="APOGEE")
+ap_db = opsdb.Camera.get(label="APOGEE").pk
 Design = targetdb.Design
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
@@ -24,12 +27,15 @@ DesignToStatus = opsdb.DesignToStatus
 CompletionStatus = opsdb.CompletionStatus
 Quickred = opsdb.Quickred
 CameraFrame = opsdb.CameraFrame
+Camera = opsdb.Camera
 
 
-def brightCollate(exps):
-    sn2 = np.array([e["sn2"] for e in exps])
-    times = np.array([e["start_time"] for in exps])
-    pos = np.array([e["dither_pixpos"] for e in exps])
+def brightCollate(expDicts):
+    sn2 = np.array([e["sn2"] for e in expDicts if e["pk"] == ap_db])
+    if len(sn2) == 0:
+        return 0
+    times = np.array([e["start_time"] for e in expDicts if e["pk"] == ap_db])
+    pos = np.array([e["dither_pixpos"] for e in expDicts if e["pk"] == ap_db])
     a_val = np.min(pos)
     a = np.abs(pos - a_val) < 0.2
     b = ~a
@@ -41,8 +47,8 @@ def brightCollate(exps):
     aMatch = list()
     bMatch = list()
     for i, t in enumerate(atimes):
-        diff = [(t - bt).hour for bt in btimes]
-        matched = np.where(np.array(diff) < 2)
+        diff = [(t - bt).seconds for bt in btimes]
+        matched = np.where(np.array(diff) < 7200)
         if len(matched[0] > 0):
             aMatch.append(i)
             # matched are indices into btimes/sn2b now
@@ -57,7 +63,8 @@ def brightCollate(exps):
 
 
 def darkCollate(exps):
-    camera_pk = [e["camera_pk"] for e in exps]
+    # we joined to camera to get camera pk
+    camera_pk = [e["pk"] for e in exps]
     sn2 = [e["sn2"] for e in exps]
 
     r = 0
@@ -69,13 +76,11 @@ def darkCollate(exps):
                 r += s
             elif c == b1_db:
                 b += s
-            else:
-                assert False, "made up a camera!"
 
     return r, b
 
 
-def checkDone(hours=1):
+def checkDone(hours=1, test=False):
     start = datetime.now()
     useTime = start - timedelta(hours=hours)
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
@@ -83,7 +88,7 @@ def checkDone(hours=1):
 
     recent_designs = Design.select(Design.design_id, Design.exposure,
                                    Cadence.nexp, Cadence.obsmode_pk,
-                                   Cadence.max_length, Design.field_pk,
+                                   Cadence.max_length, Field.pk,
                                    fn.MAX(Exp.start_time))\
                            .join(Conf, on=(Design.design_id == Conf.design_id))\
                            .join(Exp)\
@@ -97,7 +102,7 @@ def checkDone(hours=1):
                                   DesignToStatus.status != doneStatus)\
                            .group_by(Design.design_id, Design.exposure,
                                      Cadence.nexp, Cadence.obsmode_pk,
-                                     Cadence.max_length, Design.field_pk)
+                                     Cadence.max_length, Field.pk)
 
     print(start, recent_designs.count())
 
@@ -107,8 +112,8 @@ def checkDone(hours=1):
     modes = dict()
     lastInEpoch = dict()
     for d in recent_designs.dicts():
-        bright = d["obs_mode_pk"] == "bright_time"
-        modes[d["design_id"]] = d["obs_mode_pk"]
+        if d["obsmode_pk"] is None:
+            continue
         # nexp is cadence nexp, an array
         expCount = [np.sum(d["nexp"][:i+1]) for i in range(len(d["nexp"]))]
         # exposure is 0 indexed, so the first exposure of an epoch will
@@ -116,28 +121,33 @@ def checkDone(hours=1):
         # so design.exposure will be >= sum(previous epochs) for all
         # designs in an epoch
         current_epoch = np.where(np.array(expCount) >= d["exposure"])[0][0]
+        modes[d["design_id"]] = d["obsmode_pk"][current_epoch]
+        bright = modes[d["design_id"]] == "bright_time"
         epochMaxLength = d["max_length"][current_epoch]
         if epochMaxLength < 0.1:
             epochMaxLength = 0.1
         # max is the max start time for all exps on the design
         maxLength = d["max"] - timedelta(days=epochMaxLength)
-        if d["exposure"] == expCount[current_epoch] - 1 and != bright:
+        if d["exposure"] == expCount[current_epoch] - 1 and not bright:
             # not bright because at the moment we treat all bright designs individually
             lastInEpoch[d["design_id"]] = True
-            beginExp = expCount[current_epoch - 1]
-            exps = Exp.select(CameraFrame.camera_pk, CameraFrame.sn2)\
+            if current_epoch == 0:
+                beginExp = 0
+            else:
+                beginExp = expCount[current_epoch - 1]
+            exps = Exp.select(Camera.pk, CameraFrame.sn2)\
                       .join(Conf)\
                       .join(Design)\
-                      .join(Field)\
                       .switch(Exp)\
                       .join(CameraFrame)\
-                      .where(Field.pk == d["field_pk"],
+                      .join(Camera)\
+                      .where(Design.field_pk == d["pk"],  # we got field.pk earlier
                              Design.exposure >= beginExp,
                              Design.exposure <= d["exposure"],
                              Exp.start_time > maxLength)
         else:
             lastInEpoch[d["design_id"]] = False
-            exps = Exp.select(Exp.start_time, CameraFrame.camera_pk,
+            exps = Exp.select(Exp.start_time, Camera.pk,
                               CameraFrame.sn2, Quickred.dither_pixpos)\
                       .join(Conf)\
                       .join(Design)\
@@ -145,17 +155,28 @@ def checkDone(hours=1):
                       .join(Quickred, JOIN.LEFT_OUTER)\
                       .switch(Exp)\
                       .join(CameraFrame)\
+                      .join(Camera)\
                       .where(Design.design_id == d["design_id"],
                              Exp.start_time > maxLength)
         if bright:
             apsn2[d["design_id"]] = brightCollate(exps.dicts())
         else:
-            r1["design_id"], b1["design_id"] = darkCollate(exps.dicts())
+            r1[d["design_id"]], b1[d["design_id"]] = darkCollate(exps.dicts())
+
+    summary = ""
 
     for a in apsn2:
         if modes[a] != "bright_time":
             continue
-        if checker[modes[a]].design(ap=ap[a]):
+        done = checker[modes[a]].design(ap=apsn2[a])
+        if done:
+            statusString = "done"
+        else:
+            statusString = "partial"
+        summary += f"{a:7d}: {statusString:7s} with {apsn2[a]:7.1f} \n"
+        if test:
+            continue
+        if done:
             status = CompletionStatus.get(label="done")
         else:
             status = CompletionStatus.get(label="started")
@@ -167,11 +188,18 @@ def checkDone(hours=1):
         if modes[r] == "bright_time":
             continue
         if lastInEpoch[r]:
-            done = checker[modes[a]].epoch(r=r1[r],
+            done = checker[modes[r]].epoch(r=r1[r],
                                            b=b1[r])
         else:
-            done = checker[modes[a]].design(r=r1[r],
+            done = checker[modes[r]].design(r=r1[r],
                                             b=b1[r])
+        if done:
+            statusString = "done"
+        else:
+            statusString = "partial"
+        summary += f"{r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} \n"
+        if test:
+            continue
         if done:
             status = CompletionStatus.get(label="done")
         else:
@@ -180,8 +208,22 @@ def checkDone(hours=1):
         design_status.status = status
         design_status.save()
 
-    print("TOOK ", (datetime.now() - start).seconds)
+    print("TOOK ", (datetime.now() - start).seconds, " sec")
+    print(summary)
 
 
 if __name__ == "__main__":
-    checkDone()
+    parser = argparse.ArgumentParser(
+        prog=os.path.basename(sys.argv[0]),
+        description='Add fake exp to local db')
+
+    parser.add_argument('-s', '--since', type=int, default=1,
+                        help='how long to look back', dest='since')
+    parser.add_argument('-t', '--test', action="store_true",
+                        help='only a test, no db commits')
+
+    args = parser.parse_args()
+    since = args.since
+    test = args.test
+
+    checkDone(since, test=test)
