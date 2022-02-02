@@ -79,8 +79,28 @@
 
 <script src="../static/js/autoComplete.js"></script>
 
+<!-- <div class="card">
+  <div class="col-md-1"></div>
+  <form action="/designQuery.html">
+    <div class="form-row">
+      <div class="form-group col-md-10">
+        <label for="designs">Design IDs (comma seperated)</label>
+        <input id="designs" name="designs" type="text" class="form-control" {% if designs|length > 0 %} value="{% for d in designs %}{{d}}, {% endfor %}"{% endif %}>
+      </div>
+      <button type="submit" class="btn btn-primary">Use Design IDs</button>
+    </div>
+  </form>
+</div> -->
+
 <div class="card">
 <form autocomplete="off" action="/designQuery.html">
+  <div class="form-row">
+    <div class="form-group col-md-10">
+      <label for="designs">Design IDs (comma seperated)</label>
+      <input id="designs" name="designs" type="text" class="form-control" {% if designs|length > 0 %} value="{% for d in designs %}{{d}}, {% endfor %}"{% endif %}>
+    </div>
+    <button type="submit" class="btn btn-primary">Use Design IDs</button>
+  </div>
   <div class="form-row">
     <div class="form-group col-md-6">
       <div class="form-group col-md-3">

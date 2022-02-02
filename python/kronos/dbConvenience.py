@@ -232,7 +232,8 @@ def getConfigurations(design_id=None):
 
 
 def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
-                limit=100, pa_range=None, instrument="BOSS", orderby=None):
+                limit=100, pa_range=None, instrument="BOSS", orderby=None,
+                design_ids=[]):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -297,6 +298,9 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                      "RA": dbField.racen,
                      "PA": dbField.position_angle}
         designs = designs.order_by(translate[orderby])
+
+    if len(design_ids) > 0:
+        designs.where(dbDesign.design_id << design_ids)
 
     resTuples = designs.tuples()
 

@@ -25,37 +25,48 @@ async def designDetail():
 
     templateDict = getTemplateDictBase()
 
-    form = await request.form
-
     fieldid = "none"
     completionStatus = "all"
     instrument = "BOSS"
     chosenCarton = "none"
     orderby = "RA"
+    errors = list()
 
     pa_start = 0
     pa_end = 360
 
     if request.args:
-        fieldid = request.args["fieldid"].strip()
-        if len(fieldid) == 0:
-            fieldid = "none"
-        completionStatus = request.args["completionStatus"]
-        instrument = request.args["instrument"]
-        orderby = request.args["orderby"]
-        try:
-            ra_start = int(request.args["ra0Select"])
-            ra_end = int(request.args["ra1Select"])
-        except:
-            ra_start = 0
-            ra_end = 360
-        try:
-            pa_start = float(request.args["pa0Select"])
-            pa_end = float(request.args["pa1Select"])
-        except:
-            pa_start = 0
-            pa_end = 360
-        chosenCarton = request.args["carton"].strip()
+        if "designs" in request.args:
+            d_text = request.args["designs"]
+            try:
+                if "," in d_text:
+                    design_ids = [int(d) for d in d_text.strip().split(",") if len(d)]
+                else:
+                    design_ids = [int(d_text)]
+            except:
+                errors.append("invalid design input")
+                design_ids = list()
+        else:
+            design_ids = list()
+            fieldid = request.args["fieldid"].strip()
+            if len(fieldid) == 0:
+                fieldid = "none"
+            completionStatus = request.args["completionStatus"]
+            instrument = request.args["instrument"]
+            orderby = request.args["orderby"]
+            try:
+                ra_start = int(request.args["ra0Select"])
+                ra_end = int(request.args["ra1Select"])
+            except:
+                ra_start = 0
+                ra_end = 360
+            try:
+                pa_start = float(request.args["pa0Select"])
+                pa_end = float(request.args["pa1Select"])
+            except:
+                pa_start = 0
+                pa_end = 360
+            chosenCarton = request.args["carton"].strip()
 
     cartons = await wrapBlocking(cartonLabels)
 
@@ -88,13 +99,15 @@ async def designDetail():
                                  dbStatus=dbStatus,
                                  carton=queryCarton,
                                  pa_range=pa_range,
-                                 orderby=orderby)
+                                 orderby=orderby,
+                                 design_ids=design_ids)
     if instrument == "BOSS":
         oinstrument = "APOGEE"
     else:
         oinstrument = "BOSS"
 
     templateDict.update({
+        "errorMsg": errors,
         "fieldid": fieldid,
         "completionStatus": completionStatus,
         "ra_range": ra_range,
