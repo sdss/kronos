@@ -30,6 +30,7 @@ async def designDetail():
     instrument = "BOSS"
     chosenCarton = "none"
     orderby = "RA"
+    design_ids = list()
     errors = list()
 
     pa_start = 0
@@ -46,27 +47,25 @@ async def designDetail():
             except:
                 errors.append("invalid design input")
                 design_ids = list()
-        else:
-            design_ids = list()
-            fieldid = request.args["fieldid"].strip()
-            if len(fieldid) == 0:
-                fieldid = "none"
-            completionStatus = request.args["completionStatus"]
-            instrument = request.args["instrument"]
-            orderby = request.args["orderby"]
-            try:
-                ra_start = int(request.args["ra0Select"])
-                ra_end = int(request.args["ra1Select"])
-            except:
-                ra_start = 0
-                ra_end = 360
-            try:
-                pa_start = float(request.args["pa0Select"])
-                pa_end = float(request.args["pa1Select"])
-            except:
-                pa_start = 0
-                pa_end = 360
-            chosenCarton = request.args["carton"].strip()
+        fieldid = request.args["fieldid"].strip()
+        if len(fieldid) == 0:
+            fieldid = "none"
+        completionStatus = request.args["completionStatus"]
+        instrument = request.args["instrument"]
+        orderby = request.args["orderby"]
+        try:
+            ra_start = int(request.args["ra0Select"])
+            ra_end = int(request.args["ra1Select"])
+        except:
+            ra_start = 0
+            ra_end = 360
+        try:
+            pa_start = float(request.args["pa0Select"])
+            pa_end = float(request.args["pa1Select"])
+        except:
+            pa_start = 0
+            pa_end = 360
+        chosenCarton = request.args["carton"].strip()
 
     cartons = await wrapBlocking(cartonLabels)
 
@@ -117,7 +116,8 @@ async def designDetail():
         "carton": chosenCarton,
         "instrument": instrument,
         "oinstrument": oinstrument,
-        "orderby": orderby
+        "orderby": orderby,
+        "design_ids": design_ids
     })
 
     return await render_template("designQuery.html", **templateDict)

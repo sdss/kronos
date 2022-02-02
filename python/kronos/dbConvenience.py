@@ -300,7 +300,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         designs = designs.order_by(translate[orderby])
 
     if len(design_ids) > 0:
-        designs.where(dbDesign.design_id << design_ids)
+        designs = designs.where(dbDesign.design_id << design_ids)
 
     resTuples = designs.tuples()
 

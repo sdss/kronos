@@ -97,9 +97,8 @@
   <div class="form-row">
     <div class="form-group col-md-10">
       <label for="designs">Design IDs (comma seperated)</label>
-      <input id="designs" name="designs" type="text" class="form-control" {% if designs|length > 0 %} value="{% for d in designs %}{{d}}, {% endfor %}"{% endif %}>
+      <input id="designs" name="designs" type="text" class="form-control" {% if design_ids|length > 0 %} value="{% for d in design_ids %}{{d}}, {% endfor %}"{% endif %}>
     </div>
-    <button type="submit" class="btn btn-primary">Use Design IDs</button>
   </div>
   <div class="form-row">
     <div class="form-group col-md-6">
