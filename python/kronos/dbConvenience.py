@@ -395,3 +395,18 @@ def safeAppendQueue(design_id, mjd_plan=None):
             mjd_plan = mjds[-1] + design_time
 
     Queue.appendQueue(design_id, mjd_plan=mjd_plan)
+
+
+def designCompletion(designs):
+    assert type(designs) == list, "expecting list of design_ids"
+    Design = targetdb.Design
+
+    CompStatus = opsdb.CompletionStatus
+    d2s = opsdb.DesignToStatus
+
+    status = CompStatus.select(CompStatus.label, Design.design_id)\
+                       .join(d2s, on=(d2s.completion_status_pk == CompStatus.pk))\
+                       .join(Design, on=(d2s.design_id == Design.design_id))\
+                       .where(Design.design_id << designs)
+
+    return {s[1]: s[0] for s in status.tuples()}

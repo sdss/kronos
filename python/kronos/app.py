@@ -7,8 +7,7 @@ from logging import getLogger, ERROR
 import psycopg2
 from quart import Quart, render_template, jsonify, request
 
-from kronos import jinja_filters, wrapBlocking
-from kronos.dbConvenience import getRecentExps
+from kronos import jinja_filters
 
 getLogger('quart.serving').setLevel(ERROR)
 
@@ -69,6 +68,7 @@ from kronos.controllers.fieldQuery import fieldQuery_page
 from kronos.controllers.designQuery import designQuery_page
 from kronos.controllers.fieldViz import fieldViz_page
 from kronos.controllers import getTemplateDictBase
+from controllers.dbEndPoints import dbEndPoints
 
 app.register_blueprint(index_page)
 app.register_blueprint(fieldDetail_page)
@@ -78,6 +78,7 @@ app.register_blueprint(lookAhead_page)
 app.register_blueprint(fieldQuery_page)
 app.register_blueprint(designQuery_page)
 app.register_blueprint(fieldViz_page)
+app.register_blueprint(dbEndPoints)
 
 
 @app.errorhandler(404)
@@ -89,10 +90,3 @@ async def page_not_found(e):
 async def err_page(e):
     """ Err page. """
     return await render_template("500.html", **getTemplateDictBase())
-
-
-@app.route('/recentExposures/<int:mjd>', methods=['GET'])
-async def recentExposures(mjd):
-    exps = await wrapBlocking(getRecentExps, mjd)
-
-    return jsonify(exps)

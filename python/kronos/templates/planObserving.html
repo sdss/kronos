@@ -138,6 +138,7 @@
     const backupFields = {{backups | tojson}};
     const selectedBackup = null;
     var dataset = null;
+    var design_ids = [];
 
     var colorScale = chroma.scale(['yellow', 'red', 'black']);
     for (i=0;i<backupFields.length;i++){
@@ -184,9 +185,31 @@
       confirmBackup(idField.innerText.substring(6), pk_holder.innerText);
     }
 
+  function checkComplete(){
+      let design_args = "?designs=" + design_ids.join(", ")
+      $.getJSON('/designCompletion/' + design_args, function (designs) {
+        let expTable = document.getElementById("expTable");
+        for (i=0;i<expTable.rows.length;i++) {
+          let row = expTable.rows[i];
+          let row_design = parseInt(row.cells[0].innerHTML);
+          designs.forEach((design, index) =>{
+            if(parseInt(design.design_id) == row_design){
+              if(design.status == "done"){
+                row.style.backgroundColor = "rgba(44, 245, 61, 0.6)";
+              }
+            }
+          })
+        };
+      });
+    // setTimeout(checkComplete, 15000);
+    };
+
     function addExps(){
       $.getJSON('/recentExposures/{{mjd}}', function (exps) {
         for (i=0;i<exps.length;i++) {
+          if(!design_ids.includes(exp.design)){
+            design_ids.push(exp.design)
+          }
           let exp = exps[i];
           let expTable = document.getElementById("expTable");
           let fid = parseInt(expTable.rows[1].id);
@@ -205,6 +228,7 @@
             ap.innerHTML = exp.AP;
             b1.innerHTML = exp.b1;
             r1.innerHTML = exp.r1;
+            setTimeout(checkComplete, 2000);
           }
         };
       });
