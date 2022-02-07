@@ -38,7 +38,7 @@ canvas {
     width: 65%;
 }
 
-.queue-item:hover {
+.queue-hover:hover {
     background-color: rgba(224, 45, 45, .3);
     cursor: pointer;
 }
@@ -77,6 +77,10 @@ canvas {
 .queue-buttons {
     display: inline-block;
     width: 40%;
+}
+
+.queue-done {
+    color: rgba(0, 0, 0, 0.5);
 }
 
 .delete-field:hover {

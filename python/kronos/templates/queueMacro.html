@@ -3,7 +3,8 @@
     {% for des in designs %}
         <li class="list-group-item">
             <div class="queue-row">
-                <span onclick="selectField({{des.fieldID}})" class="queue-item">
+                {% if des.position > 0%}
+                <span onclick="selectField({{des.fieldID}})" class="queue-item queue-hover">
                     <a class="queue-field field-{{des.fieldID}}">{{des.fieldID}}</a>
                     <a class="queue-design">{{des.designID}}</a>
                     <span class="hover-field">{{des.cadence}}</span>
@@ -22,6 +23,12 @@
                         <span class="button-hover-field">replace from here</span>
                     </a>
                 </span>
+                {% else %}
+                <span class="queue-item queue-done">
+                    <a class="queue-field field-{{des.fieldID}}"><s>{{des.fieldID}}</s></a>
+                    <a class="queue-design"><s>{{des.designID}}</s></a>
+                </span>
+                {% endif %}
             </div>
         </li>
     {% endfor %}
@@ -31,12 +38,19 @@
     {% for des in designs %}
         <li class="list-group-item">
             <div class="queue-row">
+                {% if des.position > 0%}
                 <span onclick="selectField({{des.fieldID}})" class="queue-item">
                     <a class="queue-field field-{{des.fieldID}}">
                         <span class="hover-field">{{des.cadence}}</span>{{des.fieldID}}
                     </a>
                     <a class="queue-design">{{des.designID}}</a>
                 </span>
+                {% else %}
+                <span class="queue-item queue-done">
+                    <a class="queue-field field-{{des.fieldID}}"><s>{{des.fieldID}}</s></a>
+                    <a class="queue-design"><s>{{des.designID}}</s></a>
+                </span>
+                {% endif %}
             </div>
         </li>
     {% endfor %}

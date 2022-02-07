@@ -40,7 +40,7 @@ class Design(object):
     """wrap db design
     """
 
-    def __init__(self, design, scheduler=None, mjd_plan=None):
+    def __init__(self, design, scheduler=None, mjd_plan=None, position=None):
         if isinstance(design, targetdb.Design):
             self.designID = int(design.design_id)
             self.dbDesign = design
@@ -57,6 +57,7 @@ class Design(object):
         self.haRange = [-60, 60]
         self.RS = scheduler
         self.mjd_plan = mjd_plan
+        self.position = position
 
     @property
     def haNow(self):
@@ -210,12 +211,13 @@ class Queue(object):
         self.queue = opsdb.Queue
         # wrap blocking this is a DB call
         self.dbDesigns = self.queue.select()\
-                                   .where(opsdb.Queue.position > 0)\
+                                   .where(opsdb.Queue.position > -3)\
                                    .order_by(opsdb.Queue.position)
         # or it might be here
         self.designs = [Design(d.design.design_id,
                                scheduler=self.scheduler.scheduler,
-                               mjd_plan=d.mjd_plan)
+                               mjd_plan=d.mjd_plan,
+                               position=d.position)
                         for d in self.dbDesigns]
         self.fields = list()
         self._fieldDict = None
@@ -421,6 +423,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             inQueue.append(field_pk)
 
             now += len(designs) * self.exp_nom
+
+        tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+        self.scheduler.priorityLogger.write(name="tstamp")
+
         return errors
 
     async def schedNoQueue(self, mjdStart, mjdEnd):
