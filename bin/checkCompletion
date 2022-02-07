@@ -80,11 +80,17 @@ def darkCollate(exps):
     return r, b
 
 
-def checkDone(hours=1, test=False):
+def checkDone(hours=1, test=False, daemon=False):
     start = datetime.now()
     useTime = start - timedelta(hours=hours)
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
     doneStatus = CompletionStatus.get(label="done").pk
+
+    mostRecent = Exp.select(fn.MAX(Exp.start_time)).scalar()
+
+    if (start - mostRecent).seconds > 300 and daemon:
+        # no exposures in the last 5 minutes, don't do anything.
+        return
 
     recent_designs = Design.select(Design.design_id, Design.exposure,
                                    Cadence.nexp, Cadence.obsmode_pk,
@@ -104,7 +110,7 @@ def checkDone(hours=1, test=False):
                                      Cadence.nexp, Cadence.obsmode_pk,
                                      Cadence.max_length, Field.pk)
 
-    print(start, recent_designs.count())
+    print(start.strftime("%Y-%m-%dT%H:%M:%S"), recent_designs.count())
 
     r1 = defaultdict(float)
     b1 = defaultdict(float)
@@ -180,7 +186,7 @@ def checkDone(hours=1, test=False):
             status = CompletionStatus.get(label="done")
         else:
             status = CompletionStatus.get(label="started")
-        design_status = DesignToStatus.get(design=a)[0]
+        design_status = DesignToStatus.get(design=a)
         design_status.status = status
         design_status.save()
 
@@ -204,11 +210,11 @@ def checkDone(hours=1, test=False):
             status = CompletionStatus.get(label="done")
         else:
             status = CompletionStatus.get(label="started")
-        design_status = DesignToStatus.get(design=r)[0]
+        design_status = DesignToStatus.get(design=r)
         design_status.status = status
         design_status.save()
 
-    print("TOOK ", (datetime.now() - start).seconds, " sec")
+    print("TOOK ", (datetime.now() - start).microseconds//1000, " ms")
     print(summary)
 
 
@@ -221,9 +227,12 @@ if __name__ == "__main__":
                         help='how long to look back', dest='since')
     parser.add_argument('-t', '--test', action="store_true",
                         help='only a test, no db commits')
+    parser.add_argument('-d', '--daemon', action="store_true",
+                        help='assume running as daemon, allow exit if no recent exps')
 
     args = parser.parse_args()
     since = args.since
     test = args.test
+    daemon = args.daemon
 
-    checkDone(since, test=test)
+    checkDone(since, test=test, daemon=daemon)
