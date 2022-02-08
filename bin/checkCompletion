@@ -87,7 +87,9 @@ def checkDone(hours=1, test=False, daemon=False):
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
     doneStatus = CompletionStatus.get(label="done").pk
 
-    mostRecent = Exp.select(fn.MAX(Exp.start_time)).scalar()
+    mostRecent = Exp.select(fn.MAX(Exp.start_time))\
+                    .where(Exp.exposure_flavor == db_flavor)\
+                    .scalar()
 
     if (start - mostRecent).seconds > 300 and daemon:
         # no exposures in the last 5 minutes, don't do anything.
