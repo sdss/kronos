@@ -10,7 +10,7 @@ from astropy.time import Time
 from sdssdb.peewee.sdss5db import opsdb
 
 from kronos import wrapBlocking
-from kronos.vizWindow import ApogeeViz, svgAttrDict, SVGAttrs
+from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, offsetNow, DesignList
 from kronos.controllers.planObserving import getAlmanac
 
@@ -20,10 +20,9 @@ fieldViz_page = Blueprint("fieldViz_page", __name__)
 
 ALLSURVEYS = ["APOGEE"]
 
+
 @fieldViz_page.route('/fieldViz.html', methods=['GET', 'POST'])
 async def fieldViz():
-    svgAttrDict["apogee"] = SVGAttrs("green", 0.0)
-
     mjd = round(offsetNow())
 
     # now = Time.now()
@@ -78,6 +77,11 @@ async def fieldViz():
         viz = await ApogeeViz(schedule, designList.fields, useDesign=True).export()
 
     almanac = await wrapBlocking(getAlmanac, mjd)
+
+    for r in viz["allRows"]:
+        for v in r["vizWindows"]:
+            if v["primary"]:
+                v["opacity"] = 0
 
     templateDict.update({
         "apogeeViz": viz,
