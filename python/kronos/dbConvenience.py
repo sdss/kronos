@@ -409,4 +409,4 @@ def designCompletion(designs):
                        .join(Design, on=(d2s.design_id == Design.design_id))\
                        .where(Design.design_id << designs)
 
-    return {s[1]: s[0] for s in status.tuples()}
+    return [{"design_id": s[1], "status": s[0]} for s in status.tuples()]

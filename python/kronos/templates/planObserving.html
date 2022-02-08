@@ -186,20 +186,21 @@
     }
 
   function checkComplete(){
-      let design_args = "?designs=" + design_ids.join(", ")
+      let design_args = "?designs=" + design_ids.join(", ");
       $.getJSON('/designCompletion/' + design_args, function (designs) {
         let expTable = document.getElementById("expTable");
         for (i=0;i<expTable.rows.length;i++) {
           let row = expTable.rows[i];
           let row_design = parseInt(row.cells[0].innerHTML);
-          designs.forEach((design, index) =>{
+          for (j=0;j<designs.length;j++){
+            let design = designs[j];
             if(parseInt(design.design_id) == row_design){
               if(design.status == "done"){
-                row.style.backgroundColor = "rgba(44, 245, 61, 0.6)";
+                row.style.backgroundColor = "rgba(0, 160, 0, 0.6)";
               }
             }
-          })
-        };
+          }
+        }
       });
     // setTimeout(checkComplete, 15000);
     };
@@ -228,10 +229,10 @@
             ap.innerHTML = exp.AP;
             b1.innerHTML = exp.b1;
             r1.innerHTML = exp.r1;
-            setTimeout(checkComplete, 2000);
           }
         };
       });
+    setTimeout(checkComplete, 2000);
     setTimeout(addExps, 5000);
     };
 
