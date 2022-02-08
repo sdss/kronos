@@ -78,10 +78,11 @@ async def fieldViz():
 
     almanac = await wrapBlocking(getAlmanac, mjd)
 
-    for r in viz["allRows"]:
-        for v in r["vizWindows"]:
-            if v["primary"]:
-                v["opacity"] = 0
+    if viz is not None:
+        for r in viz["allRows"]:
+            for v in r["vizWindows"]:
+                if v["primary"]:
+                    v["opacity"] = 0
 
     templateDict.update({
         "apogeeViz": viz,
