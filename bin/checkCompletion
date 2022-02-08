@@ -9,6 +9,7 @@ import argparse
 
 import numpy as np
 from peewee import fn, JOIN
+from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
@@ -169,6 +170,9 @@ def checkDone(hours=1, test=False, daemon=False):
         else:
             r1[d["design_id"]], b1[d["design_id"]] = darkCollate(exps.dicts())
 
+    astroT = Time(start)
+    astroT.format = "mjd"
+    mjd_now = astroT.value
     summary = ""
 
     for a in apsn2:
@@ -188,6 +192,7 @@ def checkDone(hours=1, test=False, daemon=False):
             status = CompletionStatus.get(label="started")
         design_status = DesignToStatus.get(design=a)
         design_status.status = status
+        design_status.mjd = mjd_now
         design_status.save()
 
     for r in r1:
@@ -212,6 +217,7 @@ def checkDone(hours=1, test=False, daemon=False):
             status = CompletionStatus.get(label="started")
         design_status = DesignToStatus.get(design=r)
         design_status.status = status
+        design_status.mjd = mjd_now
         design_status.save()
 
     print("TOOK ", (datetime.now() - start).microseconds//1000, " ms")
