@@ -1021,6 +1021,7 @@ function generateViz(vizObj, targetDiv, backups){
         makeTickOverlays();
         makeAxis();
         makeTickNow();
+        makeToggleScaleButton();
         // if (vizObj.setCurrent){
         //     makeToggleScaleButton();
         // }
