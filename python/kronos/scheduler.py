@@ -89,6 +89,7 @@ class Field(object):
         self.cadence = self.dbField.cadence.label
         self._obsTimes = None
         self._startTime = None
+        self._mjdDuration = None
         # in MJD, needed for rescheduling
         self.haRange = [-60, 60]
         self.RS = scheduler  # keep track. bad form?
@@ -103,8 +104,8 @@ class Field(object):
         startTime = Time(start, format="mjd").datetime,
         if type(startTime) is tuple:
             startTime = startTime[0]
-        mjd_duration = len(self.designs) * design_time
-        endTime = startTime + datetime.timedelta(seconds=int(mjd_duration*86400))
+        self._mjdDuration = len(self.designs) * design_time
+        endTime = startTime + datetime.timedelta(seconds=int(self._mjdDuration*86400))
         self._obsTimes = {"start": startTime,
                           "end": endTime}
 
@@ -121,6 +122,14 @@ class Field(object):
         if self._startTime is None:
             self._timesFromDesigns()
         return self._startTime
+
+    @property
+    def haPlanned(self):
+        self.obsTimes
+        end = self._startTime + self._mjdDuration
+        haStart = self.RS.lst(self._startTime) - self.ra
+        haEnd = self.RS.lst(end) - self.ra
+        return (float(haStart), float(haEnd))
 
     @property
     def haNow(self):

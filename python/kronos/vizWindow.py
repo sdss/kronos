@@ -447,7 +447,7 @@ class Viz(object):
         fieldRow.addVizWindow(  # viz window
             name="apogee",
             utRange=fieldUtRange,
-            haRange=field.haRange45DegZenith,
+            haRange=field.haPlanned,
             primary=True
         )
 
