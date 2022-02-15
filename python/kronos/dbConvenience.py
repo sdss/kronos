@@ -162,27 +162,49 @@ def getField(field_id):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
-            if f.camera.pk == r1_db.pk:
+            if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
                 exp_dict["r1"] = f.sn2
-            if f.camera.pk == b1_db.pk:
+            if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
                 exp_dict["b1"] = f.sn2
-            if f.camera.pk == ap_db.pk:
+            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
         exps[exp_mjd].append(exp_dict)
 
     sums = dict()
+    exps_export = defaultdict(list)
     for d, eps in exps.items():
         sums[d] = dict()
-        sums[d]["r1"] = sum([e["r1"] for e in eps])
-        sums[d]["b1"] = sum([e["b1"] for e in eps])
-        sums[d]["AP"] = sum([e["AP"] for e in eps])
+
+        r1_sum = sum([e["r1"] for e in eps])
+        if r1_sum > 0:
+            sums[d]["r1"] = f"{r1_sum:.2f}"
+        else:
+            sums[d]["r1"] = "--"
+        b1_sum = sum([e["b1"] for e in eps])
+        if b1_sum > 0:
+            sums[d]["b1"] = f"{b1_sum:.2f}"
+        else:
+            sums[d]["b1"] = "--"
+        AP_sum = sum([e["AP"] for e in eps])
+        if AP_sum > 0:
+            sums[d]["AP"] = f"{AP_sum:.1f}"
+        else:
+            sums[d]["AP"] = "--"
+        
+        for edict in eps:
+            for k in ["r1", "b1", "AP"]:
+                if edict[k] > 0:
+                    edict[k] = "--"
+                else:
+                    edict[k] = f"{edict[k]:.1f}"
+            exps_export[d].append(edict)
 
     return {"id": field_id,
             "ra": field.racen,
             "dec": field.deccen,
             "observatory": field.observatory.label,
             "cadence": field.cadence.label,
-            "exps": exps,
+            "exps": exps_export,
             "sums": sums}
 
 
@@ -210,11 +232,11 @@ def getConfigurations(design_id=None):
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
-            if f.camera.pk == r1_db.pk and f.sn2 is not None:
+            if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
                 exp_dict["r1"] = f.sn2
-            if f.camera.pk == b1_db.pk and f.sn2 is not None:
+            if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
                 exp_dict["b1"] = f.sn2
-            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None:
+            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
         exps[conf_id].append(exp_dict)
 
@@ -223,9 +245,21 @@ def getConfigurations(design_id=None):
         conf = dict()
         conf["timeStamp"] = eps[-1]["timeStamp"]
         conf["id"] = c
-        conf["r1"] = sum([e["r1"] for e in eps])
-        conf["b1"] = sum([e["b1"] for e in eps])
-        conf["AP"] = sum([e["AP"] for e in eps])
+        r1_sum = sum([e["r1"] for e in eps])
+        if r1_sum > 0:
+            conf["r1"] = f"{r1_sum:.2f}"
+        else:
+            conf["r1"] = "--"
+        b1_sum = sum([e["b1"] for e in eps])
+        if b1_sum > 0:
+            conf["b1"] = f"{b1_sum:.2f}"
+        else:
+            conf["b1"] = "--"
+        AP_sum = sum([e["AP"] for e in eps])
+        if AP_sum > 0:
+            conf["AP"] = f"{AP_sum:.1f}"
+        else:
+            conf["AP"] = "--"
         configurations.append(conf)
 
     return configurations
