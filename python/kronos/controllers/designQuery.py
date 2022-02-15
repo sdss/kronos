@@ -39,14 +39,15 @@ async def designDetail():
     if request.args:
         if "designs" in request.args:
             d_text = request.args["designs"]
-            try:
-                if "," in d_text:
-                    design_ids = [int(d) for d in d_text.strip().split(",") if len(d)]
-                else:
-                    design_ids = [int(d_text)]
-            except:
-                errors.append("invalid design input")
-                design_ids = list()
+            if len(d_text) > 0:
+                try:
+                    if "," in d_text:
+                        design_ids = [int(d) for d in d_text.strip().split(",") if len(d)]
+                    else:
+                        design_ids = [int(d_text)]
+                except:
+                    errors.append("invalid design input")
+                    design_ids = list()
         fieldid = request.args["fieldid"].strip()
         if len(fieldid) == 0:
             fieldid = "none"
@@ -99,6 +100,7 @@ async def designDetail():
                                  carton=queryCarton,
                                  pa_range=pa_range,
                                  orderby=orderby,
+                                 instrument=instrument,
                                  design_ids=design_ids)
     if instrument == "BOSS":
         oinstrument = "APOGEE"

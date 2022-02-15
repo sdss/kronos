@@ -306,6 +306,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                                dbField.field_id, dbField.racen,
                                dbField.deccen, dbField.position_angle)
 
+
+
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
 
@@ -318,6 +320,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         matchingCartons = Carton.select().where(Carton.carton.contains(carton))
         designs = designs.join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
                          .where(C2T.carton << matchingCartons)
+
 
     if ra_range and field_id is None:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
