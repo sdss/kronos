@@ -435,7 +435,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
-        self.scheduler.priorityLogger.write(name="tstamp")
+        self.scheduler.priorityLogger.write(name=tstamp)
 
         return errors
 

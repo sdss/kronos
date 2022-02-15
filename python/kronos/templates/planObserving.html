@@ -224,7 +224,7 @@
             let b1 = row.insertCell(3);
             let r1 = row.insertCell(4);
 
-            design.innerHTML = exp.design;
+            design.innerHTML = "<a href='designDetail.html?designID=" + exp.design + "'>" + exp.design + "</a>";
             time.innerHTML = exp.timeStamp;
             ap.innerHTML = exp.AP;
             b1.innerHTML = exp.b1;

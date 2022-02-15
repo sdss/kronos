@@ -13,7 +13,7 @@
       <tbody style="height: 350px; overflow-y:scroll; display:block;">
     {% for e in exposures %}
         <tr id={{e.pk}}>
-          <td class="text-center">{{e.design}}</td>
+          <td class="text-center"><a href="designDetail.html?designID={{e.design}}">{{e.design}}</a></td>
           <td class="text-center">{{e.timeStamp}}</td>
           <td class="text-center">{{e.AP}}</td>
           <td class="text-center">{{e.b1}}</td>
