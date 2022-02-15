@@ -192,12 +192,15 @@ def getField(field_id):
             sums[d]["AP"] = "--"
         
         for edict in eps:
+            nonZero = False
             for k in ["r1", "b1", "AP"]:
                 if edict[k] > 0:
-                    edict[k] = "--"
-                else:
+                    nonZero = True
                     edict[k] = f"{edict[k]:.1f}"
-            exps_export[d].append(edict)
+                else:
+                    edict[k] = "--"
+            if nonZero:
+                exps_export[d].append(edict)
 
     return {"id": field_id,
             "ra": field.racen,
@@ -245,22 +248,27 @@ def getConfigurations(design_id=None):
         conf = dict()
         conf["timeStamp"] = eps[-1]["timeStamp"]
         conf["id"] = c
+        nonZero = False
         r1_sum = sum([e["r1"] for e in eps])
         if r1_sum > 0:
+            nonZero = True
             conf["r1"] = f"{r1_sum:.2f}"
         else:
             conf["r1"] = "--"
         b1_sum = sum([e["b1"] for e in eps])
         if b1_sum > 0:
+            nonZero = True
             conf["b1"] = f"{b1_sum:.2f}"
         else:
             conf["b1"] = "--"
         AP_sum = sum([e["AP"] for e in eps])
         if AP_sum > 0:
+            nonZero = True
             conf["AP"] = f"{AP_sum:.1f}"
         else:
             conf["AP"] = "--"
-        configurations.append(conf)
+        if nonZero:
+            configurations.append(conf)
 
     return configurations
 
