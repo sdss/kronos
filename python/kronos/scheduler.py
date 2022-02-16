@@ -498,6 +498,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             fields.append(field_wrap)
 
             now += len(designs) * self.exp_nom
+        tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        fname = "lookAhead" + tstamp
+
+        self.scheduler.priorityLogger.write(name=fname)
+
         return fields, errors
 
     def getDarkBounds(self, mjd):
