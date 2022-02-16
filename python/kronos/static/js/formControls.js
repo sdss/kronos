@@ -1,3 +1,8 @@
+function showLoading(){
+    ignoreTimers = true;
+    document.getElementById('queue').innerHTML = '<div class="loader"></div>';
+}
+
 function rmField(field_pk){
     //submit post request to remove field from queue, behind the scenes
 
@@ -19,6 +24,7 @@ function confirmRM(fieldID, field_pk){
 
     var forReal = confirm("Are you sure you want to remove " + fieldID + " from the queue?")
         if (forReal) {
+            showLoading();
             rmField(field_pk);
         }
 }
@@ -41,8 +47,9 @@ function flushQueue(){
 }
 
 function confirmFlush(){
-    var forReal = confirm("Are you sure you want to flush the queue?");
+    var forReal = confirm("YOU ARE ABOUT TO DELETE THE QUEUE? \n Are you sure you want to flush the queue?");
     if (forReal) {
+        showLoading();
         flushQueue();
     }
 }
@@ -65,8 +72,9 @@ function redoQueue(){
 }
 
 function confirmRedo(){
-    var forReal = confirm("Are you sure you want to recompute the queue?");
+    var forReal = confirm("YOU ARE ABOUT TO REPLACE THE QUEUE? \n Are you sure you want to recompute the queue?");
     if (forReal) {
+        showLoading();
         redoQueue();
     }
 }
@@ -92,6 +100,7 @@ function confirmReplace(fieldID, field_pk){
 
     var forReal = confirm("Would you like to replace field " + fieldID + "?")
         if (forReal) {
+            showLoading();
             replaceField(field_pk);
         }
 }
@@ -133,6 +142,7 @@ function confirmBackup(fieldID, field_pk){
 
     var forReal = confirm("Replace with field" + fieldID + "?")
         if (forReal) {
+            showLoading();
             submitBackup(field_pk);
         }
 }
@@ -174,6 +184,7 @@ function confirmRedoFromHere(fieldID, field_pk){
 
     var forReal = confirm("Reschedule tonight after " + fieldID + "?")
         if (forReal) {
+            showLoading();
             redoFromHere(field_pk);
         }
 }

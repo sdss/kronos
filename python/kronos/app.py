@@ -68,7 +68,7 @@ from kronos.controllers.fieldQuery import fieldQuery_page
 from kronos.controllers.designQuery import designQuery_page
 from kronos.controllers.fieldViz import fieldViz_page
 from kronos.controllers import getTemplateDictBase
-from controllers.dbEndPoints import dbEndPoints
+from kronos.controllers.dbEndPoints import dbEndPoints
 
 app.register_blueprint(index_page)
 app.register_blueprint(fieldDetail_page)

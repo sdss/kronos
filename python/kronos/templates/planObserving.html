@@ -28,7 +28,7 @@
 
 <div class="row">
   <div class="col-lg-3">
-    <div class="card card-nav-tabs" style="width: 20rem;">
+    <div class="card card-nav-tabs" id="queue" style="width: 20rem;">
       <div class="card-header card-header-danger">
         <h3> Obs Queue </h3>
         <div class="queue-row">
@@ -125,13 +125,33 @@
       stroke: #000;
       shape-rendering: crispEdges;
     }
+    .loader {
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #f44336;
+      align-content: center;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite; /* Safari */
+      animation: spin 2s linear infinite;
+    }
+
+    /* Safari */
+    @-webkit-keyframes spin {
+      0% { -webkit-transform: rotate(0deg); }
+      100% { -webkit-transform: rotate(360deg); }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
 </style>
 
 <script>
     // show the cloud came image
     // testViz({{apogeeViz| tojson}})
     document.getElementById("backup-field-pk").hidden=true;
-
+    var ignoreTimers = false;
     const showCloudCam = true;
 
     const vizObj = {{apogeeViz | tojson}};
@@ -241,7 +261,7 @@
   function refreshForQueue() {
     $.getJSON('/currentQueueLength/', function (currentLength) {
         let qLength = document.getElementsByClassName("queue-buttons").length;
-        if (currentLength != qLength){
+        if (currentLength != qLength & !ignoreTimers){
           location.reload();
         }
       });
