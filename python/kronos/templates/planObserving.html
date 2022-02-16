@@ -41,7 +41,7 @@
       </div>
       </div>
       {% if queue|length > 0 %}
-        <ul class="list-group" style="height: 350px; overflow: auto">
+        <ul class="list-group" id="queue" style="height: 350px; overflow: auto">
           {{obsQueue(queue)}}
         </ul>
       {% else %}
@@ -237,6 +237,19 @@
     };
 
   addExps()
+
+  function refreshForQueue() {
+    $.getJSON('/currentQueueLength/', function (currentLength) {
+        let qLength = document.getElementsByClassName("queue-buttons").length;
+        if (currentLength != qLength){
+          location.reload();
+        }
+      });
+
+    setTimeout(refreshForQueue, 5000);
+  }
+
+  refreshForQueue();
 
 </script>
 {% endblock body %}

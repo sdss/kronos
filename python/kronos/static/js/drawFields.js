@@ -163,11 +163,11 @@ function drawGrid(ctx){
 
 function moon(ctx, alt, az){
     if(alt<0){
-        console.log("moon down", alt, az)
+        // console.log("moon down", alt, az)
         return
     }
     var altaz = altAzToXY(alt, az);
-    console.log("moon ", alt, az, altaz)
+    // console.log("moon ", alt, az, altaz)
     ctx.font = '24px serif';
     ctx.fillText("🌝", x_0+altaz[0], y_0+altaz[1]);
 }

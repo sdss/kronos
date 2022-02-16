@@ -46,6 +46,7 @@ canvas {
 .queue-field {
     display: inline-block;
     margin-right: 1em;
+    font-weight:bold;
     width: 30%;
 }
 
@@ -70,7 +71,6 @@ canvas {
     display: inline-block;
     align-content: right;
     /*width: 28%;*/
-    font-weight:bold;
     font-size:120%;
 }
 

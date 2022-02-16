@@ -3,7 +3,7 @@
 from quart import Blueprint, request, jsonify
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getRecentExps, designCompletion
+from kronos.dbConvenience import getRecentExps, designCompletion, queueLength
 
 dbEndPoints = Blueprint("dbEndPoints", __name__)
 
@@ -30,3 +30,9 @@ async def getDesignCompletion():
     status = await wrapBlocking(designCompletion, design_ids)
 
     return jsonify(status)
+
+@dbEndPoints.route('/currentQueueLength/')
+async def currentQueueLength():
+    qLength = await wrapBlocking(queueLength)
+
+    return jsonify(qLength)

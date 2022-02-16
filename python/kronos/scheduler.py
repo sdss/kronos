@@ -493,6 +493,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             field_wrap._obsTimes = {"start": startTime,
                                     "end": endTime}
 
+            field_wrap._mjdDuration = mjd_duration
+
             fields.append(field_wrap)
 
             now += len(designs) * self.exp_nom

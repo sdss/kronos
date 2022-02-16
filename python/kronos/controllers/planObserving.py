@@ -219,7 +219,6 @@ async def planObserving():
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
         "mjd": mjd,
-        "errorMsg": [],  # + ", ".join(["autoscheduler error: " + x for x in autoscheduler.queryResult["errors"]]),
         "almanac": almanac,  # if schedule else None,
         "queue": queue.designs,
         "backups": backups,

@@ -455,3 +455,8 @@ def designCompletion(designs):
                        .where(Design.design_id << designs)
 
     return [{"design_id": s[1], "status": s[0]} for s in status.tuples()]
+
+
+def queueLength():
+    Queue = opsdb.Queue
+    return Queue.select(fn.COUNT(Queue.pk)).where(Queue.position > 0).scalar()
