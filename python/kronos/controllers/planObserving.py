@@ -199,7 +199,8 @@ async def planObserving():
     if replace:
         # make replace the fieldID to be replaced, or False
         field = queue.fieldDict[replace]
-        args = await scheduler.choiceFields(field.startTime, exp=len(field.designs))
+        args = await scheduler.choiceFields(field.startTime, exp=len(field.designs),
+                                            oldPos=[field.ra, field.dec])
         # backups = await backupDicts(*args, sched=scheduler, mjd=field.startTime,
         #                             prev=replace)
         backups = await backupDicts(*args, sched=scheduler, mjd=mjd_now,

@@ -288,7 +288,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
         self.exp_nom = 18 / 60 / 24
 
-    async def choiceFields(self, mjd, exp=12):
+    async def choiceFields(self, mjd, exp=12, oldPos=None):
         """return multiple fields for user to choose from
            at a specific mjd
 
@@ -313,7 +313,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                 returnAll=True)
         fields = list()
         # design_count = list()
-        coords = list()
+        if oldPos is not None:
+            coords = [[oldPos[0], oldPos[1]]]
+        else:
+            coords = list()
         for f, d in zip(field_pks, designs):
             await asyncio.sleep(0)
             if len(fields) > 3:
