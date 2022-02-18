@@ -3,7 +3,7 @@
 from quart import Blueprint, request, jsonify
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getRecentExps, designCompletion, queueLength
+from kronos.dbConvenience import getRecentExps, designCompletion, queueLength, apql
 
 dbEndPoints = Blueprint("dbEndPoints", __name__)
 
@@ -31,8 +31,16 @@ async def getDesignCompletion():
 
     return jsonify(status)
 
+
 @dbEndPoints.route('/currentQueueLength/')
 async def currentQueueLength():
     qLength = await wrapBlocking(queueLength)
 
     return jsonify(qLength)
+
+
+@dbEndPoints.route('/latestAPQL/')
+async def grabAPQR():
+    ql = await wrapBlocking(apql)
+
+    return jsonify(ql)

@@ -78,6 +78,10 @@
   </div>
 
   <div class="col-lg-3">
+    <div style="text-align: center;">
+      <h4 id="ql-label">APOGEE reads</h4>
+      <canvas id='apql' width="250" height="100"></canvas>  
+    </div>    
     <div class="card">
       <div class="card card-nav-tabs">
         <div class="card-header card-header-danger">
@@ -205,25 +209,25 @@
       confirmBackup(idField.innerText.substring(6), pk_holder.innerText);
     }
 
-  function checkComplete(){
-      let design_args = "?designs=" + design_ids.join(", ");
-      $.getJSON('/designCompletion/' + design_args, function (designs) {
-        let expTable = document.getElementById("expTable");
-        for (i=0;i<expTable.rows.length;i++) {
-          let row = expTable.rows[i];
-          let row_design = parseInt(row.cells[0].innerHTML);
-          for (j=0;j<designs.length;j++){
-            let design = designs[j];
-            if(parseInt(design.design_id) == row_design){
-              if(design.status == "done"){
-                row.style.backgroundColor = "rgba(0, 160, 0, 0.6)";
+    function checkComplete(){
+        let design_args = "?designs=" + design_ids.join(", ");
+        $.getJSON('/designCompletion/' + design_args, function (designs) {
+          let expTable = document.getElementById("expTable");
+          for (i=0;i<expTable.rows.length;i++) {
+            let row = expTable.rows[i];
+            let row_design = parseInt(row.cells[0].innerHTML);
+            for (j=0;j<designs.length;j++){
+              let design = designs[j];
+              if(parseInt(design.design_id) == row_design){
+                if(design.status == "done"){
+                  row.style.backgroundColor = "rgba(0, 160, 0, 0.6)";
+                }
               }
             }
           }
-        }
-      });
-    // setTimeout(checkComplete, 15000);
-    };
+        });
+      // setTimeout(checkComplete, 15000);
+      };
 
     function addExps(){
       $.getJSON('/recentExposures/{{mjd}}', function (exps) {
@@ -256,20 +260,91 @@
     setTimeout(addExps, 5000);
     };
 
-  addExps()
+    addExps();
 
-  function refreshForQueue() {
-    $.getJSON('/currentQueueLength/', function (currentLength) {
-        let qLength = document.getElementsByClassName("queue-buttons").length;
-        if (currentLength != qLength & !ignoreTimers){
-          location.reload();
-        }
-      });
+    function refreshForQueue() {
+      $.getJSON('/currentQueueLength/', function (currentLength) {
+          let qLength = document.getElementsByClassName("queue-buttons").length;
+          if (currentLength != qLength & !ignoreTimers){
+            location.reload();
+          }
+        });
 
-    setTimeout(refreshForQueue, 5000);
-  }
+      setTimeout(refreshForQueue, 5000);
+    }
 
-  refreshForQueue();
+    refreshForQueue();
+
+    var qlcnvs = document.getElementById("apql");
+
+    var qlctx = qlcnvs.getContext('2d');
+
+    function drawAPQL() {
+      $.getJSON('/latestAPQL/', function (ramp) {
+        let h = qlcnvs.height;
+        let w = qlcnvs.width;
+        let o = 20;
+
+        let x_scale = (w-o)/46;
+        let y_scale = (h-o)/10;
+
+        qlctx.rect(0, 0, w, h);
+        qlctx.fillStyle = "white";
+        qlctx.fill();
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "black";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('reads', w/3, h-12);
+
+        qlctx.save();
+        qlctx.translate(0, h/2);
+        qlctx.rotate(-Math.PI/2);
+        qlctx.textAlign = "center";
+        qlctx.fillText("[S/N]", 0, 0);
+        qlctx.restore();
+
+
+        qlctx.beginPath();
+        qlctx.moveTo(o, h-o);
+        qlctx.lineTo(w, 0);
+        qlctx.lineWidth = 2;
+        qlctx.strokeStyle = "black";
+        qlctx.stroke();
+
+        qlctx.beginPath();
+        qlctx.moveTo(o, h-o);
+        qlctx.lineTo(o, 0);
+        qlctx.lineWidth = 1;
+        qlctx.strokeStyle = "black";
+        qlctx.stroke();
+
+        qlctx.beginPath();
+        qlctx.moveTo(o, h-o);
+        qlctx.lineTo(w, h-o);
+        qlctx.lineWidth = 1;
+        qlctx.strokeStyle = "black";
+        qlctx.stroke();
+
+        let qlLabel = document.getElementById("ql-label")
+        qlLabel.innerText = "APOGEE reads: " + ramp.design
+
+        for (i=0;i<ramp.reads.length;i++){
+          let d = ramp.reads[i];
+          // console.log(d[0]*x_scale+o, h-d[1]*y_scale-o)
+          qlctx.beginPath();
+          qlctx.arc(d[0]*x_scale+o, h-d[1]*y_scale-o, 3, 0, 2 * Math.PI);
+          qlctx.lineWidth = 1;
+          qlctx.strokeStyle = "red";
+          qlctx.stroke();
+          }
+        });
+
+      setTimeout(drawAPQL, 5000);
+    }
+
+    drawAPQL()
 
 </script>
 {% endblock body %}

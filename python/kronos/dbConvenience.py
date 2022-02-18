@@ -460,3 +460,22 @@ def designCompletion(designs):
 def queueLength():
     Queue = opsdb.Queue
     return Queue.select(fn.COUNT(Queue.pk)).where(Queue.position > 0).scalar()
+
+
+def apql():
+    exp = opsdb.Exposure
+    ql = opsdb.Quicklook
+    Design = targetdb.Design
+    conf = opsdb.Configuration
+
+    latest = exp.select(fn.MAX(exp.pk)).join(ql).scalar()
+
+    design = Design.select(Design.design_id)\
+                   .join(conf).join(exp)\
+                   .where(exp.pk == latest).scalar()
+
+    reads = ql.select(ql.readnum, ql.snr_standard).where(ql.exposure_pk == latest).tuples()
+
+    out = {"design": design, "reads": [[r[0], r[1]] for r in reads]}
+
+    return out
