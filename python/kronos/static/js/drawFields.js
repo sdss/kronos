@@ -166,19 +166,19 @@ function moon(ctx, alt, az){
         // console.log("moon down", alt, az)
         return
     }
-    var altaz = altAzToXY(alt, az);
+    var altaz = altAzToXY_backwards(alt, az);
     // console.log("moon ", alt, az, altaz)
     ctx.font = '24px serif';
-    ctx.fillText("🌝", x_0+altaz[0], y_0+altaz[1]);
+    ctx.fillText("🌝", x_0-altaz[0], y_0+altaz[1]);
 }
 
 function field(ctx, alt, az){
     if(alt<0){
         return
     }
-    var altaz = altAzToXY(alt, az);
+    var altaz = altAzToXY_backwards(alt, az);
     ctx.beginPath();
-    ctx.arc(x_0+altaz[0], y_0+altaz[1], 8, 0, 2 * Math.PI, false);
+    ctx.arc(x_0-altaz[0], y_0+altaz[1], 8, 0, 2 * Math.PI, false);
     ctx.lineWidth = 2;
     ctx.strokeStyle = '#000000';
     ctx.stroke();
