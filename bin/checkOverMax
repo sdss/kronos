@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+import numpy as np
+from peewee import fn
+
+from sdssdb.peewee.sdss5db import opsdb, targetdb
+
+Design = targetdb.Design
+Conf = opsdb.Configuration
+Exp = opsdb.Exposure
+Field = targetdb.Field
+Cadence = targetdb.Cadence
+DesignToStatus = opsdb.DesignToStatus
+CompletionStatus = opsdb.CompletionStatus
+
+
+doneStatus = CompletionStatus.get(label="done").pk
+
+recent_fields = Field.select(Field.pk, Cadence.nexp, Cadence.max_length)\
+                     .join(Design)\
+                     .join(DesignToStatus)\
+                     .switch(Field)\
+                     .join(Cadence)\
+                     .where(DesignToStatus.status != doneStatus)\
+                     .group_by(Field.pk, Cadence.nexp, Cadence.max_length)
+
+for field in recent_fields.dicts():
+    designs = Design.select(Design.design_id, Design.exposure, fn.MIN(Exp.start_time))\
+                    .join(Conf)\
+                    .join(Exp)\
+                    .where(Design.field_pk == field["pk"])\
+                    .group_by(Design.design_id, Design.exposure).dicts()
+
+    times = np.array([d["min"] for d in designs])
+    if len(times) == 0:
+        continue
+    exposures = np.array([d["exposure"] for d in designs])
+    design_ids = np.array([d["design_id"] for d in designs])
+
+    lastObserved = np.max(exposures)
+
+    # nexp is cadence nexp, an array
+    expCount = [np.sum(field["nexp"][:i+1]) for i in range(len(field["nexp"]))]
+
+    # exposure is 0 indexed, so the first exposure of an epoch will
+    # have exposure number equal to the sum of previous epochs
+    # so design.exposure will be >= sum(previous epochs) for all
+    # designs in an epoch
+    current_epoch = np.where(np.array(expCount) >= lastObserved)[0][0]
+
+    if current_epoch == 0:
+        exp_start = 0
+    else:
+        exp_start = expCount[current_epoch - 1]
+
+    if current_epoch - 1 == len(expCount):
+        exp_end = expCount[-1]
+    else:
+        exp_end = expCount[current_epoch]
+
+    idxs = np.where(np.logical_and(exposures >= exp_start, exposures < exp_end))
+
+    if len(times[idxs]) == 0:
+        print(design_ids, exposures, expCount, idxs)
+
+    minTime = np.min(times[idxs])
+    maxTime = np.max(times[idxs])
+
+    if (maxTime - minTime).days >= field["max_length"][current_epoch]:
+        demote_ids = design_ids[idxs]
+        print(demote_ids, minTime, maxTime)
+        print(exposures[idxs])
+        # sadStatus = CompletionStatus.get(label="not started").pk
+        # DesignToStatus.update(status=sadStatus).where(design_id << demote_ids).execute()
