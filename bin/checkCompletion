@@ -35,7 +35,7 @@ def brightCollate(expDicts):
     sn2 = np.array([e["sn2"] for e in expDicts if e["pk"] == ap_db])
     if len(sn2) == 0:
         return 0
-    times = np.array([e["start_time"] for e in expDicts if e["pk"] == ap_db])
+    times = np.array([datetime.timestamp(e["start_time"]) for e in expDicts if e["pk"] == ap_db])
     pos = np.array([e["dither_pixpos"] for e in expDicts if e["pk"] == ap_db])
     a_val = np.min(pos)
     a = np.abs(pos - a_val) < 0.2
@@ -48,7 +48,7 @@ def brightCollate(expDicts):
     aMatch = list()
     bMatch = list()
     for i, t in enumerate(atimes):
-        diff = [(t - bt).seconds for bt in btimes]
+        diff = [abs(t - bt) for bt in btimes]
         matched = np.where(np.array(diff) < 7200)
         if len(matched[0] > 0):
             aMatch.append(i)
