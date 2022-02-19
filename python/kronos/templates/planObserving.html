@@ -286,7 +286,7 @@
         let o = 20;
 
         let x_scale = (w-o)/46;
-        let y_scale = (h-o)/10;
+        let y_scale = (h-o)/35;
 
         qlctx.rect(0, 0, w, h);
         qlctx.fillStyle = "white";
@@ -308,9 +308,9 @@
 
         qlctx.beginPath();
         qlctx.moveTo(o, h-o);
-        qlctx.lineTo(w, 0);
+        qlctx.lineTo(w, h-10*y_scale-o);
         qlctx.lineWidth = 2;
-        qlctx.strokeStyle = "black";
+        qlctx.strokeStyle = "blue";
         qlctx.stroke();
 
         qlctx.beginPath();
@@ -327,9 +327,23 @@
         qlctx.strokeStyle = "black";
         qlctx.stroke();
 
+        qlctx.beginPath();
+        qlctx.moveTo(o, h-o);
+        qlctx.lineTo(w, h-30*y_scale-o);
+        qlctx.lineWidth = 2;
+        qlctx.strokeStyle = "green";
+        qlctx.stroke();
+
         let qlLabel = document.getElementById("ql-label")
         qlLabel.innerText = "APOGEE reads: " + ramp.design
 
+        // qlctx.beginPath();
+        // qlctx.arc(50, 50, 3, 0, 2 * Math.PI);
+        // qlctx.lineWidth = 1;
+        // qlctx.strokeStyle = "green";
+        // qlctx.stroke();
+
+        // console.log(w, h, x_scale, y_scale)
         for (i=0;i<ramp.reads.length;i++){
           let d = ramp.reads[i];
           // console.log(d[0]*x_scale+o, h-d[1]*y_scale-o)

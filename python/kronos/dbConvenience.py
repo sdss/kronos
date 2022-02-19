@@ -477,7 +477,7 @@ def apql():
                    .join(conf).join(exp)\
                    .where(exp.pk == latest).scalar()
 
-    reads = ql.select(ql.readnum, ql.snr_standard).where(ql.exposure_pk == latest).tuples()
+    reads = ql.select(ql.readnum, ql.snr_standard_scale).where(ql.exposure_pk == latest).tuples()
 
     out = {"design": design, "reads": [[r[0], r[1]] for r in reads]}
 
