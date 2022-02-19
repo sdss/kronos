@@ -18,33 +18,37 @@ def getRecentExps(mjd):
 
     useTime = Time(mjd - 1, format="mjd").datetime
 
-    exps = opsdb.Exposure.select()\
-                .join(opsdb.Configuration)\
-                .join(targetdb.Design,
-                      on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
-                .where(opsdb.Exposure.start_time > useTime,
-                       opsdb.Exposure.exposure_flavor == db_flavor)\
-                .order_by(opsdb.Exposure.pk.desc())
+    cf = opsdb.CameraFrame
+    exp = opsdb.Exposure
+    cfg = opsdb.Configuration
 
+    exps = cf.select(exp.pk, cf.sn2, cf.camera_pk, exp.start_time, cfg.design_id)\
+                .join(exp)\
+                .join(cfg)\
+                .where(exp.start_time > useTime,
+                       exp.exposure_flavor == db_flavor).dicts()
+
+    exp_dicts = {e["pk"]: {"pk": e["pk"], "r1": "--", "b1": "--", "AP": "--"} for e in exps}
     exp_list = list()
 
     for e in exps:
-        exp_dict = {"pk": int(e.pk),
-                    "design": 0,
-                    "timeStamp": "",
-                    "r1": "--",
-                    "b1": "--",
-                    "AP": "--"}
-        exp_dict["design"] = int(e.configuration.design.design_id)
-        exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
-        for f in e.CameraFrames:
-            if f.camera.pk == r1_db.pk and f.sn2 is not None:
-                exp_dict["r1"] = f"{f.sn2:.2f}"
-            if f.camera.pk == b1_db.pk and f.sn2 is not None:
-                exp_dict["b1"] = f"{f.sn2:.2f}"
-            if f.camera.pk == ap_db.pk and f.ql_sn2 is not None:
-                exp_dict["AP"] = f"{f.ql_sn2:.1f}"
-        exp_list.append(exp_dict)
+        # exp_dict = {"pk": int(e.pk),
+        #             "design": 0,
+        #             "timeStamp": "",
+        #             "r1": "--",
+        #             "b1": "--",
+        #             "AP": "--"}
+        exp_dicts[e["pk"]]["design"] = int(e["design"])
+        exp_dicts[e["pk"]]["timeStamp"] = e["start_time"].strftime("%H:%M:%S")
+        # for f in e.CameraFrames:
+        if e["camera"] == r1_db.pk and e["sn2"] is not None:
+            exp_dicts[e["pk"]]["r1"] = f"{e['sn2']:.2f}"
+        if e["camera"] == b1_db.pk and e["sn2"] is not None:
+            exp_dicts[e["pk"]]["b1"] = f"{e['sn2']:.2f}"
+        if e["camera"] == ap_db.pk and e["sn2"] is not None:
+            exp_dicts[e["pk"]]["AP"] = f"{e['sn2']:.1f}"
+    for e in exp_dicts:
+        exp_list.append(exp_dicts[e])
 
     exp_list = sorted(exp_list, key=itemgetter('pk'), reverse=True)
 
