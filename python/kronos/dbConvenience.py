@@ -1,4 +1,5 @@
 from collections import defaultdict
+from operator import itemgetter
 
 from astropy.time import Time
 from peewee import fn
@@ -23,7 +24,7 @@ def getRecentExps(mjd):
                       on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
                 .where(opsdb.Exposure.start_time > useTime,
                        opsdb.Exposure.exposure_flavor == db_flavor)\
-                .order_by(opsdb.Exposure.pk.asc())
+                .order_by(opsdb.Exposure.pk.desc())
 
     exp_list = list()
 
@@ -44,6 +45,8 @@ def getRecentExps(mjd):
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None:
                 exp_dict["AP"] = f"{f.ql_sn2:.1f}"
         exp_list.append(exp_dict)
+
+    exp_list = sorted(exp_list, key=itemgetter('pk'), reverse=True)
 
     return exp_list
 
