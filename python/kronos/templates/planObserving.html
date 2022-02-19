@@ -215,7 +215,7 @@
           let expTable = document.getElementById("expTable");
           for (i=0;i<expTable.rows.length;i++) {
             let row = expTable.rows[i];
-            let row_design = parseInt(row.cells[0].innerHTML);
+            let row_design = parseInt(row.cells[0].textContent);
             for (j=0;j<designs.length;j++){
               let design = designs[j];
               if(parseInt(design.design_id) == row_design){
