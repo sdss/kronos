@@ -212,11 +212,11 @@ function renderFieldBrightness(ks91){
     }
 
     function updateField(f){
-        var altaz = altAzToXY(f.alt, f.az);
+        var altaz = altAzToXY_backwards(f.alt, f.az);
         color = translate(f.delta)
 
         // console.log("plotting", f.alt, color);
-        drawSky(ctx, x_0+altaz[0], y_0+altaz[1], color);
+        drawSky(ctx, x_0-altaz[0], y_0+altaz[1], color);
     }
 
     colorBar(ctx, reverse);

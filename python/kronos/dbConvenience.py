@@ -197,17 +197,17 @@ def getField(field_id):
             sums[d]["AP"] = f"{AP_sum:.1f}"
         else:
             sums[d]["AP"] = "--"
-        
+
         for edict in eps:
-            nonZero = False
+            # nonZero = False
             for k in ["r1", "b1", "AP"]:
                 if edict[k] > 0:
-                    nonZero = True
+                    # nonZero = True
                     edict[k] = f"{edict[k]:.1f}"
                 else:
                     edict[k] = "--"
-            if nonZero:
-                exps_export[d].append(edict)
+            # if nonZero:
+            exps_export[d].append(edict)
 
     return {"id": field_id,
             "ra": field.racen,
