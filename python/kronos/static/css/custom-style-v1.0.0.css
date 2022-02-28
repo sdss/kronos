@@ -47,7 +47,7 @@ canvas {
     display: inline-block;
     margin-right: 1em;
     font-weight:bold;
-    width: 30%;
+    width: 35%;
 }
 
 .queue-item .hover-field {
@@ -76,7 +76,7 @@ canvas {
 
 .queue-buttons {
     display: inline-block;
-    width: 40%;
+    width: 30%;
 }
 
 .queue-done {
