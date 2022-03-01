@@ -59,6 +59,12 @@ class Design(object):
         self.mjd_plan = mjd_plan
         self.position = position
 
+        cadence = self.field.cadence
+
+        expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
+        current_epoch = np.where(np.array(expCount) >= self.dbDesign.exposure)[0][0]
+        self.obs_mode = cadence.obsmode_pk[current_epoch]
+
     @property
     def haNow(self):
         now = Time.now()
