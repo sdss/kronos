@@ -22,7 +22,8 @@ def getRecentExps(mjd):
     exp = opsdb.Exposure
     cfg = opsdb.Configuration
 
-    exps = cf.select(exp.pk, cf.sn2, cf.camera_pk, exp.start_time, cfg.design_id)\
+    exps = cf.select(exp.pk, cf.sn2, cf.camera_pk, exp.start_time,
+                     exp.exposure_no, cfg.design_id)\
                 .join(exp)\
                 .join(cfg)\
                 .where(exp.start_time > useTime,
@@ -39,6 +40,7 @@ def getRecentExps(mjd):
         #             "b1": "--",
         #             "AP": "--"}
         exp_dicts[e["pk"]]["design"] = int(e["design"])
+        exp_dicts[e["pk"]]["exposure_no"] = int(e["exposure_no"])
         exp_dicts[e["pk"]]["timeStamp"] = e["start_time"].strftime("%H:%M:%S")
         # for f in e.CameraFrames:
         if e["camera"] == r1_db.pk and e["sn2"] is not None:

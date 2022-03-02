@@ -129,3 +129,20 @@ canvas {
 .btn-queue-manip{
     width: 200px;
 }
+
+.hover-table .hover-field {
+    visibility: hidden;
+    width: 80px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    position: absolute;
+    z-index: 1;
+}
+
+.hover-table:hover .hover-field {
+  visibility: visible;
+}
