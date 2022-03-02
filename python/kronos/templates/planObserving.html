@@ -237,6 +237,17 @@
             design_ids.push(exp.design)
           }
           let expTable = document.getElementById("expTable");
+          for (j=0;j<expTable.rows.length;j++) {
+            let row = expTable.rows[j];
+            if(parseInt(row.id) == exp.pk){
+              if(row.cells[2] == "--"){
+                row.cells[2] = exp.b1;
+              }
+              if(row.cells[3] == "--"){
+                row.cells[3] = exp.r1;
+              }
+            }
+          }
           let fid = parseInt(expTable.rows[1].id);
           if(exp.pk > fid){
             let row = expTable.insertRow(1);
