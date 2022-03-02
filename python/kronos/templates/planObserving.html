@@ -266,7 +266,7 @@
       $.getJSON('/currentQueueLength/', function (currentLength) {
           let qLength = document.getElementsByClassName("queue-buttons").length;
           if (currentLength != qLength & !ignoreTimers){
-            location.reload();
+            window.location.replace("planObserving.html");
           }
         });
 
