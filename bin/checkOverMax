@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from datetime import datetime
+
 import numpy as np
 from peewee import fn
 
@@ -14,8 +16,11 @@ DesignToStatus = opsdb.DesignToStatus
 CompletionStatus = opsdb.CompletionStatus
 
 
+now = datetime.now()
 doneStatus = CompletionStatus.get(label="done").pk
+notStartedStatus = CompletionStatus.get(label="not started").pk
 
+# find all fields where any design is incomplete
 recent_fields = Field.select(Field.pk, Cadence.nexp, Cadence.max_length)\
                      .join(Design)\
                      .join(DesignToStatus)\
@@ -25,17 +30,46 @@ recent_fields = Field.select(Field.pk, Cadence.nexp, Cadence.max_length)\
                      .group_by(Field.pk, Cadence.nexp, Cadence.max_length)
 
 for field in recent_fields.dicts():
-    designs = Design.select(Design.design_id, Design.exposure, fn.MIN(Exp.start_time))\
+    # get all designs with exposures
+    designs = Design.select(Design.design_id, Design.exposure,
+                            DesignToStatus.completion_status_pk,
+                            fn.MIN(Exp.start_time))\
                     .join(Conf)\
                     .join(Exp)\
+                    .switch(Design)\
+                    .join(DesignToStatus)\
                     .where(Design.field_pk == field["pk"])\
-                    .group_by(Design.design_id, Design.exposure).dicts()
+                    .group_by(Design.design_id, Design.exposure,
+                              DesignToStatus.completion_status_pk).dicts()
 
     times = np.array([d["min"] for d in designs])
     if len(times) == 0:
+        # default, nothing observed, empty query returned
         continue
+
+    statuses = [d["status"] for d in designs]
+    if len(np.unique(statuses)) == 1:
+        # only one status, is it "not done?"
+        if np.unique(statuses) == int(notStartedStatus):
+            # if we're here, there are exposures on the design
+            # but it isn't enough to call it done, so we can ignore it
+            continue
+
     exposures = np.array([d["exposure"] for d in designs])
+
+    order_check = False
+    for e in exposures:
+        # commissioning or engineering weirdness, just handle it
+        if 1 not in e - exposures and e != 0:
+            order_check = True
+
     design_ids = np.array([d["design_id"] for d in designs])
+
+    if order_check:
+        if np.min(design_ids) > 36200:
+            print(f"WARN! {field['pk']} observed out of order, ignoring",
+                  "\n", design_ids)
+        continue
 
     lastObserved = np.max(exposures)
 
@@ -60,15 +94,30 @@ for field in recent_fields.dicts():
 
     idxs = np.where(np.logical_and(exposures >= exp_start, exposures < exp_end))
 
-    if len(times[idxs]) == 0:
-        print(design_ids, exposures, expCount, idxs)
+    # if len(times[idxs]) == 0:
+    #     print(design_ids, exposures, expCount, idxs)
+
+    epoch_statuses = np.array(statuses)[idxs]
+    if len(np.unique(epoch_statuses)) == 1:
+        # only one status, is it "done?"
+        if np.unique(epoch_statuses) == int(doneStatus):
+            # cool this epoch is actually finished
+            continue
 
     minTime = np.min(times[idxs])
     maxTime = np.max(times[idxs])
+    maxTime = np.max([maxTime, now])
 
     if (maxTime - minTime).days >= field["max_length"][current_epoch]:
         demote_ids = design_ids[idxs]
-        print(demote_ids, minTime, maxTime)
-        print(exposures[idxs])
+        # cad = Cadence.select().join(Field).where(Field.pk == field['pk'])
+        # statuses = DesignToStatus.select().where(DesignToStatus.design_id << list(demote_ids))
+        # print(cad[0].label, cad[0].max_length)
+        # print(demote_ids, minTime, maxTime)
+        # print([s.completion_status_pk for s in statuses])
+        # print(exposures[idxs], "\n")
         # sadStatus = CompletionStatus.get(label="not started").pk
-        # DesignToStatus.update(status=sadStatus).where(design_id << demote_ids).execute()
+        strIds = ", ".join([str(d) for d in demote_ids])
+        print(f"marking designs {strIds} not started")
+        DesignToStatus.update(status=notStartedStatus)\
+                      .where(DesignToStatus.design_id << list(demote_ids)).execute()

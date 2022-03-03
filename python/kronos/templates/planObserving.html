@@ -240,19 +240,15 @@
           for (j=0;j<expTable.rows.length;j++) {
             let trow = expTable.rows[j];
             if(parseInt(trow.id) == exp.pk){
-              // console.log(trow)
               if(trow.cells[3].innerHTML == "--"){
-                // console.log(2, trow.cells[2], exp.b1)
                 trow.cells[3].innerHTML = exp.b1;
               }
               if(trow.cells[4].innerHTML == "--"){
-                // console.log(3, trow.cells[3], exp.r1)
                 trow.cells[4].innerHTML = exp.r1;
               }
             }
           };
           let fid = parseInt(expTable.rows[1].id);
-          // console.log("exp-pk", fid)
           if(exp.pk > fid){
             let row = expTable.insertRow(1);
             row.id = exp.pk;
