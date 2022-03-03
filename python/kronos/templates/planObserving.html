@@ -80,7 +80,7 @@
   <div class="col-lg-3">
     <div style="text-align: center;">
       <h4 id="ql-label">APOGEE reads</h4>
-      <canvas id='apql' width="250" height="100"></canvas>  
+      <canvas id='apql' width="300" height="150"></canvas>
     </div>    
     <div class="card">
       <div class="card card-nav-tabs">
@@ -309,8 +309,39 @@
         qlctx.textBaseline = "top";
         qlctx.fillText('reads', w/3, h-12);
 
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "black";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('30', 0, y_scale*5);
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "black";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('0', o-5, h-o);
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "black";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('46', w-14, h-o);
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "green";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('goal', w-30, h-y_scale*27-o);
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "blue";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('min', w-30, h-y_scale*9-o);
+
         qlctx.save();
         qlctx.translate(0, h/2);
+        qlctx.fillStyle = "black";
         qlctx.rotate(-Math.PI/2);
         qlctx.textAlign = "center";
         qlctx.fillText("[S/N]", 0, 0);
