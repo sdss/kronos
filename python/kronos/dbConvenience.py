@@ -241,12 +241,12 @@ def getConfigurations(design_id=None):
                     "b1": 0,
                     "AP": 0}
         conf_id = int(e.configuration.configuration_id)
-        exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
+        exp_dict["timeStamp"] = e.start_time.strftime("%Y-%m-%d")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
-            if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
+            if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > 0.2:
                 exp_dict["r1"] = f.sn2
-            if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > 0.5:
+            if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > 0.2:
                 exp_dict["b1"] = f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
