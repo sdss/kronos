@@ -170,6 +170,7 @@ def getField(field_id):
                     "b1": 0,
                     "AP": 0}
         exp_dict["design"] = int(e.configuration.design.design_id)
+        exp_dict["exposure_no"] = int(e.exposure_no)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:

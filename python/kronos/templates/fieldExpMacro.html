@@ -11,10 +11,18 @@
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <!-- <td class="text-center"><button class="btn btn-primary btn-round" onclick="guessNext({{sums.b1}}, {{sums.r1}}, {{exposures[-1].b1}}, {{exposures[-1].r1}})">Next?</button></td> -->
+          <td></td>
+          <td class="text-center">&Sigma;</td>
+          <td class="text-center"><b>{{sums.AP}}</b></td>
+          <td class="text-center"><b>{{sums.r1}}</b></td>
+          <td class="text-center"><b>{{sums.b1}}</b></td>
+        </tr>
     {% for e in exposures %}
         <tr>
-          <td class="text-center">{{e.design}}</td>
-          <td class="text-center">{{e.timeStamp}}</td>
+          <td class="text-center"><a href="designDetail.html?designID={{e.design}}">{{e.design}}</a></td>
+          <td class="text-center hover-table"><span class="hover-field">{{e.timeStamp}}</span>{{e.exposure_no}}</td>
           <td class="text-center">{{e.AP}}</td>
           <td class="text-center">{{e.r1}}</td>
           <td class="text-center">{{e.b1}}</td>
@@ -23,14 +31,6 @@
         <!-- <tr>
           <td></td>
           <td>{{sums.b1}}</td> <td>{{sums.r1}}</td> <td>{{exposures[-1].b1}}</td> <td>{{exposures[-1].r1}}</td>
-        </tr> -->
-        <tr>
-          <td class="text-center"><button class="btn btn-primary btn-round" onclick="guessNext({{sums.b1}}, {{sums.r1}}, {{exposures[-1].b1}}, {{exposures[-1].r1}})">Next?</button></td>
-          <td class="text-center">&Sigma;</td>
-          <td class="text-center"><b>{{sums.AP}}</b></td>
-          <td class="text-center"><b>{{sums.r1}}</b></td>
-          <td class="text-center"><b>{{sums.b1}}</b></td>
-        </tr>
-      </tbody>
+        </tr> --></tbody>
     </table>
 {% endmacro %}
