@@ -163,17 +163,17 @@ async def planObserving():
         await wrapBlocking(opsdb.Queue.flushQueue)
         # redo the whole queue, but check if it's during the night
 
-        winter = evening_twilight_utc.month < 3
-        if not winter and evening_twilight_utc.month < 4:
-            winter = evening_twilight_utc.day < 20
-        fall = evening_twilight_utc.month > 10
-        if not fall and evening_twilight_utc.month > 9:
-            fall = evening_twilight_utc.day > 22
+        # winter = evening_twilight_utc.month < 3
+        # if not winter and evening_twilight_utc.month < 4:
+        #     winter = evening_twilight_utc.day < 20
+        # fall = evening_twilight_utc.month > 10
+        # if not fall and evening_twilight_utc.month > 9:
+        #     fall = evening_twilight_utc.day > 22
 
-        if winter or fall:
-            # either before 3/20 or after 9/22
-            mjd_evening_twilight = evening_twilight_dark
-            mjd_morning_twilight = morning_twilight_dark
+        # if winter or fall:
+        #     # either before 3/20 or after 9/22
+        #     mjd_evening_twilight = evening_twilight_dark
+        #     mjd_morning_twilight = morning_twilight_dark
 
         if mjd_now > mjd_evening_twilight:
             start_mjd = mjd_now
