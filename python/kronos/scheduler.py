@@ -63,7 +63,11 @@ class Design(object):
 
         expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
         current_epoch = np.where(np.array(expCount) >= self.dbDesign.exposure)[0][0]
-        self.obs_mode = cadence.obsmode_pk[current_epoch]
+        try:
+            self.obs_mode = cadence.obsmode_pk[current_epoch]
+        except TypeError:
+            # probably commissioning
+            self.obs_mode = "obsmode failed"
 
     @property
     def haNow(self):
