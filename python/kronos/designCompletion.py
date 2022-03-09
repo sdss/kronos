@@ -46,8 +46,8 @@ class checkCompletion(object):
 
 bright_time = checkCompletion(apSN2=2025, epoch_apSN2=2025)
 
-dark_plane = checkCompletion(bSN2=1.5, epoch_bSN2=5,
-                             rSN2=3, epoch_rSN2=10)
+dark_plane = checkCompletion(bSN2=0.0, epoch_bSN2=0.0,
+                             rSN2=2, epoch_rSN2=2)
 
 dark_monit = checkCompletion(bSN2=1.5, epoch_bSN2=10,
                              rSN2=3, epoch_rSN2=20)
