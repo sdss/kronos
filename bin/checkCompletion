@@ -129,9 +129,9 @@ def checkDone(hours=1, test=False, daemon=False):
         expCount = [np.sum(d["nexp"][:i+1]) for i in range(len(d["nexp"]))]
         # exposure is 0 indexed, so the first exposure of an epoch will
         # have exposure number equal to the sum of previous epochs
-        # so design.exposure will be >= sum(previous epochs) for all
+        # so design.exposure will be > sum(previous epochs) for all
         # designs in an epoch
-        current_epoch = np.where(np.array(expCount) >= d["exposure"])[0][0]
+        current_epoch = np.where(np.array(expCount) > d["exposure"])[0][0]
         modes[d["design_id"]] = d["obsmode_pk"][current_epoch]
         bright = modes[d["design_id"]] == "bright_time"
         epochMaxLength = d["max_length"][current_epoch]

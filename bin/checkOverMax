@@ -80,7 +80,7 @@ for field in recent_fields.dicts():
     # have exposure number equal to the sum of previous epochs
     # so design.exposure will be >= sum(previous epochs) for all
     # designs in an epoch
-    current_epoch = np.where(np.array(expCount) >= lastObserved)[0][0]
+    current_epoch = np.where(np.array(expCount) > lastObserved)[0][0]
 
     if current_epoch == 0:
         exp_start = 0
@@ -94,11 +94,13 @@ for field in recent_fields.dicts():
 
     idxs = np.where(np.logical_and(exposures >= exp_start, exposures < exp_end))
 
-    # if len(times[idxs]) == 0:
-    #     print(design_ids, exposures, expCount, idxs)
+    # make sure we got through the whole epoch
+    # otherwise the unique status catch below will let partial
+    # epochs slide
+    all_present = len(design_ids[idxs]) == field["nexp"][current_epoch]
 
     epoch_statuses = np.array(statuses)[idxs]
-    if len(np.unique(epoch_statuses)) == 1:
+    if len(np.unique(epoch_statuses)) == 1 and all_present:
         # only one status, is it "done?"
         if np.unique(epoch_statuses) == int(doneStatus):
             # cool this epoch is actually finished
@@ -118,6 +120,6 @@ for field in recent_fields.dicts():
         # print(exposures[idxs], "\n")
         # sadStatus = CompletionStatus.get(label="not started").pk
         strIds = ", ".join([str(d) for d in demote_ids])
-        print(f"marking designs {strIds} not started")
+        print(f"marking design(s) {strIds} not started")
         DesignToStatus.update(status=notStartedStatus)\
                       .where(DesignToStatus.design_id << list(demote_ids)).execute()
