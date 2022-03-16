@@ -81,8 +81,14 @@ def darkCollate(exps):
     return r, b
 
 
-def checkDone(hours=1, test=False, daemon=False):
+def checkDone(hours=1, test=False, daemon=False, report=False):
     start = datetime.now()
+
+    if report:
+        test = True
+        if hours < 24:
+            hours = 24
+
     useTime = start - timedelta(hours=hours)
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
     doneStatus = CompletionStatus.get(label="done").pk
@@ -99,7 +105,7 @@ def checkDone(hours=1, test=False, daemon=False):
 
     recent_designs = Design.select(Design.design_id, Design.exposure,
                                    Cadence.nexp, Cadence.obsmode_pk,
-                                   Cadence.max_length, Field.pk,
+                                   Cadence.max_length, Field.pk, Field.field_id,
                                    fn.MAX(Exp.start_time))\
                            .join(Conf, on=(Design.design_id == Conf.design_id))\
                            .join(Exp)\
@@ -109,11 +115,12 @@ def checkDone(hours=1, test=False, daemon=False):
                            .join(Field, on=(Design.field_pk == Field.pk))\
                            .join(Cadence, on=(Field.cadence_pk == Cadence.pk))\
                            .where(Exp.start_time > useTime,
-                                  Exp.exposure_flavor == db_flavor,
-                                  DesignToStatus.status != doneStatus)\
+                                  Exp.exposure_flavor == db_flavor)\
                            .group_by(Design.design_id, Design.exposure,
                                      Cadence.nexp, Cadence.obsmode_pk,
                                      Cadence.max_length, Field.pk)
+    if not report:
+        recent_designs.where(DesignToStatus.status != doneStatus)
 
     print(start.strftime("%Y-%m-%dT%H:%M:%S"), recent_designs.count())
 
@@ -122,7 +129,9 @@ def checkDone(hours=1, test=False, daemon=False):
     apsn2 = defaultdict(list)
     modes = dict()
     lastInEpoch = dict()
+    design_to_field = dict()
     for d in recent_designs.dicts():
+        design_to_field[d["design_id"]] = d["field_id"]
         if d["obsmode_pk"] is None:
             continue
         # nexp is cadence nexp, an array
@@ -179,7 +188,10 @@ def checkDone(hours=1, test=False, daemon=False):
     mjd_now = astroT.value
     summary = ""
 
-    for a in apsn2:
+    b_designs = [a for a in apsn2.keys()]
+    b_designs.sort()
+
+    for a in b_designs:
         if modes[a] != "bright_time":
             continue
         done = checker[modes[a]].design(ap=apsn2[a])
@@ -187,7 +199,8 @@ def checkDone(hours=1, test=False, daemon=False):
             statusString = "done"
         else:
             statusString = "partial"
-        summary += f"{a:7d}: {statusString:7s} with {apsn2[a]:7.1f} \n"
+        fid = design_to_field[a]
+        summary += f"{fid:7d} {a:7d}: {statusString:7s} with {apsn2[a]:7.1f} {modes[a]} \n"
         if test:
             continue
         if done:
@@ -199,7 +212,10 @@ def checkDone(hours=1, test=False, daemon=False):
         design_status.mjd = mjd_now
         design_status.save()
 
-    for r in r1:
+    d_designs = [r for r in r1.keys()]
+    d_designs.sort()
+
+    for r in d_designs:
         if modes[r] == "bright_time":
             continue
         if lastInEpoch[r]:
@@ -212,7 +228,8 @@ def checkDone(hours=1, test=False, daemon=False):
             statusString = "done"
         else:
             statusString = "partial"
-        summary += f"{r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} \n"
+        fid = design_to_field[r]
+        summary += f"{fid:7d} {r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} {modes[r]} \n"
         if test:
             continue
         if done:
@@ -239,10 +256,13 @@ if __name__ == "__main__":
                         help='only a test, no db commits')
     parser.add_argument('-d', '--daemon', action="store_true",
                         help='assume running as daemon, allow exit if no recent exps')
+    parser.add_argument('-r', '--report', action="store_true",
+                        help='create a report, no db changes')
 
     args = parser.parse_args()
     since = args.since
     test = args.test
     daemon = args.daemon
+    report = args.report
 
-    checkDone(since, test=test, daemon=daemon)
+    checkDone(since, test=test, daemon=daemon, report=report)
