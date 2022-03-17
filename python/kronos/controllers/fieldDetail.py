@@ -55,7 +55,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
         start = end - length
         for mjds in theseDesigns:
             for mjd in mjds:
-                if mjd > start:
+                if mjd >= start:
                     out["r1"] += mjds[mjd]["r1"]
                     out["b1"] += mjds[mjd]["b1"]
                     out["AP"] += mjds[mjd]["AP"]
@@ -113,7 +113,7 @@ async def fieldDetail():
     decs = decs.flatten()
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd_int)
-    
+
     if mjd < mjd_evening_twilight or mjd > mjd_morning_twilight:
         mjd = mjd_evening_twilight
         start_idx = 0
