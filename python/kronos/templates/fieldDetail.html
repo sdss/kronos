@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 {% extends "layout.html" %}
 {% set active_page = "fieldDetail" %}
-{% from 'fieldExpMacro.html' import mjdExp %}
+{% from 'fieldExpMacro.html' import mjdExp, epochSNtable %}
 
 {% block head %}
   <meta name="robots" content="noindex" />
@@ -43,7 +43,16 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-3"></div>
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card card-nav-tabs">
+          <div class="card-header card-header-info">
+            <h3>Epoch [S/N]<sup>2</sup></h3>
+          </div>
+          {{epochSNtable(epochSN)}}
+        </div>
+      </div>
+    </div>
     <div class="col-lg-3"></div>
     <div id="cloudCam" class="col-lg-3">
       <canvas id='brightCanvas' width="680" height="580"></canvas>

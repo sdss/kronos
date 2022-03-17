@@ -12,7 +12,6 @@
       </thead>
       <tbody>
         <tr>
-          <!-- <td class="text-center"><button class="btn btn-primary btn-round" onclick="guessNext({{sums.b1}}, {{sums.r1}}, {{exposures[-1].b1}}, {{exposures[-1].r1}})">Next?</button></td> -->
           <td></td>
           <td class="text-center">&Sigma;</td>
           <td class="text-center"><b>{{sums.AP}}</b></td>
@@ -28,9 +27,29 @@
           <td class="text-center">{{e.b1}}</td>
         </tr>
     {% endfor %}
-        <!-- <tr>
-          <td></td>
-          <td>{{sums.b1}}</td> <td>{{sums.r1}}</td> <td>{{exposures[-1].b1}}</td> <td>{{exposures[-1].r1}}</td>
-        </tr> --></tbody>
+      </tbody>
+    </table>
+{% endmacro %}
+
+{% macro epochSNtable(epochSN) %}
+    <table class="table" id="expTable" style="height: 300px; overflow-y:scroll; display:block;">
+      <thead>
+        <tr>
+          <th class="text-center">Epoch</th>
+          <th class="text-center">AP</th>
+          <th class="text-center">r1</th>
+          <th class="text-center">b1</th>
+        </tr>
+      </thead>
+      <tbody>
+    {% for e in epochSN %}
+        <tr>
+          <td class="text-center">{{e.label}}</td>
+          <td class="text-center">{{"%.1f" % e.AP}}</td>
+          <td class="text-center">{{"%.2f" % e.r1}}</td>
+          <td class="text-center">{{"%.2f" % e.b1}}</td>
+        </tr>
+    {% endfor %}
+      </tbody>
     </table>
 {% endmacro %}

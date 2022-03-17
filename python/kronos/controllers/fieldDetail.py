@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import asyncio
-from collections import OrderedDict
+from collections import defaultdict
 import datetime
 
 import numpy as np
@@ -16,6 +16,52 @@ from kronos.scheduler import Scheduler
 from . import getTemplateDictBase
 
 fieldDetail_page = Blueprint("fieldDetail_page", __name__)
+
+
+def designsToEpoch(mjd_design=None, cadence_nexps=None,
+                   cadence_max_length=None, **kwargs):
+    designs = [d for d in mjd_design.keys()]
+    designs.sort()
+
+    if len(designs) == 0:
+        return []
+
+    assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
+
+    expCount = [np.sum(cadence_nexps[:i+1]) for i in range(len(cadence_nexps))]
+
+    epochs = list()
+
+    for i, end in enumerate(expCount):
+        if i == 0:
+            start = 0
+        else:
+            start = expCount[i-1]
+        # end is index + 1 because it starts at 1 since it's N exp
+        # and slices that don't exist will just be empty! love python
+        epochs.append(designs[start:end])
+
+    epoch_sn = list()
+    for des, length in zip(epochs, cadence_max_length):
+        if len(des) == 0:
+            continue
+        label = f"{des[0]}-{des[-1]}"
+        out = {"label": label, "r1": 0, "b1": 0, "AP": 0}
+        theseDesigns = [mjd_design[d] for d in des]
+        mjds = list()
+        for d in theseDesigns:
+            mjds.extend([k for k in d.keys()])
+        end = np.max(mjds)
+        start = end - length
+        for mjds in theseDesigns:
+            for mjd in mjds:
+                if mjd > start:
+                    out["r1"] += mjds[mjd]["r1"]
+                    out["b1"] += mjds[mjd]["b1"]
+                    out["AP"] += mjds[mjd]["AP"]
+        epoch_sn.append(out)
+
+    return epoch_sn
 
 
 @fieldDetail_page.route('/fieldDetail.html', methods=['GET', 'POST'])
@@ -45,6 +91,13 @@ async def fieldDetail():
     except DoesNotExist:
         return await render_template('404.html'), 404
 
+    errors = list()
+    try:
+        epochSN = designsToEpoch(**field)
+    except AssertionError:
+        epochSN = list()
+        errors.append("Designs observed out of order, no epochs for you")
+
     # kronos scheduler
     scheduler = await wrapBlocking(Scheduler)
 
@@ -60,8 +113,7 @@ async def fieldDetail():
     decs = decs.flatten()
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd_int)
-
-    errors = list()
+    
     if mjd < mjd_evening_twilight or mjd > mjd_morning_twilight:
         mjd = mjd_evening_twilight
         start_idx = 0
@@ -131,6 +183,7 @@ async def fieldDetail():
         "times": times,
         "start_idx": start_idx,
         "errorMsg": errors,
+        "epochSN": epochSN,
         **field
     })
 

@@ -12,6 +12,12 @@ from kronos.scheduler import design_time
 
 boss_threshold = 0.2
 
+
+def sn_dict():
+    # we're abusing the ddict default_factory
+    return {"r1": 0, "b1": 0, "AP": 0}
+
+
 def getRecentExps(mjd):
     r1_db = opsdb.Camera.get(label="r1")
     b1_db = opsdb.Camera.get(label="b1")
@@ -163,6 +169,7 @@ def getField(field_id):
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
     exps = defaultdict(list)
+    mjd_design = defaultdict(lambda: defaultdict(sn_dict))
     for e in exp_query:
         exp_dict = {"design": 0,
                     "timeStamp": "",
@@ -176,10 +183,13 @@ def getField(field_id):
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
                 exp_dict["r1"] = f.sn2
+                mjd_design[exp_dict["design"]][exp_mjd]["r1"] += f.sn2
             if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
                 exp_dict["b1"] = f.sn2
+                mjd_design[exp_dict["design"]][exp_mjd]["b1"] += f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
+                mjd_design[exp_dict["design"]][exp_mjd]["AP"] += f.ql_sn2
         exps[exp_mjd].append(exp_dict)
 
     sums = dict()
@@ -220,7 +230,10 @@ def getField(field_id):
             "observatory": field.observatory.label,
             "cadence": field.cadence.label,
             "exps": exps_export,
-            "sums": sums}
+            "sums": sums,
+            "mjd_design": mjd_design,
+            "cadence_nexps": field.cadence.nexp,
+            "cadence_max_length": field.cadence.max_length}
 
 
 def getConfigurations(design_id=None):
