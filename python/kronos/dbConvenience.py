@@ -409,9 +409,11 @@ def designDetails(design):
     c2t = targetdb.CartonToTarget
     Assignment = targetdb.Assignment
 
-    cartons = Carton.select(Carton.carton)\
+    cartons = Carton.select(Carton.carton, Instrument.label)\
                     .join(c2t, on=(Carton.pk == c2t.carton_pk))\
                     .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
+                    .join(Instrument)\
+                    .switch(Assignment)\
                     .join(Design, on=(Assignment.design_id == Design.design_id))\
                     .where(Design.design_id == design)
 
@@ -426,7 +428,12 @@ def designDetails(design):
 
     cartons = [c.carton for c in cartons]
 
-    return status, cartons
+    instruments = [1 for c in cartons if c.label == "BOSS"]
+    boss = sum(instruments)
+    instruments = [1 for c in cartons if c.label == "APOGEE"]
+    apogee = sum(instruments)
+
+    return status, cartons, {"boss": boss, "apogee": apogee}
 
 
 def cartonLabels():

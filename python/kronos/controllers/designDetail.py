@@ -54,7 +54,7 @@ async def designDetail():
     except DoesNotExist:
         return await render_template('404.html'), 404
 
-    status, cartons = await wrapBlocking(designDetails, design)
+    status, cartons, fiberCounts = await wrapBlocking(designDetails, design)
 
     field = await wrapBlocking(dbField.get, pk=design.field.pk)
 
@@ -76,6 +76,7 @@ async def designDetail():
         "targets": targets,
         "designNumber": design.exposure,
         "status": status,
+        "fiberCounts": fiberCounts,
         **field
     })
 
