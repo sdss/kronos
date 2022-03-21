@@ -36,15 +36,17 @@
       <thead>
         <tr>
           <th class="text-center">Epoch</th>
+          <th class="text-center">MJD</th>
           <th class="text-center">AP</th>
           <th class="text-center">r1</th>
           <th class="text-center">b1</th>
         </tr>
       </thead>
       <tbody>
-    {% for e in epochSN %}
+    {% for e in epochSN|sort(attribute="mjd", reverse=True) %}
         <tr>
           <td class="text-center">{{e.label}}</td>
+          <td class="text-center">{{e.mjd}}</td>
           <td class="text-center">{{"%.1f" % e.AP}}</td>
           <td class="text-center">{{"%.2f" % e.r1}}</td>
           <td class="text-center">{{"%.2f" % e.b1}}</td>

@@ -46,13 +46,13 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
         if len(des) == 0:
             continue
         label = f"{des[0]}-{des[-1]}"
-        out = {"label": label, "r1": 0, "b1": 0, "AP": 0}
         theseDesigns = [mjd_design[d] for d in des]
         mjds = list()
         for d in theseDesigns:
             mjds.extend([k for k in d.keys()])
         end = np.max(mjds)
         start = end - length
+        out = {"label": label, "mjd": int(end), "r1": 0, "b1": 0, "AP": 0}
         for mjds in theseDesigns:
             for mjd in mjds:
                 if mjd >= start:
