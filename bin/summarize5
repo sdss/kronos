@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+from peewee import fn
+
+from sdssdb.peewee.sdss5db import opsdb, targetdb
+from kronos.dbConvenience import getField
+from kronos.controllers.fieldDetail import designsToEpoch
+from kronos.designCompletion import checker
+
+
+if __name__ == "__main__":
+    Field = targetdb.Field
+    Design = targetdb.Design
+    Conf = opsdb.Configuration
+    Ver = targetdb.Version
+    Cadence = targetdb.Cadence
+
+    fields = Field.select(Field.field_id, Field.pk, Cadence.obsmode_pk,
+                          fn.COUNT(Design))\
+                  .join(Design).join(Conf)\
+                  .switch(Field).join(Cadence)\
+                  .switch(Field).join(Ver).where(Ver.plan == "zeta-0")\
+                  .group_by(Field.field_id, Field.pk, Cadence.obsmode_pk).tuples()
+
+    print("{field_id:7s}, {label:13s}, {mjd:5s}, {AP:7s}, {r1:4s}, {b1:4s}, obs_mode".format(
+           field_id="fieldID", label="label", mjd="mjd", AP="AP", r1="r1", b1="b1"))
+    form = "{field_id:7d}, {label:13s}, {mjd:5d}, {AP:7.1f}, {r1:4.1f}, {b1:4.1f}, {obs_mode}"
+    for tup in fields:
+        field_id, pk, obs_modes, cnt = tup
+        kwargs = getField(pk)
+        epochs = designsToEpoch(**kwargs)
+        for e, m in zip(epochs, obs_modes):
+            done = checker[m].epoch(ap=e["AP"], b=e["b1"], r=e["r1"])
+            if done:
+                print(form.format(field_id=field_id, obs_mode=m, **e))

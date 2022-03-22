@@ -2,7 +2,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 from astropy.time import Time
-from peewee import fn
+from peewee import fn, JOIN
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
@@ -75,39 +75,50 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
     else:
         matchingCad = dbCad.select()
 
-    dbField = targetdb.Field
+    Field = targetdb.Field
     dbVersion = targetdb.Version.get(plan=rs_version)
+    Design = targetdb.Design
+    d2s = opsdb.DesignToStatus
+    doneStatus = opsdb.CompletionStatus.get(label="done").pk
+    doneField = Field.alias()
 
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
+
+    doneCount = Design.select(fn.COUNT(Design.design_id).alias("count"))\
+                      .join(d2s, JOIN.LEFT_OUTER,
+                            on=(Design.design_id == d2s.design_id))\
+                      .switch(Design)\
+                      .join(doneField, JOIN.LEFT_OUTER,
+                            on=(Design.field_pk == doneField.pk))\
+                      .where(d2s.completion_status_pk == doneStatus,
+                             doneField.pk == Field.pk)\
+                      .alias("doneCount")
+
+    fields = Field.select(Field, doneCount)\
+                  .where(Field.cadence << matchingCad,
+                         Field.version == dbVersion,
+                         Field.observatory == obs)\
+                  .limit(limit)
 
     if priority is not None:
         fp = opsdb.FieldPriority
         f2p = opsdb.FieldToPriority
         priority = fp.get(label=priority)
-        fields = dbField.select().join(f2p, on=(f2p.field_pk == dbField.pk))\
-                                 .join(fp, on=(fp.pk == f2p.field_priority_pk))\
-                                 .where(fp.pk == priority.pk,
-                                        dbField.cadence << matchingCad,
-                                        dbField.version == dbVersion,
-                                        dbField.observatory == obs)\
-                                 .limit(limit)
-    else:
-        fields = dbField.select().where(dbField.cadence << matchingCad,
-                                        dbField.version == dbVersion,
-                                        dbField.observatory == obs)\
-                                 .limit(limit)
+        fields = fields.join(f2p, on=(f2p.field_pk == Field.pk))\
+                       .join(fp, on=(fp.pk == f2p.field_priority_pk))\
+                       .where(fp.pk == priority.pk)
 
     if ra_range:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
         # print("RA RAGE", ra_range)
         if ra_range[0] > ra_range[1]:
             # implied between ra_range[1] and 360, or between 0 and ra_range[0]
-            fields = fields.where((dbField.racen > ra_range[0]) |
-                                  (dbField.racen < ra_range[1])).order_by(dbField.racen)
+            fields = fields.where((Field.racen > ra_range[0]) |
+                                  (Field.racen < ra_range[1])).order_by(Field.racen)
         else:
-            fields = fields.where((dbField.racen > ra_range[0]) &
-                                  (dbField.racen < ra_range[1])).order_by(dbField.racen)
+            fields = fields.where((Field.racen > ra_range[0]) &
+                                  (Field.racen < ra_range[1])).order_by(Field.racen)
 
     # print(fields.sql())
     # select returns query object, we want a list
@@ -146,7 +157,16 @@ def resetField(fieldPk):
     assert removed != 0, "Should not have been able to delete"
 
 
-def getField(field_id):
+def fieldIdToPks(field_id):
+    Field = targetdb.Field
+    Cad = targetdb.Cadence
+    field = Field.select(Field.pk, Cad.label).join(Cad)\
+                 .where(Field.field_id == field_id).tuples()
+
+    return [f[0] for f in field], [f[1] for f in field]
+
+
+def getField(field_pk):
     """grab a field from targetdb and touch some foreign keys while
        in the blocking call so that's taken care of
     """
@@ -157,7 +177,7 @@ def getField(field_id):
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbField = targetdb.Field
 
-    field = dbField.get(field_id=field_id)
+    field = dbField.get(pk=field_pk)
     # designs = field.designs.select()
 
     exp_query = opsdb.Exposure.select()\
@@ -165,7 +185,7 @@ def getField(field_id):
                      .join(targetdb.Design,
                            on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
                      .join(dbField)\
-                     .where(dbField.field_id == field_id,
+                     .where(dbField.pk == field_pk,
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
     exps = defaultdict(list)
@@ -224,7 +244,7 @@ def getField(field_id):
             # if nonZero:
             exps_export[d].append(edict)
 
-    return {"id": field_id,
+    return {"id": field.field_id,
             "ra": field.racen,
             "dec": field.deccen,
             "observatory": field.observatory.label,
@@ -331,8 +351,6 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                                dbField.field_id, dbField.racen,
                                dbField.deccen, dbField.position_angle)
 
-
-
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
 
@@ -345,7 +363,6 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         matchingCartons = Carton.select().where(Carton.carton.contains(carton))
         designs = designs.join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
                          .where(C2T.carton << matchingCartons)
-
 
     if ra_range and field_id is None:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"

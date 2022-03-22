@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Disambiguate</title>
+{% endblock head %}
+
+{% block body %}
+<div class="jumbotron">
+    <div class="well">
+        <div class="row">
+            <h4>Field {{fieldID}} has multiple entries, which one?</h4>
+        </div>
+        <div class="row">
+            {% for pk, cad in zip(pks, cadences) %}
+            <div class="col-md-3">
+                <a href="fieldDetail.html?fieldID={{fieldID}}&pk={{pk}}">{{cad}}, pk={{pk}}</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock body %}

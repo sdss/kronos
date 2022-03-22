@@ -8,7 +8,8 @@
     {% endif %}
         <tr>
             <td>{{field.cadence.label}}</td>
-            <td class="text-left"> <a href="fieldDetail.html?fieldID={{field.field_id}}">{{field.field_id}}</a></td>
+            <td class="text-left"> <a href="fieldDetail.html?fieldID={{field.field_id}}&pk={{field.pk}}">{{field.field_id}}</a></td>
+            <td class="text-left">{{field.doneCount}}</td>
             <td class="text-left">{{"%.2f" % field.racen}}</td>
             <td class="text-left">{{"%.2f" % field.deccen}}</td>
             <td>

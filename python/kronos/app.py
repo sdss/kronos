@@ -22,6 +22,7 @@ custom_filters = {name: function
                   for name, function in getmembers(jinja_filters)
                   if isfunction(function)}
 app.jinja_env.filters.update(custom_filters)
+app.jinja_env.globals.update(zip=zip)
 
 
 # Change the implementation of "decimal" to a C-based version (much! faster)

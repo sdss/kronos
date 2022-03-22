@@ -10,7 +10,7 @@ from peewee import DoesNotExist
 from quart import request, render_template, Blueprint
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getField
+from kronos.dbConvenience import getField, fieldIdToPks
 from kronos.scheduler import Scheduler
 
 from . import getTemplateDictBase
@@ -45,7 +45,10 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
     for des, length in zip(epochs, cadence_max_length):
         if len(des) == 0:
             continue
-        label = f"{des[0]}-{des[-1]}"
+        if len(des) == 1:
+            label = str(des[0])
+        else:
+            label = f"{des[0]}-{des[-1]}"
         theseDesigns = [mjd_design[d] for d in des]
         mjds = list()
         for d in theseDesigns:
@@ -69,6 +72,20 @@ async def fieldDetail():
 
     fieldID = int(request.args["fieldID"])
 
+    templateDict = getTemplateDictBase()
+
+    if "pk" in request.args:
+        pk = int(request.args["pk"])
+    else:
+        pks, cads = await wrapBlocking(fieldIdToPks, fieldID)
+        if len(pks) == 0:
+            return await render_template('404.html'), 404
+        elif len(pks) == 2:
+            templateDict.update({"fieldID": fieldID, "pks": pks, "cadences": cads})
+            return await render_template('disambiguateFieldID.html', **templateDict)
+        else:
+            pk = pks[0]
+
     if "mjd" in request.args:
         mjd = float(request.args["mjd"])
         offset = 3 / 24
@@ -87,7 +104,7 @@ async def fieldDetail():
     # grab a dict of field params, ra, dec, observatory, and cadence at least
     # all necessary calls should be done inside getField funct so wrap here
     try:
-        field = await wrapBlocking(getField, fieldID)
+        field = await wrapBlocking(getField, pk)
     except DoesNotExist:
         return await render_template('404.html'), 404
 
@@ -174,8 +191,6 @@ async def fieldDetail():
                 "faz": float(faz)
                 }
         skies.append(ks91)
-
-    templateDict = getTemplateDictBase()
 
     templateDict.update({
         "fieldID": fieldID,
