@@ -15,6 +15,23 @@
 
 <script src="../static/js/formControls.js"></script>
 
+<script type="text/javascript">
+  function changeStatus(design_id, status, mjd){
+    let args = "?design_id=" + design_id;
+    args += "&status=" + status;
+    args += "&mjd=" + mjd;
+    $.getJSON('/manualDesignCompletion/' + args, function (status) {
+      if (status == "failed"){
+        alert("Something went wrong!")
+      }
+      else{
+        let expTable = document.getElementById("designStatus");
+        expTable.innerText = "Status: " + status
+      }
+    });
+  };
+</script>
+
 <div class="well">
   <div class="row">
     <div class="col-lg-3">
@@ -29,7 +46,7 @@
       <div align=center>
         <h2>Design {{designID}}</h2>
         <h4>Exposure Number: {{designNumber}}</h4>
-        <h4>Status: {{status}}</h4>
+        <h4 id="designStatus">Status: {{status}}</h4>
         <h4>BOSS Fibers: {{fiberCounts.boss}}</h4>
         <h4>APOGEE Fibers: {{fiberCounts.apogee}}</h4>
       </div>
@@ -47,7 +64,7 @@
               <th class="text-center">r1</th>
             </tr>
           </thead>
-          <tbody style="height: 350px; overflow-y:scroll;">
+          <tbody style="height: 200px; overflow-y:scroll;">
         {% for c in configurations %}
             <tr>
               <td class="text-center">{{c.id}}</td>
@@ -70,6 +87,15 @@
       </div>
       <div class="row">
         <button type="button" title="append to queue" class="btn btn-success btn-queue-manip" onclick="confirmAppendDesign({{designID}})">Append to queue</button>
+      </div>
+      <div class="row" align=center>
+        <button type="button" class="btn btn-primary btn-queue-manip" onclick="changeStatus({{designID}}, 'done', {{mjd}})">Mark complete?</button>
+      </div>
+      <div class="row" align=center>
+        <button type="button" class="btn btn-info btn-queue-manip" onclick="changeStatus({{designID}}, 'started', {{mjd}})">Mark started?</button>
+      </div>
+      <div class="row" align=center>
+        <button type="button" class="btn btn-warning btn-queue-manip" onclick="changeStatus({{designID}}, 'not started', {{mjd}})">Mark not started?</button>
       </div>
     </div>
   </div>

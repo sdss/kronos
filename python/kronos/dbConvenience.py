@@ -2,7 +2,7 @@ from collections import defaultdict
 from operator import itemgetter
 
 from astropy.time import Time
-from peewee import fn, JOIN
+from peewee import fn, JOIN, DoesNotExist
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
@@ -529,3 +529,20 @@ def apql():
     out = {"design": design, "reads": [[r[0], r[1]] for r in reads]}
 
     return out
+
+
+def modifyDesignStatus(design_id, status, mjd):
+    DesignToStatus = opsdb.DesignToStatus
+    CompletionStatus = opsdb.CompletionStatus
+    try:
+        dbStatus = CompletionStatus.get(label=status)
+    except DoesNotExist:
+        return False
+
+    design_status = DesignToStatus.get(design=design_id)
+    design_status.status = dbStatus
+    design_status.mjd = mjd
+    design_status.manual = True
+    design_status.save()
+
+    return True
