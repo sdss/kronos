@@ -18,6 +18,11 @@ def sn_dict():
     return {"r1": 0, "b1": 0, "AP": 0}
 
 
+def fields_dict():
+    # we're abusing the ddict default_factory
+    return {"field_id": 0, "r1": 0, "b1": 0, "AP": 0, "designs": list()}
+
+
 def getRecentExps(mjd):
     r1_db = opsdb.Camera.get(label="r1")
     b1_db = opsdb.Camera.get(label="b1")
@@ -546,3 +551,69 @@ def modifyDesignStatus(design_id, status, mjd):
     design_status.save()
 
     return True
+
+
+def getFieldsTimeRange(start, end):
+    """grab fields for a range of time, probably a day.
+    start and end are datetime objects
+    """
+
+    r1_db = opsdb.Camera.get(label="r1")
+    b1_db = opsdb.Camera.get(label="b1")
+    ap_db = opsdb.Camera.get(label="APOGEE")
+    db_flavor = opsdb.ExposureFlavor.get(pk=1)
+
+    Exp = opsdb.Exposure
+    cf = opsdb.CameraFrame
+    Field = targetdb.Field
+    Design = targetdb.Design
+    cfg = opsdb.Configuration
+    d2s = opsdb.DesignToStatus
+    compStatus = opsdb.CompletionStatus
+
+    exp_query = cf.select(cf.sn2, cf.camera_pk, Design.design_id,
+                          Field.field_id, Field.pk, compStatus.label)\
+                  .join(Exp)\
+                  .join(cfg)\
+                  .join(Design)\
+                  .join(Field)\
+                  .switch(Design)\
+                  .join(d2s)\
+                  .join(compStatus)\
+                  .where(Exp.start_time > start, Exp.start_time < end)
+
+    designs = defaultdict(sn_dict)
+    for e in exp_query.dicts():
+        design_id = e["design_id"]
+        if e["camera"] == r1_db.pk and e["sn2"] is not None and e["sn2"] > boss_threshold:
+            designs[design_id]["r1"] += e["sn2"]
+        if e["camera"] == b1_db.pk and e["sn2"] is not None and e["sn2"] > boss_threshold:
+            designs[design_id]["b1"] += e["sn2"]
+        if e["camera"] == ap_db.pk and e["sn2"] is not None and e["sn2"] > 100:
+            designs[design_id]["AP"] += e["sn2"]
+        designs[design_id]["field_id"] = e["field_id"]
+        designs[design_id]["field_pk"] = e["pk"]
+        designs[design_id]["status"] = e["label"]
+        designs[design_id]["design_id"] = design_id
+
+    fields = defaultdict(fields_dict)
+    for i, d in designs.items():
+        pk = d["field_pk"]
+        fields[pk]["field_id"] = d["field_id"]
+        fields[pk]["designs"].append(d)
+        fields[pk]["r1"] += d["r1"]
+        fields[pk]["b1"] += d["b1"]
+        fields[pk]["AP"] += d["AP"]
+
+    return fields
+
+
+def fetchMjds():
+    d2s = opsdb.DesignToStatus
+    query = d2s.select(d2s.mjd).distinct()
+
+    mjds = [int(i.mjd) for i in query if i.mjd is not None]
+
+    mjds.sort(reverse=True)
+
+    return mjds
