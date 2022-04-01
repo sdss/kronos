@@ -33,7 +33,7 @@ for field in recent_fields.dicts():
     # get all designs with exposures
     designs = Design.select(Design.design_id, Design.exposure,
                             DesignToStatus.completion_status_pk,
-                            fn.MIN(Exp.start_time))\
+                            fn.MAX(Exp.start_time))\
                     .join(Conf)\
                     .join(Exp)\
                     .switch(Design)\
@@ -42,7 +42,7 @@ for field in recent_fields.dicts():
                     .group_by(Design.design_id, Design.exposure,
                               DesignToStatus.completion_status_pk).dicts()
 
-    times = np.array([d["min"] for d in designs])
+    times = np.array([d["max"] for d in designs])
     if len(times) == 0:
         # default, nothing observed, empty query returned
         continue
