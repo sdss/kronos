@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+{% macro fieldCard(field, mjd) %}
+    <table class="table" style="display:block;">
+      <thead>
+        <tr>
+          <th class="text-center">Design</th>
+          <th class="text-center">AP</th>
+          <th class="text-center">r1</th>
+          <th class="text-center">b1</th>
+          <th class="text-center">status</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="text-center">&Sigma;</td>
+          <td class="text-center"><b>{{"%.1f" % field.AP}}</b></td>
+          <td class="text-center"><b>{{"%.2f" % field.r1}}</b></td>
+          <td class="text-center"><b>{{"%.2f" % field.b1}}</b></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+    {% for d in field.designs %}
+        <tr>
+          <td class="text-center"><a href="/designDetail.html?designID={{d.design_id}}">{{d.design_id}}</a></td>
+          <td class="text-center">{{"%.1f" % d.AP}}</td>
+          <td class="text-center">{{"%.2f" % d.r1}}</td>
+          <td class="text-center">{{"%.2f" % d.b1}}</td>
+          <td><span id="{{d.design_id}}-status">{{d.status}}</span></td>
+          <td>
+            <button type="button" class="btn btn-primary" onclick="changeStatus({{d.design_id}}, 'done', {{mjd}})">Mark complete?</button>
+          </td>
+          <td>
+            <button type="button" class="btn btn-info" onclick="changeStatus({{d.design_id}}, 'started', {{mjd}})">Mark started?</button>
+          </td>
+          <td>
+            <button type="button" class="btn btn-warning" onclick="changeStatus({{d.design_id}}, 'not started', {{mjd}})">Mark not started?</button>
+          </td>
+        </tr>
+    {% endfor %}
+      </tbody>
+    </table>
+{% endmacro %}

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% extends "layout.html" %}
+{% set active_page = "mjdSummary" %}
+{% from 'summaryMacro.html' import fieldCard %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>{{mjd}} Summary</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Field Detail")} #}
+{% endblock head %}
+
+{% block body %}
+
+<script type="text/javascript">
+  function changeStatus(design_id, status, mjd){
+    let args = "?design_id=" + design_id;
+    args += "&status=" + status;
+    args += "&mjd=" + mjd;
+    $.getJSON('/manualDesignCompletion/' + args, function (status) {
+      if (status == "failed"){
+        alert("Something went wrong!")
+      }
+      else{
+        let statusText = document.getElementById(design_id+"-status");
+        statusText.innerText = "Status: " + status
+      }
+    });
+  };
+</script>
+
+<div class="well">
+  <h1>Summary of {{mjd}}</h1>
+  <h3>This page summarizes operations for a given night (mjd). Totals do not reflect other nights.</h3>
+  <div class="col-lg-9">
+    {% for pk in fields.keys() %}
+      <div class="card">
+        <div class="card card-nav-tabs">
+          <div class="card-header card-header-success">
+            <h3>Field ID: <a href="/fieldDetail.html?fieldID={{fields[pk].field_id}}&pk={{pk}}">{{fields[pk].field_id}}</a></h3>
+          </div>
+          {{fieldCard(fields[pk], mjd)}}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  <div class="col-lg-3">
+    <div class="card">
+        <div class="card card-nav-tabs">
+          <div class="card-header card-header-success">
+            <h3>Browse another MJD?</h3>
+          </div>
+          <ul class="list-group" style="height: 600px; overflow: auto">
+          {% for m in mjds %}
+            <li class="list-group-item {% if m == mjd %}active{% endif %}"><a href="/mjdSummary/{{m}}">{{m}}</a></li>
+          {% endfor %}
+          </ul>
+        </div>
+      </div>
+  </div>
+</div>
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+
+{% endblock body %}
