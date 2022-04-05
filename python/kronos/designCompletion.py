@@ -32,15 +32,18 @@ class checkCompletion(object):
             if b > self.bSN2 and r > self.rSN2:
                 return True
 
-    def epoch(self, ap=None, b=None, r=None, N=1):
+    def epoch(self, ap=None, b=None, r=None, N=1, partial=False):
         # N for e.g. dark faint completion scales with N exposures
+        scale = N
+        if partial:
+            scale = 0.9 * scale
         if self.apSN2:
-            if np.sum(ap) > self.epoch_apSN2 * N:
+            if np.sum(ap) > self.epoch_apSN2 * scale:
                 return True
         else:
             bSN2 = np.sum(b)
             rSN2 = np.sum(r)
-            if bSN2 > self.epoch_bSN2 * N and rSN2 > self.epoch_rSN2 * N:
+            if bSN2 > self.epoch_bSN2 * scale and rSN2 > self.epoch_rSN2 * scale:
                 return True
 
 

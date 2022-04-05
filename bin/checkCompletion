@@ -81,7 +81,7 @@ def darkCollate(exps):
     return r, b
 
 
-def checkDone(hours=1, test=False, daemon=False, report=False):
+def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     start = datetime.now()
 
     if report:
@@ -129,6 +129,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
     apsn2 = defaultdict(list)
     modes = dict()
     lastInEpoch = dict()
+    expInEpoch = dict()
     design_to_field = dict()
     for d in recent_designs.dicts():
         design_to_field[d["design_id"]] = d["field_id"]
@@ -151,6 +152,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
         if d["exposure"] == expCount[current_epoch] - 1 and not bright:
             # not bright because at the moment we treat all bright designs individually
             lastInEpoch[d["design_id"]] = True
+            expInEpoch[d["design_id"]] = expCount[current_epoch]
             if current_epoch == 0:
                 beginExp = 0
             else:
@@ -198,7 +200,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
         if done:
             statusString = "done"
         else:
-            statusString = "partial"
+            statusString = "started"
         fid = design_to_field[a]
         summary += f"{fid:7d} {a:7d}: {statusString:7s} with {apsn2[a]:7.1f} {modes[a]} \n"
         if test:
@@ -220,15 +222,19 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
         if modes[r] == "bright_time":
             continue
         if lastInEpoch[r]:
-            done = checker[modes[r]].epoch(r=r1[r],
-                                           b=b1[r])
+            if modes[r] == "dark_faint":
+                N = expInEpoch[r]
+            else:
+                N = 1
+
+            done = checker[modes[r]].epoch(r=r1[r], b=b1[r],
+                                           N=N, partial=partial)
         else:
-            done = checker[modes[r]].design(r=r1[r],
-                                            b=b1[r])
+            done = checker[modes[r]].design(r=r1[r], b=b1[r])
         if done:
             statusString = "done"
         else:
-            statusString = "partial"
+            statusString = "started"
         fid = design_to_field[r]
         summary += f"{fid:7d} {r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} {modes[r]} \n"
         if test:
@@ -250,7 +256,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog=os.path.basename(sys.argv[0]),
-        description='Add fake exp to local db')
+        description='checks design completion in opsdb')
 
     parser.add_argument('-s', '--since', type=int, default=1,
                         help='how long to look back', dest='since')
@@ -260,11 +266,18 @@ if __name__ == "__main__":
                         help='assume running as daemon, allow exit if no recent exps')
     parser.add_argument('-r', '--report', action="store_true",
                         help='create a report, no db changes')
+    parser.add_argument('-p', '--partial', action="store_true",
+                        help='allow 90% completion for dark fields')
 
     args = parser.parse_args()
     since = args.since
     test = args.test
     daemon = args.daemon
     report = args.report
+    partial = args.partial
 
-    checkDone(since, test=test, daemon=daemon, report=report)
+    if partial:
+        # longer than our longest night, but only 1 night's worth
+        since = 16
+
+    checkDone(since, test=test, daemon=daemon, report=report, partial=partial)
