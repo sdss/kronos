@@ -14,13 +14,13 @@ mjdSummary_page = Blueprint("mjdSummary_page", __name__)
 
 
 @mjdSummary_page.route('/mjdSummary/', defaults={'mjd': None})
-@mjdSummary_page.route('/mjdSummary/<int:mjd>')
+@mjdSummary_page.route('/mjdSummary/<int:mjd>', methods=['GET'])
 async def mjdSummary(mjd):
 
     templateDict = getTemplateDictBase()
 
-    # if "mjd" in request.args:
-    #     mjd = float(request.args["mjd"])
+    if "mjd" in request.args:
+        mjd = float(request.args["mjd"])
     # else:
     #     mjd = offsetNow()
 
