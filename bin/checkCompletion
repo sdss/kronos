@@ -254,7 +254,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog=os.path.basename(sys.argv[0]),
-        description='Add fake exp to local db')
+        description='checks design completion in opsdb')
 
     parser.add_argument('-s', '--since', type=int, default=1,
                         help='how long to look back', dest='since')
