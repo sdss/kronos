@@ -32,13 +32,13 @@
           <td class="text-center">{{"%.2f" % d.b1}}</td>
           <td><span id="{{d.design_id}}-status">{{d.status}}</span></td>
           <td>
-            <button type="button" class="btn btn-primary" onclick="changeStatus({{d.design_id}}, 'done', {{mjd}})">Mark complete?</button>
+            <button type="button" class="btn btn-primary btn-man" onclick="changeStatus({{d.design_id}}, 'done', {{mjd}})" disabled>Mark complete</button>
           </td>
           <td>
-            <button type="button" class="btn btn-info" onclick="changeStatus({{d.design_id}}, 'started', {{mjd}})">Mark started?</button>
+            <button type="button" class="btn btn-info btn-man" onclick="changeStatus({{d.design_id}}, 'started', {{mjd}})" disabled>Mark started</button>
           </td>
           <td>
-            <button type="button" class="btn btn-warning" onclick="changeStatus({{d.design_id}}, 'not started', {{mjd}})">Mark not started?</button>
+            <button type="button" class="btn btn-warning btn-man" onclick="changeStatus({{d.design_id}}, 'not started', {{mjd}})" disabled>Mark not started</button>
           </td>
         </tr>
     {% endfor %}
