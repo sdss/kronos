@@ -129,6 +129,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
     apsn2 = defaultdict(list)
     modes = dict()
     lastInEpoch = dict()
+    expInEpoch = dict()
     design_to_field = dict()
     for d in recent_designs.dicts():
         design_to_field[d["design_id"]] = d["field_id"]
@@ -151,6 +152,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
         if d["exposure"] == expCount[current_epoch] - 1 and not bright:
             # not bright because at the moment we treat all bright designs individually
             lastInEpoch[d["design_id"]] = True
+            expInEpoch[d["design_id"]] = expCount[current_epoch]
             if current_epoch == 0:
                 beginExp = 0
             else:
@@ -219,11 +221,14 @@ def checkDone(hours=1, test=False, daemon=False, report=False):
         if modes[r] == "bright_time":
             continue
         if lastInEpoch[r]:
-            done = checker[modes[r]].epoch(r=r1[r],
-                                           b=b1[r])
+            if modes[r] == "dark_faint":
+                N = expInEpoch[r]
+            else:
+                N = 1
+
+            done = checker[modes[r]].epoch(r=r1[r], b=b1[r], N=N)
         else:
-            done = checker[modes[r]].design(r=r1[r],
-                                            b=b1[r])
+            done = checker[modes[r]].design(r=r1[r], b=b1[r])
         if done:
             statusString = "done"
         else:
