@@ -570,13 +570,16 @@ def getFieldsTimeRange(start, end):
     cfg = opsdb.Configuration
     d2s = opsdb.DesignToStatus
     compStatus = opsdb.CompletionStatus
+    Cadence = targetdb.Cadence
 
     exp_query = cf.select(cf.sn2, cf.camera_pk, Design.design_id,
-                          Field.field_id, Field.pk, compStatus.label)\
+                          Field.field_id, Field.pk, compStatus.label,
+                          Cadence.label.alias("cadence_label"))\
                   .join(Exp)\
                   .join(cfg)\
                   .join(Design)\
                   .join(Field)\
+                  .join(Cadence)\
                   .switch(Design)\
                   .join(d2s)\
                   .join(compStatus)\
@@ -593,6 +596,7 @@ def getFieldsTimeRange(start, end):
             designs[design_id]["AP"] += e["sn2"]
         designs[design_id]["field_id"] = e["field_id"]
         designs[design_id]["field_pk"] = e["pk"]
+        designs[design_id]["cadence"] = e["cadence_label"]
         designs[design_id]["status"] = e["label"]
         designs[design_id]["design_id"] = design_id
 
@@ -600,6 +604,7 @@ def getFieldsTimeRange(start, end):
     for i, d in designs.items():
         pk = d["field_pk"]
         fields[pk]["field_id"] = d["field_id"]
+        fields[pk]["cadence"] = d["cadence"]
         fields[pk]["designs"].append(d)
         fields[pk]["r1"] += d["r1"]
         fields[pk]["b1"] += d["b1"]
