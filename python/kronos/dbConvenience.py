@@ -1,6 +1,7 @@
 from collections import defaultdict
 from operator import itemgetter
 
+import numpy as np
 from astropy.time import Time
 from peewee import fn, JOIN, DoesNotExist
 
@@ -613,12 +614,16 @@ def getFieldsTimeRange(start, end):
     return fields
 
 
-def fetchMjds():
+def fetchMjds(N=30):
     d2s = opsdb.DesignToStatus
-    query = d2s.select(d2s.mjd).distinct()
+    # query = d2s.select(d2s.mjd).distinct()
 
-    mjds = [int(i.mjd) for i in query if i.mjd is not None]
+    # mjds = [int(i.mjd) for i in query if i.mjd is not None]
 
-    mjds.sort(reverse=True)
+    # mjds.sort(reverse=True)
 
-    return mjds
+    last = d2s.select(fn.MAX(d2s.mjd)).scalar()
+
+    mjds = np.ceil(last) - np.arange(N, dtype=int)
+
+    return [int(m) for m in mjds]
