@@ -111,8 +111,10 @@ for field in recent_fields.dicts():
     maxTime = np.max([maxTime, now])
 
     if (maxTime - minTime).days >= field["max_length"][current_epoch]:
-        if np.unique(np.array(statuses)[idxs]) == int(notStartedStatus):
-            continue
+        these_statuses = np.unique(np.array(statuses)[idxs])
+        if len(these_statuses) == 1:
+            if these_statuses == int(notStartedStatus):
+                continue
         demote_ids = design_ids[idxs]
         # cad = Cadence.select().join(Field).where(Field.pk == field['pk'])
         # statuses = DesignToStatus.select().where(DesignToStatus.design_id << list(demote_ids))
