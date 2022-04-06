@@ -212,6 +212,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         design_status = DesignToStatus.get(design=a)
         design_status.status = status
         design_status.mjd = mjd_now
+        design_status.manual = False
         design_status.save()
 
     d_designs = [r for r in r1.keys()]
@@ -245,6 +246,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         design_status = DesignToStatus.get(design=r)
         design_status.status = status
         design_status.mjd = mjd_now
+        design_status.manual = False
         design_status.save()
 
     print("TOOK ", (datetime.now() - start).microseconds//1000, " ms")

@@ -77,6 +77,7 @@ async def designDetail():
         "designNumber": design.exposure,
         "status": status,
         "fiberCounts": fiberCounts,
+        "mjd": int(mjd),
         **field
     })
 

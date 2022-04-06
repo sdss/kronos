@@ -3,7 +3,8 @@
 from quart import Blueprint, request, jsonify
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import getRecentExps, designCompletion, queueLength, apql
+from kronos.dbConvenience import (getRecentExps, designCompletion, queueLength,
+                                  apql, modifyDesignStatus)
 
 dbEndPoints = Blueprint("dbEndPoints", __name__)
 
@@ -44,3 +45,16 @@ async def grabAPQR():
     ql = await wrapBlocking(apql)
 
     return jsonify(ql)
+
+
+@dbEndPoints.route('/manualDesignCompletion/', methods=["GET"])
+async def manualDesignCompletion():
+    design_id = int(request.args["design_id"])
+    status = request.args["status"]
+    mjd = int(request.args["mjd"])
+
+    success = await wrapBlocking(modifyDesignStatus, design_id, status, mjd)
+    if success:
+        return jsonify(status)
+    else:
+        return jsonify("failed")
