@@ -32,11 +32,11 @@ Camera = opsdb.Camera
 
 
 def brightCollate(expDicts):
-    sn2 = np.array([e["sn2"] for e in expDicts if e["pk"] == ap_db])
+    sn2 = np.array([e["sn2"] for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
     if len(sn2) == 0:
         return 0
-    times = np.array([datetime.timestamp(e["start_time"]) for e in expDicts if e["pk"] == ap_db])
-    pos = np.array([e["dither_pixpos"] for e in expDicts if e["pk"] == ap_db])
+    times = np.array([datetime.timestamp(e["start_time"]) for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
+    pos = np.array([e["dither_pixpos"] for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
     a_val = np.min(pos)
     a = np.abs(pos - a_val) < 0.2
     b = ~a
