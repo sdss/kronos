@@ -14,7 +14,10 @@ from kronos.site import Site
 if not opsdb.database.connected:
     print("!! CONFIG !!", opsdb.database._config)
 
-design_time = 18. / 60. / 24.  # days, keep in mjd
+overhead = 7. / 60. / 24.  # days, keep in mjd
+change_field = 5. / 60. / 24.
+exp_time = 15. / 60. / 24.
+design_time = exp_time + overhead
 
 
 def offsetNow():
@@ -114,7 +117,7 @@ class Field(object):
         startTime = Time(start, format="mjd").datetime,
         if type(startTime) is tuple:
             startTime = startTime[0]
-        self._mjdDuration = len(self.designs) * design_time
+        self._mjdDuration = len(self.designs) * (exp_time + overhead)
         endTime = startTime + datetime.timedelta(seconds=int(self._mjdDuration*86400))
         self._obsTimes = {"start": startTime,
                           "end": endTime}
@@ -296,7 +299,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         # wrap blocking this is a DB call
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
-        self.exp_nom = 18 / 60 / 24
+        self.exp_nom = exp_time + overhead
 
     async def choiceFields(self, mjd, exp=12, oldPos=None):
         """return multiple fields for user to choose from
@@ -447,7 +450,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             inQueue.append(field_pk)
 
-            now += len(designs) * self.exp_nom
+            now += len(designs) * self.exp_nom + change_field
 
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -504,7 +507,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             field_wrap._startTime = now
 
             startTime = Time(now, format="mjd").datetime
-            mjd_duration = len(designs) * design_time
+            mjd_duration = len(designs) * (exp_time + overhead)
             endTime = startTime + datetime.timedelta(seconds=int(mjd_duration*86400))
             field_wrap._obsTimes = {"start": startTime,
                                     "end": endTime}
@@ -513,7 +516,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             fields.append(field_wrap)
 
-            now += len(designs) * self.exp_nom
+            now += len(designs) * self.exp_nom + change_field
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         fname = "lookAhead" + tstamp
 
