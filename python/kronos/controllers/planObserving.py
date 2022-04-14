@@ -216,6 +216,9 @@ async def planObserving():
 
     almanac = await wrapBlocking(getAlmanac, mjd)
 
+    for d in queue.designs:
+        d.priority = queue.fieldDict[d.field_pk].priority
+
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,

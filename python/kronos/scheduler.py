@@ -61,6 +61,8 @@ class Design(object):
         self.RS = scheduler
         self.mjd_plan = mjd_plan
         self.position = position
+        self.priority = 0
+        self._priorityColor = None
 
         cadence = self.field.cadence
 
@@ -78,6 +80,19 @@ class Design(object):
         now.format = "mjd"
         lst = self.RS.lst(now.value)
         return float(self.RS.ralst2ha(ra=self.ra, lst=lst))
+
+    @property
+    def priorityColor(self):
+        if self._priorityColor is None:
+            if self.priority > 15:
+                self._priorityColor = "red"
+            elif self.priority > 10:
+                self._priorityColor = "orange"
+            elif self.priority > 5:
+                self._priorityColor = "green"
+            else:
+                self._priorityColor = "blue"
+        return self._priorityColor
 
 
 class Field(object):
@@ -108,6 +123,46 @@ class Field(object):
         self.RS = scheduler  # keep track. bad form?
         self.designs = list()
         # self.backups = list()
+        self._priority = None
+
+    @property
+    def priority(self):
+        if self._priority is None:
+            cadence = self.RS.cadencelist.cadences[self.cadence]
+            mjd_past = self.RS.fields.hist[self.pk]
+
+            expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
+            epoch_idx = np.where(np.array(expCount) > len(mjd_past))[0][0]
+            if epoch_idx > 0:
+                exp_epoch = len(mjd_past) - expCount[epoch_idx - 1]
+                last_idx = expCount[epoch_idx - 1] - 1
+                mjd_prev = mjd_past[last_idx]
+            else:
+                exp_epoch = len(mjd_past)
+                mjd_prev = 0
+
+            partial_epoch = exp_epoch > 0
+
+            delta_curr = self._startTime - mjd_prev
+
+            dhi = cadence.delta_max[epoch_idx]
+            dnom = cadence.delta[epoch_idx]
+
+            priority = len(self.designs)
+
+            if len(mjd_past) > 0:
+                priority += np.clip(5/np.sqrt(np.abs(dnom - delta_curr)),
+                                    a_min=None, a_max=5)
+                if delta_curr > dhi:
+                    priority += 10
+                if partial_epoch:
+                    priority += 10
+            else:
+                priority += 2
+
+            self._priority = int(np.round(priority))
+
+        return self._priority
 
     def _timesFromDesigns(self):
         """startTime and obsTimes need to get info from designs
@@ -449,6 +504,13 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
 
             inQueue.append(field_pk)
+
+            # pri_log = self.scheduler.priorityLogger
+            # priorities = np.array(pri_log.priority)
+            # mjds = np.array(pri_log.mjd)
+            # latest_mjd = np.max(mjds)
+
+            # priority_max = np.max(priorities[np.where(mjds == latest_mjd)])
 
             now += len(designs) * self.exp_nom + change_field
 
