@@ -115,6 +115,7 @@ class Field(object):
         self.dec = self.dbField.deccen
         self.SkyCoord = SkyCoord(self.ra*u.deg, self.dec*u.deg)
         self.cadence = self.dbField.cadence.label
+        self.obs_mode = self.dbField.cadence.obsmode_pk[0]
         self._obsTimes = None
         self._startTime = None
         self._mjdDuration = None
@@ -124,6 +125,15 @@ class Field(object):
         self.designs = list()
         # self.backups = list()
         self._priority = None
+        self._airmass = None
+
+    @property
+    def airmass(self):
+        if self._airmass is None:
+            alt, az = self.RS.radec2altaz(self._startTime,
+                                          ra=self.ra, dec=self.dec)
+            self._airmass = float(1. / np.sin(np.pi / 180. * alt))
+        return self._airmass
 
     @property
     def priority(self):
@@ -169,10 +179,14 @@ class Field(object):
         """
         start = np.min([d.mjd_plan for d in self.designs])
         self._startTime = start
+        if "bright" not in self.obs_mode:
+            airmass = self.airmass
+        else:
+            airmass = 1
         startTime = Time(start, format="mjd").datetime,
         if type(startTime) is tuple:
             startTime = startTime[0]
-        self._mjdDuration = len(self.designs) * (exp_time + overhead)
+        self._mjdDuration = len(self.designs) * (exp_time * airmass + overhead)
         endTime = startTime + datetime.timedelta(seconds=int(self._mjdDuration*86400))
         self._obsTimes = {"start": startTime,
                           "end": endTime}
@@ -505,6 +519,21 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             inQueue.append(field_pk)
 
+            w_field = np.where(self.scheduler.fields.pk == field_pk)[0][0]
+
+            cadence_label = self.scheduler.fields.cadence[w_field]
+            cadence = self.scheduler.cadencelist.cadences[cadence_label]
+
+            obs_mode = cadence.obsmode_pk[0]
+
+            if "bright" not in obs_mode:
+                racen = self.scheduler.fields.racen[w_field]
+                deccen = self.scheduler.fields.deccen[w_field]
+                alt, az = self.scheduler.radec2altaz(now, ra=racen, dec=deccen)
+                airmass = float(1. / np.sin(np.pi / 180. * alt))
+            else:
+                airmass = 1
+
             # pri_log = self.scheduler.priorityLogger
             # priorities = np.array(pri_log.priority)
             # mjds = np.array(pri_log.mjd)
@@ -512,7 +541,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             # priority_max = np.max(priorities[np.where(mjds == latest_mjd)])
 
-            now += len(designs) * self.exp_nom + change_field
+            now += len(designs) * self.exp_nom * airmass + change_field
 
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
@@ -568,8 +597,23 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             # manually, to save us from designs
             field_wrap._startTime = now
 
+            w_field = np.where(self.scheduler.fields.pk == field_pk)[0][0]
+
+            cadence_label = self.scheduler.fields.cadence[w_field]
+            cadence = self.scheduler.cadencelist.cadences[cadence_label]
+
+            obs_mode = cadence.obsmode_pk[0]
+
+            if "bright" not in obs_mode:
+                racen = self.scheduler.fields.racen[w_field]
+                deccen = self.scheduler.fields.deccen[w_field]
+                alt, az = self.scheduler.radec2altaz(now, ra=racen, dec=deccen)
+                airmass = float(1. / np.sin(np.pi / 180. * alt))
+            else:
+                airmass = 1
+
             startTime = Time(now, format="mjd").datetime
-            mjd_duration = len(designs) * (exp_time + overhead)
+            mjd_duration = len(designs) * (exp_time * airmass + overhead)
             endTime = startTime + datetime.timedelta(seconds=int(mjd_duration*86400))
             field_wrap._obsTimes = {"start": startTime,
                                     "end": endTime}
@@ -578,7 +622,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             fields.append(field_wrap)
 
-            now += len(designs) * self.exp_nom + change_field
+            now += mjd_duration
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         fname = "lookAhead" + tstamp
 
