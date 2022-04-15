@@ -142,7 +142,11 @@ class Field(object):
     @property
     def priority(self):
         if self._priority is None:
-            cadence = self.RS.cadencelist.cadences[self.cadence]
+            try:
+                cadence = self.RS.cadencelist.cadences[self.cadence]
+            except KeyError:
+                self._priority = 0
+                return self._priority
             mjd_past = self.RS.fields.hist[self.pk]
 
             expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
