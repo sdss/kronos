@@ -115,7 +115,6 @@ class Field(object):
         self.dec = self.dbField.deccen
         self.SkyCoord = SkyCoord(self.ra*u.deg, self.dec*u.deg)
         self.cadence = self.dbField.cadence.label
-        self.obs_mode = self.dbField.cadence.obsmode_pk[0]
         self._obsTimes = None
         self._startTime = None
         self._mjdDuration = None
@@ -126,6 +125,11 @@ class Field(object):
         # self.backups = list()
         self._priority = None
         self._airmass = None
+
+        try:
+            self.obs_mode = self.dbField.cadence.obsmode_pk[0]
+        except TypeError:
+            self.obs_mode = "bright_time"
 
     @property
     def airmass(self):
