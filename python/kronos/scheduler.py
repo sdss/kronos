@@ -4,6 +4,7 @@ import numpy as np
 from astropy.time import Time
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+import scipy.optimize as optimize
 
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
@@ -689,6 +690,45 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             await wrapBlocking(opsdb.Queue.rm, f.pk)
 
         return await self.queueFromSched(mjd_prev, night_end)
+
+    def _bright_dark_function(self, mjd=None, switch=0.35):
+        return self.scheduler.skybrightness(mjd) - switch
+
+    def nightSchedule(self, night_start, night_end):
+        fudge = 15 / 60 / 24
+        bright_start = bool(self.scheduler.skybrightness(night_start + fudge) >= 0.35)
+        bright_end = bool(self.scheduler.skybrightness(night_end - fudge) >= 0.35)
+        dark_start = bool(self.scheduler.skybrightness(night_start + fudge) < 0.35)
+        dark_end = bool(self.scheduler.skybrightness(night_end - fudge) < 0.35)
+
+        night_sched = {"bright_start_utc": None,
+                       "bright_end_utc": None,
+                       "dark_start_utc": None,
+                       "dark_end_utc": None}
+
+        if bright_start and bright_end:
+            night_sched["bright_start_utc"] = Time(night_start, format="mjd").datetime
+            night_sched["bright_end_utc"] = Time(night_end, format="mjd").datetime
+        elif dark_start and dark_end:
+            night_sched["dark_start_utc"] = Time(night_start, format="mjd").datetime
+            night_sched["dark_end_utc"] = Time(night_end, format="mjd").datetime
+        elif dark_start and bright_end:
+            split = optimize.brenth(self._bright_dark_function,
+                                    night_start + fudge, night_end - fudge,
+                                    args=0.35)
+            night_sched["bright_start_utc"] = Time(split, format="mjd").datetime
+            night_sched["bright_end_utc"] = Time(night_end, format="mjd").datetime
+            night_sched["dark_start_utc"] = Time(night_start, format="mjd").datetime
+            night_sched["dark_end_utc"] = Time(split, format="mjd").datetime
+        elif bright_start and dark_end:
+            split = optimize.brenth(self._bright_dark_function,
+                                    night_start + fudge, night_end - fudge,
+                                    args=0.35)
+            night_sched["bright_start_utc"] = Time(night_start, format="mjd").datetime
+            night_sched["bright_end_utc"] = Time(split, format="mjd").datetime
+            night_sched["dark_start_utc"] = Time(split, format="mjd").datetime
+            night_sched["dark_end_utc"] = Time(night_end, format="mjd").datetime
+        return night_sched
 
 
 def unfilledMjdError(mjd):

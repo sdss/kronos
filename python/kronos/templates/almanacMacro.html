@@ -3,6 +3,7 @@
     {% set twilights = almanac[0] %}
     {% set headers = almanac[1] %}
     {% set moonDict = almanac[2] %}
+    {% set darkBright = almanac[3] %}
     {% set nCol = twilights | length %}
     <table class="table">
         <thead>
@@ -17,6 +18,24 @@
             {% for val in moonDict.values() %}
                 <td class="text-center">{{val}}</td>
             {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th class="text-center"><b>Bright Start</b></th>
+                <th class="text-center"><b>Bright End</b></th>
+                <th class="text-center"><b>Dark Start</b></th>
+                <th class="text-center"><b>Dark End</b></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center">{% if darkBright.bright_start_utc %} {{darkBright.bright_start_utc}} {% else %} -- {% endif %}</td>
+                <td class="text-center">{% if darkBright.bright_end_utc %} {{darkBright.bright_end_utc}} {% else %} -- {% endif %}</td>
+                <td class="text-center">{% if darkBright.dark_start_utc %} {{darkBright.dark_start_utc}} {% else %} -- {% endif %}</td>
+                <td class="text-center">{% if darkBright.dark_end_utc %} {{darkBright.dark_end_utc}} {% else %} -- {% endif %}</td>
             </tr>
         </tbody>
     </table>

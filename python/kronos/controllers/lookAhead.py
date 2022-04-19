@@ -52,6 +52,15 @@ async def lookAhead():
             "timeBarEndUTC": endTime
         }
 
+    evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
+
+    brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
+
+    schedule.update(**brightDark)
+
+    for k, v in brightDark.items():
+        brightDark[k] = v.strftime("%H:%M")
+
     queue = await wrapBlocking(Queue)
     # if len(queue.fields) == 0:
     #     viz = None
@@ -61,12 +70,14 @@ async def lookAhead():
 
     schedViz = await ApogeeViz(schedule, fields).export()
 
+    almanac = getAlmanac(mjd)
+
     templateDict.update({
         "apogeeViz": None,
         "schedViz": schedViz,
         "mjd": mjd,
         "errorMsg": [],
-        "almanac": getAlmanac(mjd),  # if schedule else None,
+        "almanac": (*almanac, brightDark),
         "queue": queue.designs,
         "backups": []
     })

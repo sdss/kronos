@@ -27,8 +27,8 @@ svgAttrDict = {  # colors that svg knows about
     "apogee": SVGAttrs("green", 0.8),
     "vizwindow": SVGAttrs("blue", 0.6),
     "lowalt": SVGAttrs("orange", 0.4),
-    "missing": SVGAttrs("yellow", 1.0),
-    "infobar": SVGAttrs("black", 0.6),
+    "bright": SVGAttrs("#ffef96", 0.7),
+    "dark": SVGAttrs("#50394c", 0.6),
     "ha": SVGAttrs("teal", 0.1),
     "zwarn1": SVGAttrs("chocolate", 0.6),
     "zwarn2": SVGAttrs("red", 0.7),
@@ -400,6 +400,23 @@ class Viz(object):
                 haRange=self.haScale.range,  # full range
                 text="HA"
             )
+            if self.schedule["bright_start_utc"] is not None:
+                # add twilight bars
+                headerRow.addVizWindow(
+                    name="bright",
+                    utRange=(self.schedule["bright_start_utc"], self.schedule["bright_end_utc"]),
+                    haRange=None,
+                    text="bright"
+                )
+            if self.schedule["dark_start_utc"] is not None:
+                # add twilight bars
+                headerRow.addVizWindow(
+                    name="dark",
+                    utRange=(self.schedule["dark_start_utc"], self.schedule["dark_end_utc"]),
+                    haRange=None,
+                    text="dark"
+                )
+
         return headerRow
 
     def getFieldRows(self):

@@ -189,6 +189,13 @@ async def planObserving():
             "morningTwilightUTC": morning_twilight_utc
         }
 
+    brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
+
+    schedule.update(**brightDark)
+
+    for k, v in brightDark.items():
+        brightDark[k] = v.strftime("%H:%M")
+
     queue = await wrapBlocking(Queue)
     if len(queue.fields) == 0:
         viz = None
@@ -223,7 +230,7 @@ async def planObserving():
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
         "apogeeViz": viz,
         "mjd": mjd,
-        "almanac": almanac,  # if schedule else None,
+        "almanac": (*almanac, brightDark),
         "queue": queue.designs,
         "backups": backups,
         "exposures": exps,
