@@ -68,6 +68,15 @@ async def fieldViz():
             "timeBarEndUTC": endTime
         }
 
+    evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
+
+    brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
+
+    schedule.update(**brightDark)
+
+    for k, v in brightDark.items():
+        brightDark[k] = v.strftime("%H:%M")
+
     mean = (mjd_evening_twilight + mjd_morning_twilight) / 2
 
     designList = await wrapBlocking(DesignList, design_ids=design_ids, mjd=mean)
@@ -88,7 +97,7 @@ async def fieldViz():
         "apogeeViz": viz,
         "mjd": mjd,
         "errorMsg": errors,
-        "almanac": almanac,  # if schedule else None
+        "almanac": (*almanac, brightDark),  # if schedule else None
         "designs": design_ids,
         "mjd": mjd
     })
