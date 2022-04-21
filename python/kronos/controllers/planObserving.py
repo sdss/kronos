@@ -194,6 +194,8 @@ async def planObserving():
     schedule.update(**brightDark)
 
     for k, v in brightDark.items():
+        if v is None:
+            continue
         brightDark[k] = v.strftime("%H:%M")
 
     queue = await wrapBlocking(Queue)

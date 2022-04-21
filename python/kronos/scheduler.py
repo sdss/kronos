@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+from collections import OrderedDict
 import numpy as np
 from astropy.time import Time
 import astropy.units as u
@@ -701,33 +702,38 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         dark_start = bool(self.scheduler.skybrightness(night_start + fudge) < 0.35)
         dark_end = bool(self.scheduler.skybrightness(night_end - fudge) < 0.35)
 
-        night_sched = {"bright_start_utc": None,
-                       "bright_end_utc": None,
-                       "dark_start_utc": None,
-                       "dark_end_utc": None}
+        night_sched = OrderedDict()
+        night_sched["Bright Start"] = None
+        night_sched["Bright End"] = None
+        night_sched["Dark Start"] = None
+        night_sched["Dark End"] = None
 
         if bright_start and bright_end:
-            night_sched["bright_start_utc"] = Time(night_start, format="mjd").datetime
-            night_sched["bright_end_utc"] = Time(night_end, format="mjd").datetime
+            night_sched["Bright Start"] = Time(night_start, format="mjd").datetime
+            night_sched["Bright End"] = Time(night_end, format="mjd").datetime
         elif dark_start and dark_end:
-            night_sched["dark_start_utc"] = Time(night_start, format="mjd").datetime
-            night_sched["dark_end_utc"] = Time(night_end, format="mjd").datetime
+            night_sched["Dark Start"] = Time(night_start, format="mjd").datetime
+            night_sched["Dark End"] = Time(night_end, format="mjd").datetime
+            night_sched.move_to_end("Bright Start")
+            night_sched.move_to_end("Bright End")
         elif dark_start and bright_end:
             split = optimize.brenth(self._bright_dark_function,
                                     night_start + fudge, night_end - fudge,
                                     args=0.35)
-            night_sched["bright_start_utc"] = Time(split, format="mjd").datetime
-            night_sched["bright_end_utc"] = Time(night_end, format="mjd").datetime
-            night_sched["dark_start_utc"] = Time(night_start, format="mjd").datetime
-            night_sched["dark_end_utc"] = Time(split, format="mjd").datetime
+            night_sched["Bright Start"] = Time(split, format="mjd").datetime
+            night_sched["Bright End"] = Time(night_end, format="mjd").datetime
+            night_sched["Dark Start"] = Time(night_start, format="mjd").datetime
+            night_sched["Dark End"] = Time(split, format="mjd").datetime
+            night_sched.move_to_end("Bright Start")
+            night_sched.move_to_end("Bright End")
         elif bright_start and dark_end:
             split = optimize.brenth(self._bright_dark_function,
                                     night_start + fudge, night_end - fudge,
                                     args=0.35)
-            night_sched["bright_start_utc"] = Time(night_start, format="mjd").datetime
-            night_sched["bright_end_utc"] = Time(split, format="mjd").datetime
-            night_sched["dark_start_utc"] = Time(split, format="mjd").datetime
-            night_sched["dark_end_utc"] = Time(night_end, format="mjd").datetime
+            night_sched["Bright Start"] = Time(night_start, format="mjd").datetime
+            night_sched["Bright End"] = Time(split, format="mjd").datetime
+            night_sched["Dark Start"] = Time(split, format="mjd").datetime
+            night_sched["Dark End"] = Time(night_end, format="mjd").datetime
         return night_sched
 
 

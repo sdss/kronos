@@ -75,6 +75,8 @@ async def fieldViz():
     schedule.update(**brightDark)
 
     for k, v in brightDark.items():
+        if v is None:
+            continue
         brightDark[k] = v.strftime("%H:%M")
 
     mean = (mjd_evening_twilight + mjd_morning_twilight) / 2

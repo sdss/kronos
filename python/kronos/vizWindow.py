@@ -400,19 +400,19 @@ class Viz(object):
                 haRange=self.haScale.range,  # full range
                 text="HA"
             )
-            if self.schedule["bright_start_utc"] is not None:
+            if self.schedule["Bright Start"] is not None:
                 # add twilight bars
                 headerRow.addVizWindow(
                     name="bright",
-                    utRange=(self.schedule["bright_start_utc"], self.schedule["bright_end_utc"]),
+                    utRange=(self.schedule["Bright Start"], self.schedule["Bright End"]),
                     haRange=None,
                     text="bright"
                 )
-            if self.schedule["dark_start_utc"] is not None:
+            if self.schedule["Dark Start"] is not None:
                 # add twilight bars
                 headerRow.addVizWindow(
                     name="dark",
-                    utRange=(self.schedule["dark_start_utc"], self.schedule["dark_end_utc"]),
+                    utRange=(self.schedule["Dark Start"], self.schedule["Dark End"]),
                     haRange=None,
                     text="dark"
                 )
