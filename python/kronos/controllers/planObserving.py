@@ -135,7 +135,7 @@ async def planObserving():
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
-    if mjd_morning_twilight - mjd_now < 1 / 24 / 2:  # 30 minutes
+    if mjd_morning_twilight - mjd_now < 1 / 24 / 4:  # 15 minutes
         # Night's basically over, we're doing tomorrow
         errors.append("END OF NIGHT. Scheduling tomorrow")
         mjd += 1

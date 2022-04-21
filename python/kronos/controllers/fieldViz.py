@@ -62,10 +62,17 @@ async def fieldViz():
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
+    evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
+
+    evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
+    morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
+
     schedule = {
             "queriedMJD": mjd,
             "timeBarStartUTC": startTime,
-            "timeBarEndUTC": endTime
+            "timeBarEndUTC": endTime,
+            "eveningTwilightUTC": evening_twilight_utc,
+            "morningTwilightUTC": morning_twilight_utc
         }
 
     evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
