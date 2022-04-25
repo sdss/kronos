@@ -3,7 +3,7 @@ import os
 import asyncio
 from functools import partial
 
-__version__ = "1.2.1a"
+__version__ = "1.2.1"
 rs_version = os.getenv("RS_VERSION")
 
 observatory = os.getenv("OBSERVATORY")
