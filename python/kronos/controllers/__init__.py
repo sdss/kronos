@@ -1,6 +1,4 @@
 #!/usr/bin/python
-from subprocess import check_output
-import re
 import os
 
 from quart import current_app

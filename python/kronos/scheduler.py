@@ -312,7 +312,7 @@ class Queue(object):
         self.queue = opsdb.Queue
         # wrap blocking this is a DB call
         self.dbDesigns = self.queue.select()\
-                                   .where(opsdb.Queue.position > -3)\
+                                   .where(opsdb.Queue.position > -5)\
                                    .order_by(opsdb.Queue.position)
         # or it might be here
         self.designs = [Design(d.design.design_id,

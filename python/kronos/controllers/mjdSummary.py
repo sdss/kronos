@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import asyncio
+import requests
+from datetime import datetime
 
+import yaml
 from quart import request, render_template, Blueprint
 from astropy.time import Time
 
@@ -10,6 +13,21 @@ from kronos.scheduler import offsetNow, Scheduler
 
 from . import getTemplateDictBase
 
+
+def trackIPs(ip, city):
+    now = datetime.now().strftime("%Y-%m-%d")
+    with open("/data/logs/roboscheduler/summaryTracking.yml", "r") as log:
+        tracking = yaml.load(log, Loader=yaml.FullLoader)
+    if ip in tracking:
+        tracking[ip]["N"] += 1
+        tracking[ip]["latest"] = now
+    else:
+        tracking[ip] = {"city": city, "N": 1, "latest": now}
+    with open("/data/logs/roboscheduler/summaryTracking.yml", "w") as log:
+        print(yaml.dump(tracking), file=log)
+    return tracking
+
+
 mjdSummary_page = Blueprint("mjdSummary_page", __name__)
 
 
@@ -18,6 +36,14 @@ mjdSummary_page = Blueprint("mjdSummary_page", __name__)
 async def mjdSummary(mjd):
 
     templateDict = getTemplateDictBase()
+
+    remote_ip = request.headers["Remote-Addr"]
+    # if remote_ip != "127.0.0.1":
+    url = f"https://geolocation-db.com/json/{remote_ip}"
+    response = await wrapBlocking(requests.get, url)
+    city = response.json()["city"]
+
+    tracking = await wrapBlocking(trackIPs, remote_ip, city)
 
     if "mjd" in request.args:
         mjd = float(request.args["mjd"])

@@ -42,11 +42,11 @@
       </div>
       </div>
       {% if queue|length > 0 %}
-        <ul class="list-group" id="queue" style="height: 350px; overflow: auto">
+        <ul class="list-group" id="queue" style="height: 450px; overflow: auto">
           {{obsQueue(queue)}}
         </ul>
       {% else %}
-        <div style="height: 350px; overflow: auto; text-align: center; line-height: 350px;">
+        <div style="height: 450px; overflow: auto; text-align: center; line-height: 450px;">
           <a>
             <i class="material-icons refresh-field" onclick="redoQueue()">refresh</i>
           </a>
