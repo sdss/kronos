@@ -152,6 +152,9 @@ class Field(object):
             mjd_past = self.RS.fields.hist[self.pk]
 
             expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
+            if expCount[-1] == len(mjd_past):
+                self._priority = 0
+                return self._priority
             epoch_idx = np.where(np.array(expCount) > len(mjd_past))[0][0]
             if epoch_idx > 0:
                 exp_epoch = len(mjd_past) - expCount[epoch_idx - 1]
