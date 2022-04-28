@@ -41,7 +41,8 @@ def getRecentExps(mjd):
                 .join(exp)\
                 .join(cfg)\
                 .where(exp.start_time > useTime,
-                       exp.exposure_flavor == db_flavor).dicts()
+                       exp.exposure_flavor == db_flavor,
+                       cfg.design_id.is_null(False)).dicts()
 
     exp_dicts = {e["pk"]: {"pk": e["pk"], "r1": "--", "b1": "--", "AP": "--"} for e in exps}
     exp_list = list()
