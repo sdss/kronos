@@ -221,7 +221,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     for r in d_designs:
         if modes[r] == "bright_time":
             continue
-        if lastInEpoch[r]:
+        if lastInEpoch[r] and modes[r] != "dark_plane":
             if modes[r] == "dark_faint":
                 N = expInEpoch[r]
             else:
