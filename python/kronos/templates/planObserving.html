@@ -27,8 +27,8 @@
 {% endif %}
 
 <div class="row">
-  <div class="col-lg-3">
-    <div class="card card-nav-tabs" id="queue" style="width: 20rem;">
+  <div class="col-lg-4">
+    <div class="card card-nav-tabs" id="queue" style="width: 25rem;">
       <div class="card-header card-header-danger">
         <h3> Obs Queue </h3>
         <div class="queue-row">
@@ -36,6 +36,7 @@
             <a class="queue-field">Field</a>
             <a class="queue-design">Design</a>
           </span>
+          <span class="queue-obsmode"></span>
           <i class="material-icons delete-field" onclick="confirmFlush()">clear</i>
           <i class="material-icons refresh-field" onclick="confirmRedo()">refresh</i>
           <span>Priority</span>
@@ -55,7 +56,24 @@
     </div>
   </div>
 
-  <div class="col-lg-6">
+  <div class="col-lg-3">
+    <div style="text-align: center;">
+      <h4 id="ql-label">APOGEE reads</h4>
+      <canvas id='apql' width="300" height="150"></canvas>
+    </div>    
+    <div class="card">
+      <div class="card card-nav-tabs">
+        <div class="card-header card-header-danger">
+          <h3> Recent Exps </h3>
+        </div>
+        {% if exposures|length > 0 %}
+          {{recentExps(exposures)}}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
       <div id="cloudCam">
         <!-- <h3> Cloud Cam </h3> -->
         {%if observatory == 'APO'%}
@@ -75,23 +93,6 @@
           <button class="btn btn-info" onclick="submitReplacement()" style="color:black;" id="submitReplacementField"></button>
         </li>
       {% endif %}
-    </div>
-  </div>
-
-  <div class="col-lg-3">
-    <div style="text-align: center;">
-      <h4 id="ql-label">APOGEE reads</h4>
-      <canvas id='apql' width="300" height="150"></canvas>
-    </div>    
-    <div class="card">
-      <div class="card card-nav-tabs">
-        <div class="card-header card-header-danger">
-          <h3> Recent Exps </h3>
-        </div>
-        {% if exposures|length > 0 %}
-          {{recentExps(exposures)}}
-        {% endif %}
-      </div>
     </div>
   </div>
 

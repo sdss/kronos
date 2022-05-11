@@ -7,8 +7,8 @@
                 <span onclick="selectField({{des.fieldID}})" class="queue-item queue-hover">
                     <a class="queue-field field-{{des.fieldID}}">{{des.fieldID}}</a>
                     <a class="queue-design">{{des.designID}}</a>
-                    <span class="hover-field">{{des.obs_mode}}</span>
                 </span>
+                <span class="queue-obsmode">{{des.obs_mode}}</span>
                 <span class="queue-buttons">
                     <a class="button-container">
                         <i class="material-icons delete-field" onclick="confirmRM({{des.fieldID}}, {{des.field_pk}})">clear</i>
@@ -23,13 +23,13 @@
                         <span class="button-hover-field">replace from here</span>
                     </a> -->
                 </span>
-                <span style="color: {{des.priorityColor}}; font-weight:bold; font-size:18px">{{des.priority}}</span>
+                <span class="queue-priority" style="color: {{des.priorityColor}};">{{des.priority}}</span>
                 {% else %}
                 <span class="queue-item queue-done">
                     <a class="queue-field field-{{des.fieldID}}"><s>{{des.fieldID}}</s></a>
                     <a class="queue-design"><s>{{des.designID}}</s></a>
-                    <span class="hover-field">{{des.obs_mode}}</span>
                 </span>
+                <span class="queue-obsmode">{{des.obs_mode}}</span>
                 {% endif %}
             </div>
         </li>

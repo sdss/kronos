@@ -30,12 +30,12 @@ canvas {
 
 .queue-item {
     display: inline-block;
-    width: 55%;
+    width: 40%;
 }
 
 .queue-head {
     display: inline-block;
-    width: 55%;
+    width: 40%;
 }
 
 .queue-hover:hover {
@@ -76,7 +76,20 @@ canvas {
 
 .queue-buttons {
     display: inline-block;
-    width: 30%;
+    width: 20%;
+}
+
+.queue-priority{
+    display: inline-block;
+    width: 10%;
+    font-weight:bold;
+    font-size:18px;
+}
+
+.queue-obsmode{
+    display: inline-block;
+    width: 20%;
+    text-align: right;
 }
 
 .queue-done {
