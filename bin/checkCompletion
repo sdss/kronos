@@ -125,14 +125,19 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     print(start.strftime("%Y-%m-%dT%H:%M:%S"), recent_designs.count())
 
     r1 = defaultdict(float)
+    r1_epoch = defaultdict(float)
     b1 = defaultdict(float)
+    b1_epoch = defaultdict(float)
     apsn2 = defaultdict(list)
     modes = dict()
     lastInEpoch = dict()
     expInEpoch = dict()
     design_to_field = dict()
+    design_to_field_pk = dict()
+    exp_idxs = dict()
     for d in recent_designs.dicts():
         design_to_field[d["design_id"]] = d["field_id"]
+        design_to_field_pk[d["design_id"]] = d["pk"]
         if d["obsmode_pk"] is None:
             continue
         # nexp is cadence nexp, an array
@@ -149,41 +154,41 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             epochMaxLength = 0.1
         # max is the max start time for all exps on the design
         maxLength = d["max"] - timedelta(days=epochMaxLength)
-        if d["exposure"] == expCount[current_epoch] - 1 and not bright:
+        if not bright:  # and d["exposure"] >= expCount[current_epoch] - 2
             # not bright because at the moment we treat all bright designs individually
-            lastInEpoch[d["design_id"]] = True
+            lastInEpoch[d["design_id"]] = d["exposure"] == expCount[current_epoch] - 1
             expInEpoch[d["design_id"]] = expCount[current_epoch]
             if current_epoch == 0:
                 beginExp = 0
             else:
                 beginExp = expCount[current_epoch - 1]
-            exps = Exp.select(Camera.pk, CameraFrame.sn2)\
-                      .join(Conf)\
-                      .join(Design)\
-                      .switch(Exp)\
-                      .join(CameraFrame)\
-                      .join(Camera)\
-                      .where(Design.field_pk == d["pk"],  # we got field.pk earlier
-                             Design.exposure >= beginExp,
-                             Design.exposure <= d["exposure"],
-                             Exp.start_time > maxLength)
-        else:
-            lastInEpoch[d["design_id"]] = False
-            exps = Exp.select(Exp.start_time, Camera.pk,
-                              CameraFrame.sn2, Quickred.dither_pixpos)\
-                      .join(Conf)\
-                      .join(Design)\
-                      .switch(Exp)\
-                      .join(Quickred, JOIN.LEFT_OUTER)\
-                      .switch(Exp)\
-                      .join(CameraFrame)\
-                      .join(Camera)\
-                      .where(Design.design_id == d["design_id"],
-                             Exp.start_time > maxLength)
+            exp_idxs[d["design_id"]] = [beginExp + i for i in range(expCount[current_epoch])]
+            epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2)\
+                            .join(Conf)\
+                            .join(Design)\
+                            .switch(Exp)\
+                            .join(CameraFrame)\
+                            .join(Camera)\
+                            .where(Design.field_pk == d["pk"],  # we got field.pk earlier
+                                   Design.exposure >= beginExp,
+                                   Design.exposure <= d["exposure"],
+                                   Exp.start_time > maxLength)
+        exps = Exp.select(Exp.start_time, Camera.pk,
+                          CameraFrame.sn2, Quickred.dither_pixpos)\
+                  .join(Conf)\
+                  .join(Design)\
+                  .switch(Exp)\
+                  .join(Quickred, JOIN.LEFT_OUTER)\
+                  .switch(Exp)\
+                  .join(CameraFrame)\
+                  .join(Camera)\
+                  .where(Design.design_id == d["design_id"],
+                         Exp.start_time > maxLength)
         if bright:
             apsn2[d["design_id"]] = brightCollate(exps.dicts())
         else:
             r1[d["design_id"]], b1[d["design_id"]] = darkCollate(exps.dicts())
+            r1_epoch[d["design_id"]], b1_epoch[d["design_id"]] = darkCollate(epoch_exps.dicts())
 
     astroT = Time(start)
     astroT.format = "mjd"
@@ -221,33 +226,56 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     for r in d_designs:
         if modes[r] == "bright_time":
             continue
-        if lastInEpoch[r] and modes[r] != "dark_plane":
-            if modes[r] == "dark_faint":
-                N = expInEpoch[r]
-            else:
-                N = 1
+        # if lastInEpoch[r] and modes[r] != "dark_plane":
+        if modes[r] == "dark_faint":
+            N = expInEpoch[r]
+        else:
+            N = 1
 
-            done = checker[modes[r]].epoch(r=r1[r], b=b1[r],
-                                           N=N, partial=partial)
+        epoch_done = checker[modes[r]].epoch(r=r1_epoch[r], b=b1_epoch[r],
+                                             N=N, partial=partial)
+        if epoch_done:
+            idxs = exp_idxs[r]
+            fpk = design_to_field_pk[r]
+            done_query = Design.select(Design.design_id)\
+                               .where(Design.exposure << idxs,
+                                      Design.field_pk == fpk).tuples()
+            done_ids = [d[0] for d in done_query]
         else:
             done = checker[modes[r]].design(r=r1[r], b=b1[r])
-        if done:
+            if done:
+                done_ids = [r]
+            else:
+                done_ids = []
+        if len(done_ids) > 0:
             statusString = "done"
         else:
             statusString = "started"
         fid = design_to_field[r]
-        summary += f"{fid:7d} {r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} {modes[r]} \n"
+        if len(done_ids) > 1:
+            for d in done_ids:
+                summary += f"{fid:7d} {d:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} {modes[r]} BY EPOCH \n"
+        else:
+            summary += f"{fid:7d} {r:7d}: {statusString:7s} with {r1[r]:4.1f}, {b1[r]:4.1f} {modes[r]} \n"
         if test:
             continue
-        if done:
+        if len(done_ids) > 0:
             status = CompletionStatus.get(label="done")
+            for d in done_ids:
+                design_status = DesignToStatus.get(design=d)
+                if design_status.status == status:
+                    continue
+                design_status.status = status
+                design_status.mjd = mjd_now
+                design_status.manual = False
+                design_status.save()
         else:
             status = CompletionStatus.get(label="started")
-        design_status = DesignToStatus.get(design=r)
-        design_status.status = status
-        design_status.mjd = mjd_now
-        design_status.manual = False
-        design_status.save()
+            design_status = DesignToStatus.get(design=r)
+            design_status.status = status
+            design_status.mjd = mjd_now
+            design_status.manual = False
+            design_status.save()
 
     print("TOOK ", (datetime.now() - start).microseconds//1000, " ms")
     print(summary)
