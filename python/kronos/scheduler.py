@@ -6,6 +6,7 @@ from astropy.time import Time
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 import scipy.optimize as optimize
+from peewee import fn
 
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
@@ -457,15 +458,42 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             the new field to replace oldField
         """
         # re-cache fields in case priorities changed
-        await wrapBlocking(self.scheduler.fields.fromdb)
-
-        newDesigns = await wrapBlocking(self.scheduler.designsNext, backup)
-
-        oldPositions = await wrapBlocking(opsdb.Queue.rm, oldField, returnPositions=True)
+        # await wrapBlocking(self.scheduler.fields.fromdb)
 
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
+        Cadence = targetdb.Cadence
+        Queue = opsdb.Queue
+
+        cquery = await wrapBlocking(Cadence.select(Cadence.nexp).join(Field)
+                                    .where(Field.pk == backup).scalar,
+                                    as_tuple=True)
+
+        nexp = cquery[0]
+
+        mjd_past = self.scheduler.fields.hist[backup]
+
+        expCount = [np.sum(nexp[:i+1]) for i in range(len(nexp))]
+
+        epoch_idx = np.where(np.array(expCount) > len(mjd_past))[0][0]
+        if epoch_idx > 0:
+            exp_epoch = len(mjd_past) - expCount[epoch_idx - 1]
+            last_idx = expCount[epoch_idx - 1] - 1
+            mjd_prev = mjd_past[last_idx]
+        else:
+            exp_epoch = len(mjd_past)
+            mjd_prev = 0
+
+        newDesigns = await wrapBlocking(self.scheduler.designsNext, backup,
+                                        exp_epoch, epoch_idx)
+
+        mjd = await wrapBlocking(Queue.select(fn.MIN(Queue.mjd_plan))
+                                      .join(Design).join(Field)
+                                      .where(Field.pk == oldField).scalar)
+
+        oldPositions = await wrapBlocking(Queue.rm, oldField, returnPositions=True)
+
         dbVersion = await wrapBlocking(Version.get, plan=self.plan)
         designs = await wrapBlocking(Design.select().join(Field).where,
                                      Field.pk == backup,
@@ -475,8 +503,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         queuePos = min(oldPositions)
         for d in designs:
             await asyncio.sleep(0)
-            await wrapBlocking(opsdb.Queue.insertInQueue, d, queuePos)
+            await wrapBlocking(Queue.insertInQueue, d, queuePos, mjd=mjd)
             queuePos += 1
+            mjd += self.exp_nom
 
     async def queueFromSched(self, mjdStart, mjdEnd):
         """Schedule the night from mjdStart to mjdEnd and populate the queue
