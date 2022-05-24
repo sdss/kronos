@@ -29,6 +29,7 @@ CompletionStatus = opsdb.CompletionStatus
 Quickred = opsdb.Quickred
 CameraFrame = opsdb.CameraFrame
 Camera = opsdb.Camera
+Queue = opsdb.Queue
 
 
 def brightCollate(expDicts):
@@ -276,6 +277,19 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             design_status.mjd = mjd_now
             design_status.manual = False
             design_status.save()
+
+        if epoch_done:
+            inQueue = True
+            while inQueue:
+                fieldInQueue = Queue.select()\
+                                    .where(Queue.design_id << done_ids,
+                                           Queue.position > 0)\
+                                    .count()
+                if fieldInQueue > 0:
+                    popped = Queue.pop()
+                    print(f"design {popped} popped off queue")
+                else:
+                    inQueue = False
 
     print("TOOK ", (datetime.now() - start).microseconds//1000, " ms")
     print(summary)
