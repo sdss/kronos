@@ -21,12 +21,16 @@ fieldDetail_page = Blueprint("fieldDetail_page", __name__)
 def designsToEpoch(mjd_design=None, cadence_nexps=None,
                    cadence_max_length=None, **kwargs):
     designs = [d for d in mjd_design.keys()]
-    designs.sort()
+    # designs.sort()
 
-    if len(designs) == 0:
-        return []
+    # if len(designs) == 0:
+    #     return []
 
-    assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
+    # assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
+    first = np.min(designs)
+    last = np.max(designs)
+
+    designs = [i for i in range(first, last+1)]
 
     expCount = [np.sum(cadence_nexps[:i+1]) for i in range(len(cadence_nexps))]
 
@@ -38,8 +42,11 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
         else:
             start = expCount[i-1]
         # end is index + 1 because it starts at 1 since it's N exp
+
+        epoch_designs = [d for d in designs[start:end] if d in mjd_design]
+
         # and slices that don't exist will just be empty! love python
-        epochs.append(designs[start:end])
+        epochs.append(epoch_designs)
 
     epoch_sn = list()
     for des, length in zip(epochs, cadence_max_length):
