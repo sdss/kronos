@@ -158,12 +158,13 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         if not bright:  # and d["exposure"] >= expCount[current_epoch] - 2
             # not bright because at the moment we treat all bright designs individually
             lastInEpoch[d["design_id"]] = d["exposure"] == expCount[current_epoch] - 1
-            expInEpoch[d["design_id"]] = expCount[current_epoch]
             if current_epoch == 0:
                 beginExp = 0
             else:
                 beginExp = expCount[current_epoch - 1]
-            exp_idxs[d["design_id"]] = [beginExp + i for i in range(expCount[current_epoch])]
+            # use sum for start of next epoch, will be last exposure + 1
+            expInEpoch[d["design_id"]] = expCount[current_epoch] - beginExp
+            exp_idxs[d["design_id"]] = [beginExp + i for i in range(expInEpoch[d["design_id"]])]
             epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2)\
                             .join(Conf)\
                             .join(Design)\
