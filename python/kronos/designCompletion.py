@@ -56,8 +56,8 @@ dark_plane = checkCompletion(bSN2=2, epoch_bSN2=10,
 dark_monit = checkCompletion(bSN2=1.5, epoch_bSN2=10,
                              rSN2=3, epoch_rSN2=20)
 
-dark_rm = checkCompletion(bSN2=1.5, epoch_bSN2=20,
-                          rSN2=3, epoch_rSN2=40)
+dark_rm = checkCompletion(bSN2=1.5, epoch_bSN2=10,
+                          rSN2=3, epoch_rSN2=20)
 
 dark_faint = checkCompletion(bSN2=1.5, epoch_bSN2=2.5,
                              rSN2=3, epoch_rSN2=5)
