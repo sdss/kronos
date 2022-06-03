@@ -155,16 +155,16 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             epochMaxLength = 0.1
         # max is the max start time for all exps on the design
         maxLength = d["max"] - timedelta(days=epochMaxLength)
+        lastInEpoch[d["design_id"]] = d["exposure"] == expCount[current_epoch] - 1
+        if current_epoch == 0:
+            beginExp = 0
+        else:
+            beginExp = expCount[current_epoch - 1]
+        # use sum for start of next epoch, will be last exposure + 1
+        expInEpoch[d["design_id"]] = expCount[current_epoch] - beginExp
+        exp_idxs[d["design_id"]] = [beginExp + i for i in range(expInEpoch[d["design_id"]])]
         if not bright:  # and d["exposure"] >= expCount[current_epoch] - 2
             # not bright because at the moment we treat all bright designs individually
-            lastInEpoch[d["design_id"]] = d["exposure"] == expCount[current_epoch] - 1
-            if current_epoch == 0:
-                beginExp = 0
-            else:
-                beginExp = expCount[current_epoch - 1]
-            # use sum for start of next epoch, will be last exposure + 1
-            expInEpoch[d["design_id"]] = expCount[current_epoch] - beginExp
-            exp_idxs[d["design_id"]] = [beginExp + i for i in range(expInEpoch[d["design_id"]])]
             epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2)\
                             .join(Conf)\
                             .join(Design)\
@@ -210,6 +210,31 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             statusString = "started"
         fid = design_to_field[a]
         summary += f"{fid:7d} {a:7d}: {statusString:7s} with {apsn2[a]:7.1f} {modes[a]} \n"
+
+        if partial and expInEpoch[a] > 3:
+            idxs = exp_idxs[a]
+            done_count = Design.select(Design.design_id)\
+                               .join(DesignToStatus)\
+                               .where(Design.exposure << idxs,
+                                      Design.field_pk == fpk,
+                                      DesignToStatus.status == doneStatus)\
+                               .count()
+
+            if expInEpoch[a] - done_count == 1:
+                # there's only 1 left
+                last_id = Design.select(Design.design_id)\
+                               .where(Design.exposure == idxs[-1],
+                                      Design.field_pk == fpk).scalar()
+                if test:
+                    print(f"{last_id} complete BY EPOCH")
+                else:
+                    summary += f"{fid:7d} {last_id:7d} done BY EPOCH \n"
+                    design_status = DesignToStatus.get(design=last_id)
+                    design_status.status = doneStatus
+                    design_status.mjd = mjd_now
+                    design_status.manual = False
+                    design_status.save()
+
         if test:
             continue
         if done:
