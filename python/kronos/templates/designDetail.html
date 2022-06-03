@@ -89,13 +89,13 @@
         <button type="button" title="append to queue" class="btn btn-success btn-queue-manip" onclick="confirmAppendDesign({{designID}})">Append to queue</button>
       </div>
       <div class="row" align=center>
-        <button type="button" class="btn btn-primary btn-queue-manip" onclick="changeStatus({{designID}}, 'done', {{mjd}})" disabled>Mark complete</button>
+        <button type="button" class="btn btn-primary btn-queue-manip" onclick="changeStatus({{designID}}, 'done', {{mjd}})" {% if not isDev %} disabled {% endif %}>Mark complete</button>
       </div>
       <div class="row" align=center>
-        <button type="button" class="btn btn-info btn-queue-manip" onclick="changeStatus({{designID}}, 'started', {{mjd}})" disabled>Mark started</button>
+        <button type="button" class="btn btn-info btn-queue-manip" onclick="changeStatus({{designID}}, 'started', {{mjd}})" {% if not isDev %} disabled {% endif %}>Mark started</button>
       </div>
       <div class="row" align=center>
-        <button type="button" class="btn btn-warning btn-queue-manip" onclick="changeStatus({{designID}}, 'not started', {{mjd}})" disabled>Mark not started</button>
+        <button type="button" class="btn btn-warning btn-queue-manip" onclick="changeStatus({{designID}}, 'not started', {{mjd}})" {% if not isDev %} disabled {% endif %}>Mark not started</button>
       </div>
     </div>
   </div>

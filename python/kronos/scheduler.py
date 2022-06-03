@@ -378,11 +378,12 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
     def __init__(self, **kwargs):
         self.plan = rs_version
-        self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower())
+        self.exp_nom = exp_time + overhead
+        self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
+                                                           exp_time=self.exp_nom)
 
         # wrap blocking this is a DB call
         self.scheduler.initdb(designbase=self.plan, fromFits=False)
-        self.exp_nom = exp_time + overhead
 
     async def choiceFields(self, mjd, exp=12, oldPos=None):
         """return multiple fields for user to choose from
@@ -546,6 +547,12 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                    live=True,
                                                    ignore=inQueue)
 
+            if field_pk == 18501:
+                # horrible horrible terrible no good hack
+                # to fix that one time I didn't test my
+                # completion checking script
+                designs = [d-8 for d in designs]
+
             if field_pk is None:
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
@@ -585,9 +592,33 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             now += len(designs) * self.exp_nom * airmass + change_field
 
-        tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        tnow = datetime.datetime.now()
+        tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
 
         self.scheduler.priorityLogger.write(name=tstamp)
+
+        cfg = opsdb.Configuration
+        exp = opsdb.Exposure
+        db_flavor = opsdb.ExposureFlavor.get(pk=1)
+
+        tthen = tnow - datetime.timedelta(hours=4)
+
+        designs = await wrapBlocking(Design.select().join(cfg).join(exp).where(
+                                     exp.start_time > tthen,
+                                     exp.exposure_flavor == db_flavor).order_by,
+                                     exp.start_time
+                                     )
+
+        no_duplicates = list()
+
+        for d in [d.design_id for d in designs]:
+            if d not in no_duplicates:
+                no_duplicates.append(d)
+
+        queue = opsdb.Queue
+
+        for i, d in enumerate(no_duplicates):
+            await wrapBlocking(queue.insert(design_id=d, position=-1-i).execute)
 
         return errors
 
