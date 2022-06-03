@@ -121,7 +121,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                      Cadence.nexp, Cadence.obsmode_pk,
                                      Cadence.max_length, Field.pk)
     if not report:
-        recent_designs.where(DesignToStatus.status != doneStatus)
+        recent_designs = recent_designs.where(DesignToStatus.status != doneStatus)
 
     print(start.strftime("%Y-%m-%dT%H:%M:%S"), recent_designs.count())
 
