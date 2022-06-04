@@ -23,8 +23,8 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
     designs = [d for d in mjd_design.keys()]
     # designs.sort()
 
-    # if len(designs) == 0:
-    #     return []
+    if len(designs) == 0:
+        return []
 
     # assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
     first = np.min(designs)
