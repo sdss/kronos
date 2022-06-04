@@ -597,28 +597,29 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         self.scheduler.priorityLogger.write(name=tstamp)
 
-        cfg = opsdb.Configuration
-        exp = opsdb.Exposure
-        db_flavor = opsdb.ExposureFlavor.get(pk=1)
+        # cfg = opsdb.Configuration
+        # exp = opsdb.Exposure
+        # db_flavor = opsdb.ExposureFlavor.get(pk=1)
 
-        tthen = tnow - datetime.timedelta(hours=4)
+        # tthen = tnow - datetime.timedelta(hours=4)
 
-        designs = await wrapBlocking(Design.select().join(cfg).join(exp).where(
-                                     exp.start_time > tthen,
-                                     exp.exposure_flavor == db_flavor).order_by,
-                                     exp.start_time
-                                     )
+        # designs = await wrapBlocking(Design.select().join(cfg).join(exp).where(
+        #                              exp.start_time > tthen,
+        #                              exp.exposure_flavor == db_flavor).order_by,
+        #                              exp.start_time
+        #                              )
 
-        no_duplicates = list()
+        # no_duplicates = list()
 
-        for d in [d.design_id for d in designs]:
-            if d not in no_duplicates:
-                no_duplicates.append(d)
+        # for d in [d.design_id for d in designs]:
+        #     if d not in no_duplicates:
+        #         no_duplicates.append(d)
 
-        queue = opsdb.Queue
+        # queue = opsdb.Queue
 
-        for i, d in enumerate(no_duplicates):
-            await wrapBlocking(queue.insert(design_id=d, position=-1-i).execute)
+        # for i, d in enumerate(no_duplicates):
+        #     mjd_plan = mjdStart - i * self.exp_nom
+        #     await wrapBlocking(queue.insert(design_id=d, position=-1-i).execute)
 
         return errors
 
