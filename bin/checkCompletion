@@ -269,7 +269,11 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                       Design.field_pk == fpk).tuples()
             done_ids = [d[0] for d in done_query]
         else:
-            done = checker[modes[r]].design(r=r1[r], b=b1[r])
+            if lastInEpoch[r]:
+                done = checker[modes[r]].epoch(r=r1_epoch[r], b=b1_epoch[r],
+                                               N=N, partial=partial)
+            else:
+                done = checker[modes[r]].design(r=r1[r], b=b1[r])
             if done:
                 done_ids = [r]
             else:
