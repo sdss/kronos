@@ -269,7 +269,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                       Design.field_pk == fpk).tuples()
             done_ids = [d[0] for d in done_query]
         else:
-            if lastInEpoch[r]:
+            if lastInEpoch[r] and expInEpoch[r] > 1 and modes[r] != "dark_plane":
                 done = checker[modes[r]].epoch(r=r1_epoch[r], b=b1_epoch[r],
                                                N=N, partial=partial)
             else:

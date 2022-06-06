@@ -603,7 +603,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         # tthen = tnow - datetime.timedelta(hours=4)
 
-        # designs = await wrapBlocking(Design.select().join(cfg).join(exp).where(
+        # designs = await wrapBlocking(Design.select()
+        #                                    .join(cfg, on=(Design.design_id == cfg.design_id))
+        #                                    .join(exp)
+        #                                    .where(
         #                              exp.start_time > tthen,
         #                              exp.exposure_flavor == db_flavor).order_by,
         #                              exp.start_time
@@ -619,7 +622,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         # for i, d in enumerate(no_duplicates):
         #     mjd_plan = mjdStart - i * self.exp_nom
-        #     await wrapBlocking(queue.insert(design_id=d, position=-1-i).execute)
+        #     await wrapBlocking(queue.insert(design_id=d,
+        #                                     position=-1-i,
+        #                                     mjd_plan=mjd_plan).execute)
 
         return errors
 
