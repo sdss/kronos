@@ -21,6 +21,7 @@ overhead = 7. / 60. / 24.  # days, keep in mjd
 change_field = 5. / 60. / 24.
 exp_time = 15. / 60. / 24.
 design_time = exp_time + overhead
+d2f = targetdb.DesignToField
 
 
 def offsetNow():
@@ -53,7 +54,15 @@ class Design(object):
         else:
             self.designID = int(design)
             self.dbDesign = targetdb.Design.get(design_id=self.designID)
-        self.field = self.dbDesign.field
+        fquery = targetdb.Field.select()\
+                         .join(d2f, on=(targetdb.Field.pk == d2f.field_pk))\
+                         .join(targetdb.Design,
+                               on=(targetdb.Design.design_id == d2f.design_id))\
+                         .switch(targetdb.Field)\
+                         .join(targetdb.Version)\
+                         .where(targetdb.Design.design_id == self.design_id,
+                                targetdb.Version.plan == rs_version)
+        self.field = fquery.first()
         self.fieldID = self.field.field_id
         self.field_pk = self.field.pk
         self.ra = self.field.racen
@@ -490,13 +499,18 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                         exp_epoch, epoch_idx)
 
         mjd = await wrapBlocking(Queue.select(fn.MIN(Queue.mjd_plan))
-                                      .join(Design).join(Field)
+                                      .join(Design)
+                                      .join(d2f, on=(Design.design_id == d2f.design_id))
+                                      .join(Field, on=(Field.pk == d2f.field_pk))
                                       .where(Field.pk == oldField).scalar)
 
         oldPositions = await wrapBlocking(Queue.rm, oldField, returnPositions=True)
 
         dbVersion = await wrapBlocking(Version.get, plan=self.plan)
-        designs = await wrapBlocking(Design.select().join(Field).where,
+        designs = await wrapBlocking(Design.select()
+                                     .join(d2f, on=(Design.design_id == d2f.design_id))
+                                     .join(Field, on=(Field.pk == d2f.field_pk))
+                                     .where,
                                      Field.pk == backup,
                                      Field.version == dbVersion,
                                      Design.exposure << newDesigns)
@@ -557,7 +571,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 errors.append(unfilledMjdError(now))
                 now += self.exp_nom
                 continue
-            designs = await wrapBlocking(Design.select().join(Field).where,
+            designs = await wrapBlocking(Design.select()
+                                         .join(d2f, on=(Design.design_id == d2f.design_id))
+                                         .join(Field, on=(Field.pk == d2f.field_pk))
+                                         .where,
                                          Field.pk == field_pk,
                                          Field.version == dbVersion,
                                          Design.exposure << designs)

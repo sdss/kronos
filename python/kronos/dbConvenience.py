@@ -88,6 +88,7 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
     d2s = opsdb.DesignToStatus
     doneStatus = opsdb.CompletionStatus.get(label="done").pk
     doneField = Field.alias()
+    d2f = targetdb.DesignToField
 
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
@@ -96,8 +97,9 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
                       .join(d2s, JOIN.LEFT_OUTER,
                             on=(Design.design_id == d2s.design_id))\
                       .switch(Design)\
+                      .join(d2f, on=(Design.design_id == d2f.design_id))\
                       .join(doneField, JOIN.LEFT_OUTER,
-                            on=(Design.field_pk == doneField.pk))\
+                            on=(d2f.field_pk == doneField.pk))\
                       .where(d2s.completion_status_pk == doneStatus,
                              doneField.pk == Field.pk)\
                       .alias("doneCount")
@@ -183,6 +185,7 @@ def getField(field_pk):
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbField = targetdb.Field
+    d2f = targetdb.DesignToField
 
     field = dbField.get(pk=field_pk)
     # designs = field.designs.select()
@@ -191,7 +194,8 @@ def getField(field_pk):
                      .join(opsdb.Configuration)\
                      .join(targetdb.Design,
                            on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
-                     .join(dbField)\
+                     .join(d2f, on=(Design.design_id == d2f.design_id))\
+                     .join(dbField, on=(dbField.pk == d2f.field_pk))\
                      .where(dbField.pk == field_pk,
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
@@ -337,6 +341,9 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
     Assign = targetdb.Assignment
     Inst = targetdb.Instrument
 
+    d2f = targetdb.DesignToField
+    dbVersion = targetdb.Version.get(plan=rs_version)
+
     obsDB = targetdb.Observatory()
     obs = obsDB.get(label=observatory)
 
@@ -348,10 +355,13 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                       .join(d2s, on=(d2s.design_id == dbDesign.design_id))\
                       .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
                       .switch(dbDesign)\
-                      .join(dbField, on=(dbField.pk == dbDesign.field_pk))\
+                      .join(d2f, on=(dbDesign.design_id == d2f.design_id))\
+                      .join(dbField, on=(dbField.pk == d2f.field_pk))\
                       .switch(dbDesign)\
                       .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
-                      .where(dbField.observatory == obs, Assign.instrument_pk == qInst.pk)\
+                      .where(dbField.observatory == obs,
+                             Assign.instrument_pk == qInst.pk,
+                             dbField.version == dbVersion)\
                       .limit(limit)
 
     designs = designs.group_by(compStatus.label, dbDesign.design_id,
@@ -574,18 +584,24 @@ def getFieldsTimeRange(start, end):
     compStatus = opsdb.CompletionStatus
     Cadence = targetdb.Cadence
 
+    d2f = targetdb.DesignToField
+    dbVersion = targetdb.Version.get(plan=rs_version)
+
     exp_query = cf.select(cf.sn2, cf.camera_pk, Design.design_id,
                           Field.field_id, Field.pk, compStatus.label,
                           Cadence.label.alias("cadence_label"))\
                   .join(Exp)\
                   .join(cfg)\
                   .join(Design)\
-                  .join(Field)\
+                  .join(d2f, on=(Design.design_id == d2f.design_id))\
+                  .join(Field, on=(Field.pk == d2f.field_pk))\
                   .join(Cadence)\
                   .switch(Design)\
                   .join(d2s)\
                   .join(compStatus)\
-                  .where(Exp.start_time > start, Exp.start_time < end)
+                  .where(Exp.start_time > start,
+                         Exp.start_time < end,
+                         Field.version == dbVersion)
 
     designs = defaultdict(sn_dict)
     for e in exp_query.dicts():
