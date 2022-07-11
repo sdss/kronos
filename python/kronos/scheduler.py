@@ -54,15 +54,16 @@ class Design(object):
         else:
             self.designID = int(design)
             self.dbDesign = targetdb.Design.get(design_id=self.designID)
-        fquery = targetdb.Field.select()\
-                         .join(d2f, on=(targetdb.Field.pk == d2f.field_pk))\
-                         .join(targetdb.Design,
-                               on=(targetdb.Design.design_id == d2f.design_id))\
-                         .switch(targetdb.Field)\
-                         .join(targetdb.Version)\
-                         .where(targetdb.Design.design_id == self.design_id,
-                                targetdb.Version.plan == rs_version)
-        self.field = fquery.first()
+        d2f_query = d2f.select()\
+                       .join(targetdb.Design,
+                             on=(targetdb.Design.design_id == d2f.design_id))\
+                       .switch(d2f)\
+                       .join(targetdb.Field, on=(targetdb.Field.pk == d2f.field_pk))\
+                       .join(targetdb.Version)\
+                       .where(targetdb.Design.design_id == self.design_id,
+                              targetdb.Version.plan == rs_version)
+        self.d2f = d2f_query.first()
+        self.field = targetdb.Field.get(pk == self.d2f.field_pk)
         self.fieldID = self.field.field_id
         self.field_pk = self.field.pk
         self.ra = self.field.racen
@@ -513,7 +514,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                      .where,
                                      Field.pk == backup,
                                      Field.version == dbVersion,
-                                     Design.exposure << newDesigns)
+                                     d2f.exposure << newDesigns)
 
         queuePos = min(oldPositions)
         for d in designs:
@@ -577,7 +578,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                          .where,
                                          Field.pk == field_pk,
                                          Field.version == dbVersion,
-                                         Design.exposure << designs)
+                                         d2f.exposure << designs)
             for i, d in enumerate(designs):
                 await asyncio.sleep(0)
                 mjd_plan = now + i * self.exp_nom
