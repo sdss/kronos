@@ -8,7 +8,7 @@ from peewee import DoesNotExist
 
 from sdssdb.peewee.sdss5db import targetdb, opsdb
 
-from kronos import wrapBlocking
+from kronos import wrapBlocking, rs_version
 from kronos.dbConvenience import getConfigurations, designDetails, safeInsertInQueue, safeAppendQueue
 from kronos.scheduler import offsetNow, Scheduler
 
@@ -56,7 +56,19 @@ async def designDetail():
 
     status, cartons, fiberCounts = await wrapBlocking(designDetails, design)
 
-    field = await wrapBlocking(dbField.get, pk=design.field.pk)
+    d2f = targetdb.DesignToField
+
+    d2f_query = d2f.select()\
+                   .join(targetdb.Design,
+                         on=(targetdb.Design.design_id == d2f.design_id))\
+                   .switch(d2f)\
+                   .join(targetdb.Field, on=(targetdb.Field.pk == d2f.field_pk))\
+                   .join(targetdb.Version)\
+                   .where(targetdb.Design.design_id == designID,
+                          targetdb.Version.plan == rs_version)
+    this_d2f = await wrapBlocking(d2f_query.first)
+
+    field = await wrapBlocking(dbField.get, pk=this_d2f.field_pk)
 
     field = {"ra": field.racen,
              "dec": field.deccen,
@@ -74,7 +86,7 @@ async def designDetail():
         "designID": designID,
         "configurations": configurations,
         "targets": targets,
-        "designNumber": design.exposure,
+        "designNumber": this_d2f.exposure,
         "status": status,
         "fiberCounts": fiberCounts,
         "mjd": int(mjd),
