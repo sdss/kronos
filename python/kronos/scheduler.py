@@ -60,10 +60,19 @@ class Design(object):
                        .switch(d2f)\
                        .join(targetdb.Field, on=(targetdb.Field.pk == d2f.field_pk))\
                        .join(targetdb.Version)\
-                       .where(targetdb.Design.design_id == self.design_id,
+                       .where(targetdb.Design.design_id == self.designID,
                               targetdb.Version.plan == rs_version)
         self.d2f = d2f_query.first()
-        self.field = targetdb.Field.get(pk == self.d2f.field_pk)
+        if self.d2f is None:
+            d2f_query = d2f.select()\
+                       .join(targetdb.Design,
+                             on=(targetdb.Design.design_id == d2f.design_id))\
+                       .switch(d2f)\
+                       .join(targetdb.Field, on=(targetdb.Field.pk == d2f.field_pk))\
+                       .join(targetdb.Version)\
+                       .where(targetdb.Design.design_id == self.designID)
+            self.d2f = d2f_query.first()
+        self.field = targetdb.Field.get(pk=self.d2f.field_pk)
         self.fieldID = self.field.field_id
         self.field_pk = self.field.pk
         self.ra = self.field.racen
@@ -80,7 +89,7 @@ class Design(object):
         cadence = self.field.cadence
 
         expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
-        current_epoch = np.where(np.array(expCount) >= self.dbDesign.exposure)[0][0]
+        current_epoch = np.where(np.array(expCount) >= self.d2f.exposure)[0][0]
         try:
             self.obs_mode = cadence.obsmode_pk[current_epoch]
         except TypeError:

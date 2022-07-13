@@ -68,6 +68,16 @@ async def designDetail():
                           targetdb.Version.plan == rs_version)
     this_d2f = await wrapBlocking(d2f_query.first)
 
+    if this_d2f is None:
+        d2f_query = d2f.select()\
+                   .join(targetdb.Design,
+                         on=(targetdb.Design.design_id == d2f.design_id))\
+                   .switch(d2f)\
+                   .join(targetdb.Field, on=(targetdb.Field.pk == d2f.field_pk))\
+                   .join(targetdb.Version)\
+                   .where(targetdb.Design.design_id == designID)
+        this_d2f = await wrapBlocking(d2f_query.first)
+
     field = await wrapBlocking(dbField.get, pk=this_d2f.field_pk)
 
     field = {"ra": field.racen,

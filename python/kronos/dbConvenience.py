@@ -194,7 +194,7 @@ def getField(field_pk):
                      .join(opsdb.Configuration)\
                      .join(targetdb.Design,
                            on=(targetdb.Design.design_id == opsdb.Configuration.design_id))\
-                     .join(d2f, on=(Design.design_id == d2f.design_id))\
+                     .join(d2f, on=(targetdb.Design.design_id == d2f.design_id))\
                      .join(dbField, on=(dbField.pk == d2f.field_pk))\
                      .where(dbField.pk == field_pk,
                             opsdb.Exposure.exposure_flavor == db_flavor)
