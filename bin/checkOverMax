@@ -7,6 +7,8 @@ from peewee import fn
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
+from kronos import rs_version
+
 Design = targetdb.Design
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
@@ -14,32 +16,38 @@ Field = targetdb.Field
 Cadence = targetdb.Cadence
 DesignToStatus = opsdb.DesignToStatus
 CompletionStatus = opsdb.CompletionStatus
+d2f = targetdb.DesignToField
 
 
 now = datetime.now()
 doneStatus = CompletionStatus.get(label="done").pk
 notStartedStatus = CompletionStatus.get(label="not started").pk
+db_version = targetdb.Version.get(plan=rs_version)
 
 # find all fields where any design is incomplete
 recent_fields = Field.select(Field.pk, Cadence.nexp, Cadence.max_length)\
+                     .join(d2f)\
                      .join(Design)\
                      .join(DesignToStatus)\
                      .switch(Field)\
                      .join(Cadence)\
-                     .where(DesignToStatus.status != doneStatus)\
+                     .where(DesignToStatus.status != doneStatus,
+                            Field.version_pk == db_version)\
                      .group_by(Field.pk, Cadence.nexp, Cadence.max_length)
 
 for field in recent_fields.dicts():
     # get all designs with exposures
-    designs = Design.select(Design.design_id, Design.exposure,
+    designs = Design.select(Design.design_id, d2f.exposure,
                             DesignToStatus.completion_status_pk,
                             fn.MAX(Exp.start_time))\
                     .join(Conf)\
                     .join(Exp)\
                     .switch(Design)\
                     .join(DesignToStatus)\
-                    .where(Design.field_pk == field["pk"])\
-                    .group_by(Design.design_id, Design.exposure,
+                    .switch(Design)\
+                    .join(d2f)\
+                    .where(d2f.field_pk == field["pk"])\
+                    .group_by(Design.design_id, d2f.exposure,
                               DesignToStatus.completion_status_pk).dicts()
 
     times = np.array([d["max"] for d in designs])
