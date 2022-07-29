@@ -13,6 +13,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
+from kronos import rs_version
 from kronos.designCompletion import checker
 
 
@@ -23,6 +24,7 @@ Design = targetdb.Design
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
 Field = targetdb.Field
+d2f = targetdb.DesignToField
 Cadence = targetdb.Cadence
 DesignToStatus = opsdb.DesignToStatus
 CompletionStatus = opsdb.CompletionStatus
@@ -93,6 +95,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     useTime = start - timedelta(hours=hours)
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
     doneStatus = CompletionStatus.get(label="done").pk
+    db_version = targetdb.Version.get(plan=rs_version)
 
     mostRecent = Exp.select(fn.MAX(Exp.start_time))\
                     .where(Exp.exposure_flavor == db_flavor)\
@@ -104,20 +107,22 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         # so could be 15-20 min, better safe probably?
         return
 
-    recent_designs = Design.select(Design.design_id, Design.exposure,
+    recent_designs = Design.select(Design.design_id, d2f.exposure,
                                    Cadence.nexp, Cadence.obsmode_pk,
-                                   Cadence.max_length, Field.pk, Field.field_id,
-                                   fn.MAX(Exp.start_time))\
+                                   Cadence.max_length, Field.pk.alias("field_pk"),
+                                   Field.field_id, fn.MAX(Exp.start_time))\
                            .join(Conf, on=(Design.design_id == Conf.design_id))\
                            .join(Exp)\
                            .switch(Design)\
                            .join(DesignToStatus, on=(Design.design_id == DesignToStatus.design_id))\
                            .switch(Design)\
-                           .join(Field, on=(Design.field_pk == Field.pk))\
+                           .join(d2f)\
+                           .join(Field)\
                            .join(Cadence, on=(Field.cadence_pk == Cadence.pk))\
                            .where(Exp.start_time > useTime,
-                                  Exp.exposure_flavor == db_flavor)\
-                           .group_by(Design.design_id, Design.exposure,
+                                  Exp.exposure_flavor == db_flavor,
+                                  Field.version_pk == db_version)\
+                           .group_by(Design.design_id, d2f.exposure,
                                      Cadence.nexp, Cadence.obsmode_pk,
                                      Cadence.max_length, Field.pk)
     if not report:
@@ -138,7 +143,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     exp_idxs = dict()
     for d in recent_designs.dicts():
         design_to_field[d["design_id"]] = d["field_id"]
-        design_to_field_pk[d["design_id"]] = d["pk"]
+        design_to_field_pk[d["design_id"]] = d["field_pk"]
         if d["obsmode_pk"] is None:
             continue
         # nexp is cadence nexp, an array
@@ -168,12 +173,13 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2)\
                             .join(Conf)\
                             .join(Design)\
+                            .join(d2f)\
                             .switch(Exp)\
                             .join(CameraFrame)\
                             .join(Camera)\
-                            .where(Design.field_pk == d["pk"],  # we got field.pk earlier
-                                   Design.exposure >= beginExp,
-                                   Design.exposure <= d["exposure"],
+                            .where(d2f.field_pk == d["field_pk"],  # we got field.pk earlier
+                                   d2f.exposure >= beginExp,
+                                   d2f.exposure <= d["exposure"],
                                    Exp.start_time > maxLength)
         exps = Exp.select(Exp.start_time, Camera.pk,
                           CameraFrame.sn2, Quickred.dither_pixpos)\
@@ -209,14 +215,17 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         else:
             statusString = "started"
         fid = design_to_field[a]
+        fpk = design_to_field_pk[a]
         summary += f"{fid:7d} {a:7d}: {statusString:7s} with {apsn2[a]:7.1f} {modes[a]} \n"
 
         if partial and expInEpoch[a] > 3:
             idxs = exp_idxs[a]
             done_count = Design.select(Design.design_id)\
                                .join(DesignToStatus)\
+                               .switch(Design)\
+                               .join(d2f)\
                                .where(Design.exposure << idxs,
-                                      Design.field_pk == fpk,
+                                      d2f.field_pk == fpk,
                                       DesignToStatus.status == doneStatus)\
                                .count()
 
