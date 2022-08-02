@@ -224,7 +224,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                .join(DesignToStatus)\
                                .switch(Design)\
                                .join(d2f)\
-                               .where(Design.exposure << idxs,
+                               .where(d2f.exposure << idxs,
                                       d2f.field_pk == fpk,
                                       DesignToStatus.status == doneStatus)\
                                .count()
@@ -232,8 +232,9 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             if expInEpoch[a] - done_count == 1:
                 # there's only 1 left
                 last_id = Design.select(Design.design_id)\
-                               .where(Design.exposure == idxs[-1],
-                                      Design.field_pk == fpk).scalar()
+                                .join(d2f)\
+                                .where(d2f.exposure == idxs[-1],
+                                       d2f.field_pk == fpk).scalar()
                 if test:
                     print(f"{last_id} complete BY EPOCH")
                 else:
@@ -274,8 +275,9 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             idxs = exp_idxs[r]
             fpk = design_to_field_pk[r]
             done_query = Design.select(Design.design_id)\
-                               .where(Design.exposure << idxs,
-                                      Design.field_pk == fpk).tuples()
+                               .join(d2f)\
+                               .where(d2f.exposure << idxs,
+                                      d2f.field_pk == fpk).tuples()
             done_ids = [d[0] for d in done_query]
         else:
             if lastInEpoch[r] and expInEpoch[r] > 1 and modes[r] != "dark_plane":
