@@ -444,13 +444,18 @@ def designDetails(design):
     Assignment = targetdb.Assignment
     Inst = targetdb.Instrument
 
-    caQuery = Carton.select(Carton.carton, Inst.label)\
-                    .join(c2t, on=(Carton.pk == c2t.carton_pk))\
-                    .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
-                    .join(Inst)\
-                    .switch(Assignment)\
-                    .join(Design, on=(Assignment.design_id == Design.design_id))\
-                    .where(Design.design_id == design).dicts()
+    c2Query = c2t.select(c2t.target_pk, Inst.label)\
+                 .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
+                 .join(Inst)\
+                 .switch(Assignment)\
+                 .join(Design, on=(Assignment.design_id == Design.design_id))\
+                 .where(Design.design_id == design).dicts()
+
+    targets = [c["target"] for c in c2Query]
+
+    cartonQuery = Carton.select(Carton.carton)\
+                        .join(c2t)\
+                        .where(c2t.target_pk << targets).dicts()
 
     CompStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -461,11 +466,11 @@ def designDetails(design):
 
     status = status[0].label
 
-    cartons = [c["carton"] for c in caQuery]
+    cartons = [c["carton"] for c in cartonQuery]
 
-    instruments = [1 for c in caQuery if c["label"] == "BOSS"]
+    instruments = [1 for c in c2Query if c["label"] == "BOSS"]
     boss = sum(instruments)
-    instruments = [1 for c in caQuery if c["label"] == "APOGEE"]
+    instruments = [1 for c in c2Query if c["label"] == "APOGEE"]
     apogee = sum(instruments)
 
     return status, cartons, {"boss": boss, "apogee": apogee}
