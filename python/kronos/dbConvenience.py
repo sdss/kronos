@@ -444,7 +444,7 @@ def designDetails(design):
     Assignment = targetdb.Assignment
     Inst = targetdb.Instrument
 
-    c2Query = c2t.select(c2t.target_pk, Inst.label)\
+    c2Query = c2t.select(c2t.target_pk, Inst.label, c2t.carton_pk)\
                  .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
                  .join(Inst)\
                  .switch(Assignment)\
@@ -452,10 +452,13 @@ def designDetails(design):
                  .where(Design.design_id == design).dicts()
 
     targets = [c["target"] for c in c2Query]
+    for_version = Carton.get(c2Query[0]["carton"])
 
     cartonQuery = Carton.select(Carton.carton)\
                         .join(c2t)\
-                        .where(c2t.target_pk << targets).dicts()
+                        .where(c2t.target_pk << targets,
+                               Carton.version_pk == for_version.version_pk)\
+                        .dicts()
 
     CompStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
