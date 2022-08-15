@@ -54,7 +54,7 @@ async def designDetail():
     except DoesNotExist:
         return await render_template('404.html'), 404
 
-    status, cartons, fiberCounts = await wrapBlocking(designDetails, design)
+    status, cartons, first_cartons, fiberCounts = await wrapBlocking(designDetails, design)
 
     d2f = targetdb.DesignToField
 
@@ -91,11 +91,15 @@ async def designDetail():
     c_names, counts = np.unique(cartons, return_counts=True)
     targets = [{"name": n, "count": c} for n, c in zip(c_names, counts)]
 
+    c_names, counts = np.unique(first_cartons, return_counts=True)
+    first_targets = [{"name": n, "count": c} for n, c in zip(c_names, counts)]
+
     templateDict = getTemplateDictBase()
     templateDict.update({
         "designID": designID,
         "configurations": configurations,
         "targets": targets,
+        "first_targets": first_targets,
         "designNumber": this_d2f.exposure,
         "status": status,
         "fiberCounts": fiberCounts,

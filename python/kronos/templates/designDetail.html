@@ -100,14 +100,23 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-lg-6">
+    <div class="col-md-4">
       <h2>Target Summary</h2>
         <ul>
           {% for t in targets %}
-            <li><a><span class="targ-name">{{t.name}}:</span></a>
+            <li><a><span class="targ-name">{{t.name}}</span></a>
               <a><span class="targ-count">{{t.count}}</span></a></li>
           {% endfor %}
         </ul>
+    </div>
+    <div class="col-md-4">
+      <h2>1st Cartons</h2>
+      <ul>
+        {% for t in first_targets %}
+          <li><a><span class="targ-name">{{t.name}}</span></a>
+            <a><span class="targ-count">{{t.count}}</span></a></li>
+        {% endfor %}
+      </ul>
     </div>
   </div>
 </div>
