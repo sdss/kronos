@@ -125,7 +125,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                            .group_by(Design.design_id, d2f.exposure,
                                      Cadence.nexp, Cadence.obsmode_pk,
                                      Cadence.max_length, Field.pk)
-    if not report:
+    if not report and not partial:
         recent_designs = recent_designs.where(DesignToStatus.status != doneStatus)
 
     print(start.strftime("%Y-%m-%dT%H:%M:%S"), recent_designs.count())
@@ -141,9 +141,11 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     design_to_field = dict()
     design_to_field_pk = dict()
     exp_idxs = dict()
+    max_times = dict()
     for d in recent_designs.dicts():
         design_to_field[d["design_id"]] = d["field_id"]
         design_to_field_pk[d["design_id"]] = d["field_pk"]
+        max_times[d["design_id"]] = d["max"]
         if d["obsmode_pk"] is None:
             continue
         # nexp is cadence nexp, an array
@@ -198,9 +200,9 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             r1[d["design_id"]], b1[d["design_id"]] = darkCollate(exps.dicts())
             r1_epoch[d["design_id"]], b1_epoch[d["design_id"]] = darkCollate(epoch_exps.dicts())
 
-    astroT = Time(start)
-    astroT.format = "mjd"
-    mjd_now = astroT.value
+    # astroT = Time(start)
+    # astroT.format = "mjd"
+    # mjd_now = astroT.value
     summary = ""
 
     b_designs = [a for a in apsn2.keys()]
@@ -218,7 +220,11 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         fpk = design_to_field_pk[a]
         summary += f"{fid:7d} {a:7d}: {statusString:7s} with {apsn2[a]:7.1f} {modes[a]} \n"
 
-        if partial and expInEpoch[a] > 3:
+        astroT = Time(max_times[a])
+        astroT.format = "mjd"
+        mjd_now = astroT.value
+
+        if partial and expInEpoch[a] > 2:
             idxs = exp_idxs[a]
             done_count = Design.select(Design.design_id)\
                                .join(DesignToStatus)\
@@ -268,6 +274,10 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
             N = expInEpoch[r]
         else:
             N = 1
+
+        astroT = Time(max_times[r])
+        astroT.format = "mjd"
+        mjd_now = astroT.value
 
         epoch_done = checker[modes[r]].epoch(r=r1_epoch[r], b=b1_epoch[r],
                                              N=N, partial=partial)
@@ -359,7 +369,7 @@ if __name__ == "__main__":
     report = args.report
     partial = args.partial
 
-    if partial:
+    if partial and since < 16:
         # longer than our longest night, but only 1 night's worth
         since = 16
 
