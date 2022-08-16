@@ -456,12 +456,13 @@ def designDetails(design):
 
     c2Query = [c for c in c2Query if "ops_" not in c["carton"]]
     targets = [c["target"] for c in c2Query]
-    version_pk = c2Query[0]["version_pk"]
+    versions = np.unique([c["version_pk"] for c in c2Query])
+    versions = list(versions)
 
     cartonQuery = Carton.select(Carton.carton)\
                         .join(c2t)\
                         .where(c2t.target_pk << targets,
-                               Carton.version_pk == version_pk)\
+                               Carton.version_pk << versions)\
                         .dicts()
 
     CompStatus = opsdb.CompletionStatus
