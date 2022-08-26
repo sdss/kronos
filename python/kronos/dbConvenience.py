@@ -365,8 +365,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     if includeCustom:
         manualVersion = targetdb.Version.get(plan="manual")
-        designs = designs.where((dbField.version == dbVersion |
-                                 dbField.version == manualVersion))
+        designs = designs.where(((dbField.version == dbVersion) |
+                                 (dbField.version == manualVersion)))
     else:
         designs = designs.where(dbField.version == dbVersion)
 

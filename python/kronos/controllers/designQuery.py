@@ -36,6 +36,7 @@ async def designDetail():
     pa_start = 0
     pa_end = 360
     includeCustom = True
+    limit = 100
 
     if request.args:
         if "designs" in request.args:
@@ -68,7 +69,9 @@ async def designDetail():
             pa_start = 0
             pa_end = 360
         chosenCarton = request.args["carton"].strip()
-        includeCustom = request.args["includeCustom"]
+        includeCustom = "includeCustom" in request.args
+    else:
+        limit = 10
 
     cartons = await wrapBlocking(cartonLabels)
 
@@ -104,7 +107,8 @@ async def designDetail():
                                  orderby=orderby,
                                  instrument=instrument,
                                  design_ids=design_ids,
-                                 includeCustom=includeCustom)
+                                 includeCustom=includeCustom,
+                                 limit=limit)
     if instrument == "BOSS":
         oinstrument = "APOGEE"
     else:
@@ -122,7 +126,8 @@ async def designDetail():
         "instrument": instrument,
         "oinstrument": oinstrument,
         "orderby": orderby,
-        "design_ids": design_ids
+        "design_ids": design_ids,
+        "includeCustom": includeCustom
     })
 
     return await render_template("designQuery.html", **templateDict)
