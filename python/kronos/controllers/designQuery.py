@@ -35,6 +35,7 @@ async def designDetail():
 
     pa_start = 0
     pa_end = 360
+    includeCustom = True
 
     if request.args:
         if "designs" in request.args:
@@ -67,6 +68,7 @@ async def designDetail():
             pa_start = 0
             pa_end = 360
         chosenCarton = request.args["carton"].strip()
+        includeCustom = request.args["includeCustom"]
 
     cartons = await wrapBlocking(cartonLabels)
 
@@ -101,7 +103,8 @@ async def designDetail():
                                  pa_range=pa_range,
                                  orderby=orderby,
                                  instrument=instrument,
-                                 design_ids=design_ids)
+                                 design_ids=design_ids,
+                                 includeCustom=includeCustom)
     if instrument == "BOSS":
         oinstrument = "APOGEE"
     else:
