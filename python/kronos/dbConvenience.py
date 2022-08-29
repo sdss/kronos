@@ -331,7 +331,7 @@ def getConfigurations(design_id=None):
 
 def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                 limit=100, pa_range=None, instrument="BOSS", orderby=None,
-                design_ids=[]):
+                design_ids=[], includeCustom=True):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -360,9 +360,15 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                       .switch(dbDesign)\
                       .join(Assign, on=(dbDesign.design_id == Assign.design_id))\
                       .where(dbField.observatory == obs,
-                             Assign.instrument_pk == qInst.pk,
-                             dbField.version == dbVersion)\
+                             Assign.instrument_pk == qInst.pk)\
                       .limit(limit)
+
+    if includeCustom:
+        manualVersion = targetdb.Version.get(plan="manual")
+        designs = designs.where(((dbField.version == dbVersion) |
+                                 (dbField.version == manualVersion)))
+    else:
+        designs = designs.where(dbField.version == dbVersion)
 
     designs = designs.group_by(compStatus.label, dbDesign.design_id,
                                dbField.field_id, dbField.racen,
