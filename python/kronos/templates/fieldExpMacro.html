@@ -31,7 +31,7 @@
     </table>
 {% endmacro %}
 
-{% macro epochSNtable(epochSN) %}
+{% macro epochSNtable(epochSN, done_status) %}
     <table class="table" id="expTable" style="height: 300px; overflow-y:scroll; display:block;">
       <thead>
         <tr>
@@ -44,7 +44,11 @@
       </thead>
       <tbody>
     {% for e in epochSN|sort(attribute="mjd", reverse=True) %}
-        <tr>
+      {% if loop.index0 == 0 and not done_status %}
+        <tr style="border-style: solid; border-color: rgba(0, 160, 0, 0.6);">
+      {% else %}
+        <tr style="background-color: rgba(0, 160, 0, 0.6);">
+      {% endif %}
           <td class="text-center">{{e.label}}</td>
           <td class="text-center">{{e.mjd}}</td>
           <td class="text-center">{{"%.1f" % e.AP}}</td>

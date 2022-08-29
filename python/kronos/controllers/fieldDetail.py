@@ -9,6 +9,8 @@ from peewee import DoesNotExist
 
 from quart import request, render_template, Blueprint
 
+from sdssdb.peewee.sdss5db import opsdb
+
 from kronos import wrapBlocking
 from kronos.dbConvenience import getField, fieldIdToPks
 from kronos.scheduler import Scheduler
@@ -24,7 +26,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
     # designs.sort()
 
     if len(designs) == 0:
-        return []
+        return [], None
 
     # assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
     first = np.min(designs)
@@ -71,7 +73,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
                     out["AP"] += mjds[mjd]["AP"]
         epoch_sn.append(out)
 
-    return epoch_sn
+    return epoch_sn, last
 
 
 @fieldDetail_page.route('/fieldDetail.html', methods=['GET', 'POST'])
@@ -116,11 +118,19 @@ async def fieldDetail():
         return await render_template('404.html'), 404
 
     errors = list()
+    last_design = None
     try:
-        epochSN = designsToEpoch(**field)
+        epochSN, last_design = designsToEpoch(**field)
     except AssertionError:
         epochSN = list()
         errors.append("Designs observed out of order, no epochs for you")
+
+    d2s = opsdb.DesignToStatus
+    status = opsdb.CompletionStatus
+
+    last_status = await wrapBlocking(d2s.select(status.label)
+                                        .join(status)
+                                        .where, d2s.design_id == last_design)
 
     # kronos scheduler
     scheduler = await wrapBlocking(Scheduler)
@@ -206,6 +216,7 @@ async def fieldDetail():
         "start_idx": start_idx,
         "errorMsg": errors,
         "epochSN": epochSN,
+        "done_status": last_status == "done",
         **field
     })
 
