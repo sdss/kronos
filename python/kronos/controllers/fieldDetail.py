@@ -73,7 +73,13 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
                     out["AP"] += mjds[mjd]["AP"]
         epoch_sn.append(out)
 
-    return epoch_sn, last
+    if len(epoch_sn) > 0:
+        # find last design of last epoch
+        last_design = first + expCount[len(epoch_sn) - 1] - 1
+    else:
+        last_design = None
+
+    return epoch_sn, last_design
 
 
 @fieldDetail_page.route('/fieldDetail.html', methods=['GET', 'POST'])
@@ -128,9 +134,15 @@ async def fieldDetail():
     d2s = opsdb.DesignToStatus
     status = opsdb.CompletionStatus
 
-    last_status = await wrapBlocking(d2s.select(status.label)
-                                        .join(status)
-                                        .where, d2s.design_id == last_design)
+    if last_design:
+        last_status = await wrapBlocking(d2s.select(status.label)
+                                            .join(status)
+                                            .where(d2s.design_id == last_design)
+                                            .get)
+
+        last_status = last_status.status.label
+    else:
+        last_status = "not started"
 
     # kronos scheduler
     scheduler = await wrapBlocking(Scheduler)
@@ -216,7 +228,7 @@ async def fieldDetail():
         "start_idx": start_idx,
         "errorMsg": errors,
         "epochSN": epochSN,
-        "done_status": last_status == "done",
+        "done_status": last_status,
         **field
     })
 

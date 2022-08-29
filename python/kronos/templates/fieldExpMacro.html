@@ -44,8 +44,10 @@
       </thead>
       <tbody>
     {% for e in epochSN|sort(attribute="mjd", reverse=True) %}
-      {% if loop.index0 == 0 and not done_status %}
+      {% if loop.index0 == 0 and done_status == 'started' %}
         <tr style="border-style: solid; border-color: rgba(0, 160, 0, 0.6);">
+      {% elif loop.index0 == 0 and done_status == 'not started' %}
+        <tr style="border-style: solid; border-color: rgba(173, 49, 49, 0.6);">
       {% else %}
         <tr style="background-color: rgba(0, 160, 0, 0.6);">
       {% endif %}
