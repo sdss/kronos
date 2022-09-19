@@ -11,7 +11,7 @@ from quart import request, render_template, Blueprint
 
 from sdssdb.peewee.sdss5db import opsdb
 
-from kronos import wrapBlocking, observatory
+from kronos import wrapBlocking
 from kronos.dbConvenience import getField, fieldIdToPks
 from kronos.scheduler import Scheduler
 
@@ -50,13 +50,6 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
         # and slices that don't exist will just be empty! love python
         epochs.append(epoch_designs)
 
-    if observatory == "LCO":
-        r_camera = "r2"
-        b_camera = "b2"
-    else:
-        r_camera = r_camera
-        b_camera = b_camera
-
     epoch_sn = list()
     for des, length in zip(epochs, cadence_max_length):
         if len(des) == 0:
@@ -75,8 +68,8 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
         for mjds in theseDesigns:
             for mjd in mjds:
                 if mjd >= start:
-                    out["r_camera"] += mjds[mjd][r_camera]
-                    out["b_camera"] += mjds[mjd][b_camera]
+                    out["r_camera"] += mjds[mjd]["r_camera"]
+                    out["b_camera"] += mjds[mjd]["b_camera"]
                     out["AP"] += mjds[mjd]["AP"]
         epoch_sn.append(out)
 
