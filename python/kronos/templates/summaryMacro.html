@@ -5,8 +5,8 @@
         <tr>
           <th class="text-center">Design</th>
           <th class="text-center">AP</th>
-          <th class="text-center">r1</th>
-          <th class="text-center">b1</th>
+          <th class="text-center">r</th>
+          <th class="text-center">b</th>
           <th class="text-center">status</th>
           <th></th>
           <th></th>
@@ -17,8 +17,8 @@
         <tr>
           <td class="text-center">&Sigma;</td>
           <td class="text-center"><b>{{"%.1f" % field.AP}}</b></td>
-          <td class="text-center"><b>{{"%.2f" % field.r1}}</b></td>
-          <td class="text-center"><b>{{"%.2f" % field.b1}}</b></td>
+          <td class="text-center"><b>{{"%.2f" % field.r_camera}}</b></td>
+          <td class="text-center"><b>{{"%.2f" % field.b_camera}}</b></td>
           <td></td>
           <td></td>
           <td></td>
@@ -28,8 +28,8 @@
         <tr>
           <td class="text-center"><a href="/designDetail.html?designID={{d.design_id}}">{{d.design_id}}</a></td>
           <td class="text-center">{{"%.1f" % d.AP}}</td>
-          <td class="text-center">{{"%.2f" % d.r1}}</td>
-          <td class="text-center">{{"%.2f" % d.b1}}</td>
+          <td class="text-center">{{"%.2f" % d.r_camera}}</td>
+          <td class="text-center">{{"%.2f" % d.b_camera}}</td>
           <td><span id="{{d.design_id}}-status">{{d.status}}</span></td>
           <td>
             <button type="button" class="btn btn-primary btn-man" onclick="changeStatus({{d.design_id}}, 'done', {{mjd}})" disabled>Mark complete</button>

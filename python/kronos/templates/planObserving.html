@@ -243,10 +243,10 @@
             let trow = expTable.rows[j];
             if(parseInt(trow.id) == exp.pk){
               if(trow.cells[3].innerHTML == "--"){
-                trow.cells[3].innerHTML = exp.b1;
+                trow.cells[3].innerHTML = exp.b_camera;
               }
               if(trow.cells[4].innerHTML == "--"){
-                trow.cells[4].innerHTML = exp.r1;
+                trow.cells[4].innerHTML = exp.r_camera;
               }
             }
           };
@@ -258,14 +258,14 @@
             let design = row.insertCell(0);
             let time = row.insertCell(1);
             let ap = row.insertCell(2);
-            let b1 = row.insertCell(3);
-            let r1 = row.insertCell(4);
+            let b_camera = row.insertCell(3);
+            let r_camera = row.insertCell(4);
 
             design.innerHTML = "<a href='designDetail.html?designID=" + exp.design + "'>" + exp.design + "</a>";
             time.innerHTML = exp.timeStamp;
             ap.innerHTML = exp.AP;
-            b1.innerHTML = exp.b1;
-            r1.innerHTML = exp.r1;
+            b_camera.innerHTML = exp.b_camera;
+            r_camera.innerHTML = exp.r_camera;
           }
         };
       });

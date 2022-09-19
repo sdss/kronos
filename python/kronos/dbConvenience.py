@@ -13,20 +13,27 @@ from kronos.scheduler import design_time
 
 boss_threshold = 0.2
 
+if observatory == "LCO":
+    r_camera = "r2"
+    b_camera = "b2"
+else:
+    r_camera = "r1"
+    b_camera = "b1"
+
 
 def sn_dict():
     # we're abusing the ddict default_factory
-    return {"r1": 0, "b1": 0, "AP": 0}
+    return {"r_camera": 0, "b_camera": 0, "AP": 0}
 
 
 def fields_dict():
     # we're abusing the ddict default_factory
-    return {"field_id": 0, "r1": 0, "b1": 0, "AP": 0, "designs": list()}
+    return {"field_id": 0, "r_camera": 0, "b_camera": 0, "AP": 0, "designs": list()}
 
 
 def getRecentExps(mjd):
-    r1_db = opsdb.Camera.get(label="r1")
-    b1_db = opsdb.Camera.get(label="b1")
+    r1_db = opsdb.Camera.get(label=r_camera)
+    b1_db = opsdb.Camera.get(label=b_camera)
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
 
@@ -44,24 +51,24 @@ def getRecentExps(mjd):
                        exp.exposure_flavor == db_flavor,
                        cfg.design_id.is_null(False)).dicts()
 
-    exp_dicts = {e["pk"]: {"pk": e["pk"], "r1": "--", "b1": "--", "AP": "--"} for e in exps}
+    exp_dicts = {e["pk"]: {"pk": e["pk"], "r_camera": "--", "b_camera": "--", "AP": "--"} for e in exps}
     exp_list = list()
 
     for e in exps:
         # exp_dict = {"pk": int(e.pk),
         #             "design": 0,
         #             "timeStamp": "",
-        #             "r1": "--",
-        #             "b1": "--",
+        #             r_camera: "--",
+        #             b_camera: "--",
         #             "AP": "--"}
         exp_dicts[e["pk"]]["design"] = int(e["design"])
         exp_dicts[e["pk"]]["exposure_no"] = int(e["exposure_no"])
         exp_dicts[e["pk"]]["timeStamp"] = e["start_time"].strftime("%H:%M:%S")
         # for f in e.CameraFrames:
         if e["camera"] == r1_db.pk and e["sn2"] is not None:
-            exp_dicts[e["pk"]]["r1"] = f"{e['sn2']:.2f}"
+            exp_dicts[e["pk"]]["r_camera"] = f"{e['sn2']:.2f}"
         if e["camera"] == b1_db.pk and e["sn2"] is not None:
-            exp_dicts[e["pk"]]["b1"] = f"{e['sn2']:.2f}"
+            exp_dicts[e["pk"]]["b_camera"] = f"{e['sn2']:.2f}"
         if e["camera"] == ap_db.pk and e["sn2"] is not None:
             exp_dicts[e["pk"]]["AP"] = f"{e['sn2']:.1f}"
     for e in exp_dicts:
@@ -180,8 +187,8 @@ def getField(field_pk):
        in the blocking call so that's taken care of
     """
 
-    r1_db = opsdb.Camera.get(label="r1")
-    b1_db = opsdb.Camera.get(label="b1")
+    r1_db = opsdb.Camera.get(label=r_camera)
+    b1_db = opsdb.Camera.get(label=b_camera)
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbField = targetdb.Field
@@ -204,8 +211,8 @@ def getField(field_pk):
     for e in exp_query:
         exp_dict = {"design": 0,
                     "timeStamp": "",
-                    "r1": 0,
-                    "b1": 0,
+                    "r_camera": 0,
+                    "b_camera": 0,
                     "AP": 0}
         exp_dict["design"] = int(e.configuration.design.design_id)
         exp_dict["exposure_no"] = int(e.exposure_no)
@@ -213,11 +220,11 @@ def getField(field_pk):
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
-                exp_dict["r1"] = f.sn2
-                mjd_design[exp_dict["design"]][exp_mjd]["r1"] += f.sn2
+                exp_dict["r_camera"] = f.sn2
+                mjd_design[exp_dict["design"]][exp_mjd]["r_camera"] += f.sn2
             if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
-                exp_dict["b1"] = f.sn2
-                mjd_design[exp_dict["design"]][exp_mjd]["b1"] += f.sn2
+                exp_dict["b_camera"] = f.sn2
+                mjd_design[exp_dict["design"]][exp_mjd]["b_camera"] += f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
                 mjd_design[exp_dict["design"]][exp_mjd]["AP"] += f.ql_sn2
@@ -228,16 +235,16 @@ def getField(field_pk):
     for d, eps in exps.items():
         sums[d] = dict()
 
-        r1_sum = sum([e["r1"] for e in eps])
+        r1_sum = sum([e["r_camera"] for e in eps])
         if r1_sum > 0:
-            sums[d]["r1"] = f"{r1_sum:.2f}"
+            sums[d]["r_camera"] = f"{r1_sum:.2f}"
         else:
-            sums[d]["r1"] = "--"
-        b1_sum = sum([e["b1"] for e in eps])
+            sums[d]["r_camera"] = "--"
+        b1_sum = sum([e["b_camera"] for e in eps])
         if b1_sum > 0:
-            sums[d]["b1"] = f"{b1_sum:.2f}"
+            sums[d]["b_camera"] = f"{b1_sum:.2f}"
         else:
-            sums[d]["b1"] = "--"
+            sums[d]["b_camera"] = "--"
         AP_sum = sum([e["AP"] for e in eps])
         if AP_sum > 0:
             sums[d]["AP"] = f"{AP_sum:.1f}"
@@ -246,7 +253,7 @@ def getField(field_pk):
 
         for edict in eps:
             # nonZero = False
-            for k in ["r1", "b1", "AP"]:
+            for k in ["r_camera", "b_camera", "AP"]:
                 if edict[k] > 0:
                     # nonZero = True
                     edict[k] = f"{edict[k]:.1f}"
@@ -268,8 +275,8 @@ def getField(field_pk):
 
 
 def getConfigurations(design_id=None):
-    r1_db = opsdb.Camera.get(label="r1")
-    b1_db = opsdb.Camera.get(label="b1")
+    r1_db = opsdb.Camera.get(label=r_camera)
+    b1_db = opsdb.Camera.get(label=b_camera)
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
     dbDesign = targetdb.Design
@@ -284,17 +291,17 @@ def getConfigurations(design_id=None):
     exps = defaultdict(list)
     for e in exp_query:
         exp_dict = {"timeStamp": "",
-                    "r1": 0,
-                    "b1": 0,
+                    "r_camera": 0,
+                    "b_camera": 0,
                     "AP": 0}
         conf_id = int(e.configuration.configuration_id)
         exp_dict["timeStamp"] = e.start_time.strftime("%Y-%m-%d")
         # exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
-                exp_dict["r1"] = f.sn2
+                exp_dict["r_camera"] = f.sn2
             if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
-                exp_dict["b1"] = f.sn2
+                exp_dict["b_camera"] = f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
         exps[conf_id].append(exp_dict)
@@ -305,18 +312,18 @@ def getConfigurations(design_id=None):
         conf["timeStamp"] = eps[-1]["timeStamp"]
         conf["id"] = c
         nonZero = False
-        r1_sum = sum([e["r1"] for e in eps])
+        r1_sum = sum([e["r_camera"] for e in eps])
         if r1_sum > 0:
             nonZero = True
-            conf["r1"] = f"{r1_sum:.2f}"
+            conf["r_camera"] = f"{r1_sum:.2f}"
         else:
-            conf["r1"] = "--"
-        b1_sum = sum([e["b1"] for e in eps])
+            conf["r_camera"] = "--"
+        b1_sum = sum([e["b_camera"] for e in eps])
         if b1_sum > 0:
             nonZero = True
-            conf["b1"] = f"{b1_sum:.2f}"
+            conf["b_camera"] = f"{b1_sum:.2f}"
         else:
-            conf["b1"] = "--"
+            conf["b_camera"] = "--"
         AP_sum = sum([e["AP"] for e in eps])
         if AP_sum > 0:
             nonZero = True
@@ -590,8 +597,8 @@ def getFieldsTimeRange(start, end):
     start and end are datetime objects
     """
 
-    r1_db = opsdb.Camera.get(label="r1")
-    b1_db = opsdb.Camera.get(label="b1")
+    r1_db = opsdb.Camera.get(label=r_camera)
+    b1_db = opsdb.Camera.get(label=b_camera)
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)
 
@@ -627,9 +634,9 @@ def getFieldsTimeRange(start, end):
     for e in exp_query.dicts():
         design_id = e["design_id"]
         if e["camera"] == r1_db.pk and e["sn2"] is not None and e["sn2"] > boss_threshold:
-            designs[design_id]["r1"] += e["sn2"]
+            designs[design_id]["r_camera"] += e["sn2"]
         if e["camera"] == b1_db.pk and e["sn2"] is not None and e["sn2"] > boss_threshold:
-            designs[design_id]["b1"] += e["sn2"]
+            designs[design_id]["b_camera"] += e["sn2"]
         if e["camera"] == ap_db.pk and e["sn2"] is not None and e["sn2"] > 100:
             designs[design_id]["AP"] += e["sn2"]
         designs[design_id]["field_id"] = e["field_id"]
@@ -644,8 +651,8 @@ def getFieldsTimeRange(start, end):
         fields[pk]["field_id"] = d["field_id"]
         fields[pk]["cadence"] = d["cadence"]
         fields[pk]["designs"].append(d)
-        fields[pk]["r1"] += d["r1"]
-        fields[pk]["b1"] += d["b1"]
+        fields[pk]["r_camera"] += d["r_camera"]
+        fields[pk]["b_camera"] += d["b_camera"]
         fields[pk]["AP"] += d["AP"]
 
     return fields

@@ -6,8 +6,8 @@
           <th class="text-center">Design</th>
           <th class="text-center">Exp No.</th>
           <th class="text-center">AP</th>
-          <th class="text-center">b1</th>
-          <th class="text-center">r1</th>
+          <th class="text-center">b</th>
+          <th class="text-center">r</th>
         </tr>
       </thead>
       <tbody style="height: 200px; overflow-y:scroll; display:block;">
@@ -16,8 +16,8 @@
           <td class="text-center"><a href="designDetail.html?designID={{e.design}}">{{e.design}}</a></td>
           <td class="text-center hover-table"><span class="hover-field">{{e.timeStamp}}</span>{{e.exposure_no}}</td>
           <td class="text-center">{{e.AP}}</td>
-          <td class="text-center">{{e.b1}}</td>
-          <td class="text-center">{{e.r1}}</td>
+          <td class="text-center">{{e.b_camera}}</td>
+          <td class="text-center">{{e.r_camera}}</td>
         </tr>
     {% endfor %}
         </tbody>

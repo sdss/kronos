@@ -13,12 +13,19 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version
+from kronos import rs_version, observatory
 from kronos.designCompletion import checker
 
+if observatory == "LCO":
+    r_camera = "r2"
+    b_camera = "b2"
+else:
+    r_camera = r_camera
+    b_camera = b_camera
 
-r1_db = opsdb.Camera.get(label="r1").pk
-b1_db = opsdb.Camera.get(label="b1").pk
+
+r1_db = opsdb.Camera.get(label=r_camera).pk
+b1_db = opsdb.Camera.get(label=b_camera).pk
 ap_db = opsdb.Camera.get(label="APOGEE").pk
 Design = targetdb.Design
 Conf = opsdb.Configuration
