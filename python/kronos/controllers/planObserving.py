@@ -144,6 +144,20 @@ async def planObserving():
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
+    winter = startTime.month < 3
+    if not winter and startTime.month < 4:
+        winter = startTime.day < 20
+    fall = startTime.month > 10
+    if not fall and startTime.month > 9:
+        fall = startTime.day > 22
+
+    if winter or fall:
+        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
+                                                                        mjd,
+                                                                        twilight=-12)
+        startTime = Time(mjd_evening_twilight, format="mjd").datetime
+        endTime = Time(mjd_morning_twilight, format="mjd").datetime
+
     evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
 
     evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
@@ -162,18 +176,6 @@ async def planObserving():
         # clear the queue
         await wrapBlocking(opsdb.Queue.flushQueue)
         # redo the whole queue, but check if it's during the night
-
-        # winter = evening_twilight_utc.month < 3
-        # if not winter and evening_twilight_utc.month < 4:
-        #     winter = evening_twilight_utc.day < 20
-        # fall = evening_twilight_utc.month > 10
-        # if not fall and evening_twilight_utc.month > 9:
-        #     fall = evening_twilight_utc.day > 22
-
-        # if winter or fall:
-        #     # either before 3/20 or after 9/22
-        #     mjd_evening_twilight = evening_twilight_dark
-        #     mjd_morning_twilight = morning_twilight_dark
 
         if mjd_now > mjd_evening_twilight:
             start_mjd = mjd_now

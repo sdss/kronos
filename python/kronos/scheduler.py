@@ -745,11 +745,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjd : numeric
             the MJD day we want bounds for
         """
-        mjd_evening_twilight = self.scheduler.evening_twilight(mjd=mjd, twilight=-12)
-        mjd_morning_twilight = self.scheduler.morning_twilight(mjd=mjd, twilight=-12)
+        mjd_evening_twilight = self.scheduler.evening_twilight(mjd=mjd, twilight=-15)
+        mjd_morning_twilight = self.scheduler.morning_twilight(mjd=mjd, twilight=-15)
         return mjd_evening_twilight, mjd_morning_twilight
 
-    def getNightBounds(self, mjd):
+    def getNightBounds(self, mjd, twilight=-8):
         """find the beginning and end of the night
 
         Parameters:
@@ -758,8 +758,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         mjd : numeric
             the MJD day we want bounds for
         """
-        mjd_evening_twilight = self.scheduler.evening_twilight(mjd, twilight=-8)
-        mjd_morning_twilight = self.scheduler.morning_twilight(mjd, twilight=-8)
+        mjd_evening_twilight = self.scheduler.evening_twilight(mjd, twilight=twilight)
+        mjd_morning_twilight = self.scheduler.morning_twilight(mjd, twilight=twilight)
         return mjd_evening_twilight, mjd_morning_twilight
 
     async def rescheduleAfterField(self, field_pk, night_end):
@@ -792,7 +792,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         return self.scheduler.skybrightness(mjd) - switch
 
     def nightSchedule(self, night_start, night_end):
-        fudge = 40 / 60 / 24
+        fudge = 25 / 60 / 24
         bright_start = bool(self.scheduler.skybrightness(night_start + fudge) >= 0.35)
         bright_end = bool(self.scheduler.skybrightness(night_end - fudge) >= 0.35)
         dark_start = bool(self.scheduler.skybrightness(night_start + fudge) < 0.35)
