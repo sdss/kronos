@@ -20,8 +20,8 @@ if observatory == "LCO":
     r_camera = "r2"
     b_camera = "b2"
 else:
-    r_camera = r_camera
-    b_camera = b_camera
+    r_camera = "r1"
+    b_camera = "b1"
 
 
 r1_db = opsdb.Camera.get(label=r_camera).pk
