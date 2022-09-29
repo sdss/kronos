@@ -95,7 +95,7 @@ async def fieldDetail():
         pks, cads = await wrapBlocking(fieldIdToPks, fieldID)
         if len(pks) == 0:
             return await render_template('404.html'), 404
-        elif len(pks) == 2:
+        elif len(pks) > 1:
             templateDict.update({"fieldID": fieldID, "pks": pks, "cadences": cads})
             return await render_template('disambiguateFieldID.html', **templateDict)
         else:

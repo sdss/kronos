@@ -174,10 +174,13 @@ def resetField(fieldPk):
 
 
 def fieldIdToPks(field_id):
+    dbVersion = targetdb.Version.get(plan=rs_version)
+
     Field = targetdb.Field
     Cad = targetdb.Cadence
     field = Field.select(Field.pk, Cad.label).join(Cad)\
-                 .where(Field.field_id == field_id).tuples()
+                 .where(Field.field_id == field_id,
+                        Field.version == dbVersion).tuples()
 
     return [f[0] for f in field], [f[1] for f in field]
 

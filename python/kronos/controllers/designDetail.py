@@ -84,7 +84,8 @@ async def designDetail():
              "dec": field.deccen,
              "observatory": field.observatory.label,
              "cadence": field.cadence.label,
-             "fieldID": field.field_id}
+             "fieldID": field.field_id,
+             "field_pk": this_d2f.field_pk}
 
     configurations = await wrapBlocking(getConfigurations, designID)
 
