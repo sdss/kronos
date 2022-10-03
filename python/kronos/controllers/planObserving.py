@@ -144,12 +144,12 @@ async def planObserving():
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
-    winter = startTime.month < 3
-    if not winter and startTime.month < 4:
-        winter = startTime.day < 20
-    fall = startTime.month > 10
-    if not fall and startTime.month > 9:
-        fall = startTime.day > 22
+    winter = startTime.month <= 3
+    if not winter and startTime.month <= 4:
+        winter = startTime.day <= 20
+    fall = startTime.month >= 10
+    if not fall and startTime.month >= 9:
+        fall = startTime.day >= 22
 
     if winter or fall:
         mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
