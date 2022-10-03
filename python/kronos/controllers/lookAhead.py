@@ -12,7 +12,7 @@ from kronos import wrapBlocking
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue, offsetNow
 from kronos.dbConvenience import getRecentExps
-from kronos.controllers.planObserving import mjdToHMstr, getAlmanac, backupDicts
+from kronos.controllers.planObserving import mjdToHMstr, getAlmanac, backupDicts, summmerOrWinter
 
 from . import getTemplateDictBase
 
@@ -41,15 +41,24 @@ async def lookAhead():
 
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
-    fields, errors = await scheduler.schedNoQueue(mjd_evening_twilight, mjd_morning_twilight)
-
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
+
+    winter = summmerOrWinter(startTime)
+
+    if winter:
+        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
+                                                                        mjd,
+                                                                        twilight=-12)
+        startTime = Time(mjd_evening_twilight, format="mjd").datetime
+        endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
     evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
 
     evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
     morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
+
+    fields, errors = await scheduler.schedNoQueue(mjd_evening_twilight, mjd_morning_twilight)
 
     schedule = {
             "queriedMJD": mjd,

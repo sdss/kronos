@@ -57,6 +57,18 @@ def getAlmanac(mjd):
     return twilights, headers, other
 
 
+def summmerOrWinter(startTime):
+    """Check whether we're between equinoxes, "winter"
+       Expects datetime object to check
+    """
+    winter = startTime.month <= 3
+    if not winter and startTime.month <= 4:
+        winter = startTime.day <= 20
+    fall = startTime.month >= 10
+    if not fall and startTime.month >= 9:
+        fall = startTime.day >= 22
+    return winter or fall
+
 async def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
     for field_id, coord, field_pk in zip(*args):
@@ -144,14 +156,9 @@ async def planObserving():
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
-    winter = startTime.month <= 3
-    if not winter and startTime.month <= 4:
-        winter = startTime.day <= 20
-    fall = startTime.month >= 10
-    if not fall and startTime.month >= 9:
-        fall = startTime.day >= 22
+    winter = summmerOrWinter(startTime)
 
-    if winter or fall:
+    if winter:
         mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
                                                                         mjd,
                                                                         twilight=-12)
