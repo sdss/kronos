@@ -158,7 +158,12 @@ async def planObserving():
 
     north_winter = summmerOrWinter(startTime)
 
-    long_night = north_winter or (not north_winter and observatory == "LCO")
+    if north_winter and observatory == "APO":
+        long_night = True
+    elif not north_winter and observatory == "LCO":
+        long_night = True
+    else:
+        long_night = False
 
     if long_night:
         mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
