@@ -9,7 +9,7 @@ from astropy.time import Time
 
 from sdssdb.peewee.sdss5db import opsdb
 
-from kronos import wrapBlocking
+from kronos import wrapBlocking, observatory
 from kronos.vizWindow import ApogeeViz
 from kronos.scheduler import Scheduler, Design, Queue, offsetNow
 from kronos.site import Site
@@ -156,9 +156,11 @@ async def planObserving():
     startTime = Time(mjd_evening_twilight, format="mjd").datetime
     endTime = Time(mjd_morning_twilight, format="mjd").datetime
 
-    winter = summmerOrWinter(startTime)
+    north_winter = summmerOrWinter(startTime)
 
-    if winter:
+    long_night = north_winter or (not north_winter and observatory == "LCO")
+
+    if long_night:
         mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
                                                                         mjd,
                                                                         twilight=-12)
