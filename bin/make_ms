@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+import argparse
+import os
+import sys
+
+import numpy as np
+from astropy.time import Time
+
+from kronos.scheduler import Scheduler
+
+
+def lst_to_hhmm(lst):
+    hour = int(lst // 1)
+    minute = int((lst - hour) * 60 // 1)
+    return f"{hour:02d}:{minute:02d}"
+
+
+def makeDay(mjd, scheduler=None, engineering="---"):
+    assert scheduler is not None, "Scheduler must be supplied to makeDay"
+
+    mjd_evening_twilight, mjd_morning_twilight = scheduler.getNightBounds(mjd, twilight=-12)
+
+    evening_twilight_dark, morning_twilight_dark = scheduler.getDarkBounds(mjd)
+
+    evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
+    morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
+
+    night_sched = scheduler.nightSchedule(evening_twilight_dark,
+                                          morning_twilight_dark,
+                                          return_mjds=True)
+
+    night_sched["start"] = evening_twilight_dark
+    night_sched["end"] = morning_twilight_dark
+
+    startTime = Time(night_sched["start"], format="mjd").datetime
+    endTime = Time(night_sched["end"], format="mjd").datetime
+
+    twelvedegTime = Time(mjd_evening_twilight, format="mjd").datetime
+
+    if night_sched["Bright End"]:
+        # bright_start = Time(night_sched["Bright Start"], format="mjd").datetime
+        bright_end = Time(night_sched["Bright End"], format="mjd").datetime
+
+    if night_sched["Bright End"]:
+        # dark_start = Time(night_sched["Dark Start"], format="mjd").datetime
+        dark_end = Time(night_sched["Dark End"], format="mjd").datetime
+
+    # roboscheduler.scheduler.Scheduler instance
+    sched = scheduler.scheduler
+
+    lst_start = float(sched.lst(night_sched["start"]))/15
+    lst_end = float(sched.lst(night_sched["end"]))/15
+
+    lst_start = lst_to_hhmm(lst_start)
+    lst_end = lst_to_hhmm(lst_end)
+
+    aTime = Time(mjd-1, format="mjd").datetime
+
+    # day dd MON yyyy
+    day_format = aTime.strftime("%a %d %b %Y")
+    moon = sched.moon_illumination(np.median([night_sched["start"], night_sched["end"]]))
+
+    form_str = f"{day_format:18s} {mjd:5d}   {float(moon):.2f}   {int(twelvedegTime.hour):02d}:{int(twelvedegTime.minute):02d}   " +\
+               f"{int(startTime.hour):02d}:{int(startTime.minute):02d}  " +\
+               f"{int(endTime.hour):02d}:{int(endTime.minute):02d}    " +\
+               f"{lst_start}  {lst_end}   {engineering:5s}   "
+
+    dark_time = (night_sched["Dark End"] - night_sched["Dark Start"]) * 24
+    bright_time = (night_sched["Bright End"] - night_sched["Bright Start"]) * 24
+    extra_time = (evening_twilight_dark - mjd_evening_twilight) * 24
+
+    if bright_time and not dark_time:
+        time_sum = f"bright ({bright_time+extra_time:4.1f} h, w/ {extra_time:3.1f} h for 12 deg design)"
+    elif dark_time and not bright_time:
+        time_sum = f"dark ({dark_time:4.1f} h) plus {extra_time:3.1f} h for 12 deg design"
+    elif night_sched["Bright Start"] < night_sched["Dark Start"]:
+        time_sum = f"bright until {bright_end.hour:02d}:{bright_end.minute:02d} ({bright_time+extra_time:4.1f} h, " +\
+                   f"w/ {extra_time:3.1f} h for 12 deg design), then dark ({dark_time:4.1f} h)"
+    elif night_sched["Dark Start"] < night_sched["Bright Start"]:
+        time_sum = f"dark until {dark_end.hour:02d}:{dark_end.minute:02d} ({dark_time:4.1f} h), " +\
+                   f"then bright ({bright_time+extra_time:4.1f} h, w/ {extra_time:3.1f} h for 12 deg design)"
+    else:
+        assert False, "you broke something"
+
+    form_str += time_sum + "\n"
+
+    return form_str
+
+
+def sched_engineering(mjds, sched):
+    illum = sched.moon_illumination(mjds)
+
+    full = np.where(illum > 0.98)[0]
+
+    days = list()
+    nights = list()
+    last_night = 0
+    for i in full:
+        m = int(mjds[i])
+        if m - last_night < 5:
+            continue
+        aTime = Time(m-1, format="mjd").datetime
+        if aTime.isoweekday() == 6:
+            nights.append(m-1)
+            days.append(m-2)
+            last_night = m
+        elif aTime.isoweekday() == 7:
+            nights.append(m+1)
+            days.append(m+2)
+            last_night = m
+        # elif aTime.isoweekday() == 5:
+        #     nights.append(m)
+        #     days.append(m-1)
+        #     last_night = m
+        elif aTime.isoweekday() == 1:
+            nights.append(m)
+            days.append(m+1)
+            last_night = m
+        else:
+            nights.append(m)
+            days.append(m-1)
+            last_night = m
+
+    return days, nights
+
+
+def makeSched(start, stop, outDir="", name="MS"):
+    scheduler = Scheduler(live=False)
+
+    # roboscheduler.scheduler.Scheduler instance
+    sched = scheduler.scheduler
+
+    mjds = np.arange(start, stop, 1)
+
+    sched_str = ""
+
+    days, nights = sched_engineering(mjds, sched)
+    for m in mjds:
+        m = int(m)
+        engineering = "---"
+        if m in days:
+            engineering = "Day"
+        elif m in nights:
+            engineering = "Night"
+        # if sched.Observer.moon_illumination(m) > 0.98:
+        #     engineering = "Day"
+        #     if m - last_engineering > 3:
+        #         last_engineering = m
+        #         engineering = "Night"
+
+        sched_str += makeDay(m, scheduler=scheduler, engineering=engineering)
+
+    fname = os.path.join(outDir, name + ".dat")
+    with open(fname, "w") as outFile:
+        print(sched_str, file=outFile)
+
+    print(f"schedule written to {fname}")
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        prog=os.path.basename(sys.argv[0]),
+        description="""create master schedule""")
+
+    parser.add_argument("-s", "--start", dest="start", type=int,
+                        required=False, help="mjd to start on",
+                        default=None)
+    parser.add_argument("-e", "--end", dest="end", type=int,
+                        required=False, help="end mjd",
+                        default=None)
+    parser.add_argument("-o", "--out", dest="out", type=str,
+                        required=False, help="output directory, default current",
+                        default="")
+    parser.add_argument("-n", "--name", dest="name", type=str,
+                        required=False, help="file name, default MS",
+                        default="MS")
+    parser.add_argument("-l", "--location", dest="location", type=str,
+                        required=False, help="which observatory",
+                        default="APO")
+
+    args = parser.parse_args()
+    start = args.start
+    end = args.end
+    outPath = args.out
+    name = args.name
+    location = args.location
+
+    os.environ["OBSERVATORY"] = location
+
+    if start is None:
+        start = int(Time(Time.now(), format="mjd").value)
+
+    if end is None:
+        end = start + 30
+
+    makeSched(start, end, outDir=outPath, name=name)
