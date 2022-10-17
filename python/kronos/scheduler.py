@@ -1,3 +1,4 @@
+import os
 import asyncio
 import datetime
 from collections import OrderedDict
@@ -11,7 +12,7 @@ from peewee import fn
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version, wrapBlocking, observatory
+from kronos import rs_version, wrapBlocking
 from kronos.site import Site
 
 if not opsdb.database.connected:
@@ -398,6 +399,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def __init__(self, live=True, **kwargs):
         self.plan = rs_version
         self.exp_nom = exp_time + overhead
+
+        observatory = os.environ["OBSERVATORY"]
 
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
                                                            exp_time=self.exp_nom)
