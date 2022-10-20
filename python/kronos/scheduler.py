@@ -160,6 +160,10 @@ class Field(object):
             alt, az = self.RS.radec2altaz(self._startTime,
                                           ra=self.ra, dec=self.dec)
             self._airmass = float(1. / np.sin(np.pi / 180. * alt))
+            if self._airmass < 0 or self._airmass > 10:
+                # vizPreview uses airmass,
+                # fields can be anywhere including below horizon
+                self._airmass = 10
         return self._airmass
 
     @property
