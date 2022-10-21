@@ -1049,7 +1049,9 @@ function generateViz(vizObj, targetDiv, backups){
             altNowTimers.pop();
         }
         d3.select(targetDiv).select("svg").remove();
-        renderCloudCam(dataset, backups);
+        if (showCloudCam){
+            renderCloudCam(dataset, backups);
+        }
         drawSVG();
     }
     drawSVG();
