@@ -1,3 +1,4 @@
+import os
 import asyncio
 import datetime
 from collections import OrderedDict
@@ -11,7 +12,7 @@ from peewee import fn
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
-from kronos import rs_version, wrapBlocking, observatory
+from kronos import rs_version, wrapBlocking
 from kronos.site import Site
 
 if not opsdb.database.connected:
@@ -159,6 +160,10 @@ class Field(object):
             alt, az = self.RS.radec2altaz(self._startTime,
                                           ra=self.ra, dec=self.dec)
             self._airmass = float(1. / np.sin(np.pi / 180. * alt))
+            if self._airmass < 0 or self._airmass > 10:
+                # vizPreview uses airmass,
+                # fields can be anywhere including below horizon
+                self._airmass = 10
         return self._airmass
 
     @property
@@ -395,14 +400,18 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     full or partial nights.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, live=True, **kwargs):
         self.plan = rs_version
         self.exp_nom = exp_time + overhead
+
+        observatory = os.environ["OBSERVATORY"]
+
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
                                                            exp_time=self.exp_nom)
 
-        # wrap blocking this is a DB call
-        self.scheduler.initdb(designbase=self.plan, fromFits=False)
+        if live:
+            # wrap blocking this is a DB call
+            self.scheduler.initdb(designbase=self.plan, fromFits=False)
 
     async def choiceFields(self, mjd, exp=12, oldPos=None):
         """return multiple fields for user to choose from
@@ -791,7 +800,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def _bright_dark_function(self, mjd=None, switch=0.35):
         return self.scheduler.skybrightness(mjd) - switch
 
-    def nightSchedule(self, night_start, night_end):
+    def nightSchedule(self, night_start, night_end, return_mjds=False):
         fudge = 25 / 60 / 24
         bright_start = bool(self.scheduler.skybrightness(night_start + fudge) >= 0.35)
         bright_end = bool(self.scheduler.skybrightness(night_end - fudge) >= 0.35)
@@ -804,12 +813,22 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         night_sched["Dark Start"] = None
         night_sched["Dark End"] = None
 
+        mjd_sched = dict()
+        mjd_sched["Bright Start"] = 0
+        mjd_sched["Bright End"] = 0
+        mjd_sched["Dark Start"] = 0
+        mjd_sched["Dark End"] = 0
+
         if bright_start and bright_end:
             night_sched["Bright Start"] = Time(night_start, format="mjd").datetime
+            mjd_sched["Bright Start"] = night_start
             night_sched["Bright End"] = Time(night_end, format="mjd").datetime
+            mjd_sched["Bright End"] = night_end
         elif dark_start and dark_end:
             night_sched["Dark Start"] = Time(night_start, format="mjd").datetime
+            mjd_sched["Dark Start"] = night_start
             night_sched["Dark End"] = Time(night_end, format="mjd").datetime
+            mjd_sched["Dark End"] = night_end
             night_sched.move_to_end("Bright Start")
             night_sched.move_to_end("Bright End")
         elif dark_start and bright_end:
@@ -817,9 +836,13 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                     night_start + fudge, night_end - fudge,
                                     args=0.35)
             night_sched["Bright Start"] = Time(split, format="mjd").datetime
+            mjd_sched["Bright Start"] = split
             night_sched["Bright End"] = Time(night_end, format="mjd").datetime
+            mjd_sched["Bright End"] = night_end
             night_sched["Dark Start"] = Time(night_start, format="mjd").datetime
+            mjd_sched["Dark Start"] = night_start
             night_sched["Dark End"] = Time(split, format="mjd").datetime
+            mjd_sched["Dark End"] = split
             night_sched.move_to_end("Bright Start")
             night_sched.move_to_end("Bright End")
         elif bright_start and dark_end:
@@ -827,9 +850,15 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                     night_start + fudge, night_end - fudge,
                                     args=0.35)
             night_sched["Bright Start"] = Time(night_start, format="mjd").datetime
+            mjd_sched["Bright Start"] = night_start
             night_sched["Bright End"] = Time(split, format="mjd").datetime
+            mjd_sched["Bright End"] = split
             night_sched["Dark Start"] = Time(split, format="mjd").datetime
+            mjd_sched["Dark Start"] = split
             night_sched["Dark End"] = Time(night_end, format="mjd").datetime
+            mjd_sched["Dark End"] = night_end
+        if return_mjds:
+            return mjd_sched
         return night_sched
 
 
