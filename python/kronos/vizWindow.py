@@ -41,10 +41,15 @@ def datetime2dict(datetimeObj):
     """
     if datetimeObj is None:
         return None
+
+    if datetimeObj.day > 25:
+        adjust = -1
+    else:
+        adjust = 0
     return {
         "year": datetimeObj.year,
         "month": datetimeObj.month,
-        "day": datetimeObj.day,
+        "day": datetimeObj.day + adjust,
         "hour": datetimeObj.hour,
         "minute": datetimeObj.minute,
         "second": datetimeObj.second,
@@ -181,6 +186,7 @@ class VizRow(object):
             utRange = list(utRange) # for potential item assignment, ranges are tuples
         if haRange is not None:
             haRange = list(haRange)
+
         # handle cases where viz window is partially or fully outside time scale
         if utRange is None or (utRange[0] > self.timeScale.range[1]) or (utRange[1] < self.timeScale.range[0]):
             # if utRange is not None:
