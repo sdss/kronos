@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # import time
 from datetime import datetime
 from datetime import timedelta
@@ -17,10 +19,6 @@ else:
     r_camera = "r1"
     b_camera = "b1"
 
-# r1_db = opsdb.Camera.get(label=r_camera).pk
-# b1_db = opsdb.Camera.get(label=b_camera).pk
-# ap_db = opsdb.Camera.get(label="APOGEE").pk
-
 dbVersion = targetdb.Version.get(plan=rs_version)
 
 Design = targetdb.Design
@@ -31,9 +29,6 @@ d2f = targetdb.DesignToField
 Cadence = targetdb.Cadence
 d2s = opsdb.DesignToStatus
 CompStatus = opsdb.CompletionStatus
-# Quickred = opsdb.Quickred
-# CameraFrame = opsdb.CameraFrame
-# Camera = opsdb.Camera
 
 
 def sendEmail(msgBody, recipients):
@@ -110,17 +105,18 @@ def queryDB():
                      .join(d2s, on=(d2s.design_id == d2f.design_id))\
                      .join(CompStatus)\
                      .where(Conf.design_id << list(design_ids),
-                            Field.version == dbVersion).dicts()
+                            Field.version == dbVersion)\
+                     .order_by(d2s.mjd).dicts()
 
-    summary = f"{'field_id':8s}, {'design_id':8s}, {'status':8s} \n"
+    summary = f"{'field_id':10s}, {'design_id':10s}, {'status':10s} \n"
     for des in last_night:
         epochs = Conf.select(Conf.epoch)\
                      .where(Conf.design_id == des['design'])
         mjds = [f"{e.epoch - 2400000.5:8.2f}" for e in epochs]
         status = des['status']
-        formatted = f"{des['field_id']:7d}, {des['design']:8d}: {des['status']:9s} {des['cadence']}\n"
+        formatted = f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:10s} {des['cadence']} {des['mjd']:8.2f}\n"
         if len(mjds) > 1:
-            formatted += f"    {des['mjd']:8.2f}, hist: "
+            formatted += f"        hist: "
             formatted += ", ".join(mjds) + "\n"
         summary += formatted
 
@@ -128,8 +124,8 @@ def queryDB():
 
 
 if __name__ == "__main__":
-    print(queryDB())
-    print(scrapeLog())
+    # print(queryDB())
+    # print(scrapeLog())
 
     msgBody = queryDB() + "\n" + scrapeLog()
 
