@@ -171,10 +171,10 @@ class Field(object):
         if self._priority is None:
             try:
                 cadence = self.RS.cadencelist.cadences[self.cadence]
+                mjd_past = self.RS.fields.hist[self.pk]
             except KeyError:
                 self._priority = 0
                 return self._priority
-            mjd_past = self.RS.fields.hist[self.pk]
 
             expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
             if expCount[-1] == len(mjd_past):
