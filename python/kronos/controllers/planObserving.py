@@ -2,6 +2,7 @@
 import asyncio
 from collections import OrderedDict
 import datetime
+from logging import getLogger
 
 from quart import request, render_template, Blueprint
 
@@ -91,6 +92,7 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
 
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
 async def planObserving():
+    logger = getLogger('quart.app')
     mjd = round(offsetNow())
 
     now = Time.now()
@@ -115,9 +117,13 @@ async def planObserving():
     if "rmField" in form:
         rmField = int(form["rmField"])
         await wrapBlocking(opsdb.Queue.rm, rmField)
+        msg = f'field pk {rmField} removed from queue'
+        logger.info()
 
     elif "flush" in form:
         await wrapBlocking(opsdb.Queue.flushQueue)
+        msg = f'queue flushed'
+        logger.info()
 
     elif "redo" in form:
         redo = True

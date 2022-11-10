@@ -8,6 +8,7 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 import scipy.optimize as optimize
 from peewee import fn
+from logging import getLogger
 
 import roboscheduler.scheduler
 from sdssdb.peewee.sdss5db import opsdb, targetdb
@@ -24,6 +25,7 @@ exp_time = 15. / 60. / 24.
 design_time = exp_time + overhead
 d2f = targetdb.DesignToField
 
+logger = getLogger('quart.app')
 
 def offsetNow():
     now = Time.now()
@@ -524,6 +526,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                       .where(Field.pk == oldField).scalar)
 
         oldPositions = await wrapBlocking(Queue.rm, oldField, returnPositions=True)
+        msg = f'field pk {oldField} removed from queue to be replaced'
+        logger.info(msg)
 
         dbVersion = await wrapBlocking(Version.get, plan=self.plan)
         designs = await wrapBlocking(Design.select()
@@ -538,6 +542,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         for d in designs:
             await asyncio.sleep(0)
             await wrapBlocking(Queue.insertInQueue, d, queuePos, mjd=mjd)
+            msg = f'{d} inserted in queue at {queuePos} for mjd {mjd:.2f}'
+            logger.info(msg)
             queuePos += 1
             mjd += self.exp_nom
 
@@ -601,6 +607,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 await asyncio.sleep(0)
                 mjd_plan = now + i * self.exp_nom
                 await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+                msg = f'{d} appended to queue, mjd plan: {mjd_plan:.2f}'
+                logger.info(msg)
 
             inQueue.append(field_pk)
 
@@ -772,17 +780,17 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         return mjd_evening_twilight, mjd_morning_twilight
 
     async def rescheduleAfterField(self, field_pk, night_end):
-        """reschedule the rest of the night starting with fieldID
+        """reschedule the rest of the night starting with field_pk
 
         Parameters:
         ----------
 
-        fieldID : integer
+        field_pk : integer
             the field to begin rescheduling the night at
 
         night_end : float
             the MJD of the end of the night; the beginning will be the
-            scheduled mjd of fieldID
+            scheduled mjd of field_pk
         """
         queue = await wrapBlocking(Queue)
 
@@ -794,6 +802,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         for f in rm_fields:
             await asyncio.sleep(0)
             await wrapBlocking(opsdb.Queue.rm, f.pk)
+            msg = f'field {f.fieldID} removed from queue'
+            logger.info(msg)
 
         return await self.queueFromSched(mjd_prev, night_end)
 

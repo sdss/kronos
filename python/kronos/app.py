@@ -2,7 +2,7 @@
 
 import sys
 from inspect import getmembers, isfunction
-from logging import getLogger, ERROR
+from logging import getLogger, ERROR, FileHandler, DEBUG, Formatter
 
 import psycopg2
 from quart import Quart, render_template, jsonify, request
@@ -10,6 +10,15 @@ from quart import Quart, render_template, jsonify, request
 from kronos import jinja_filters
 
 getLogger('quart.serving').setLevel(ERROR)
+
+logger = getLogger('quart.app')
+logger.setLevel(DEBUG)
+# create file handler which logs even debug messages
+fh = FileHandler('/data/logs/kronos/current.log')
+fh.setLevel(DEBUG)
+formatter = Formatter('%(asctime)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+logger.addHandler(fh)
 
 app = Quart(__name__)
 
