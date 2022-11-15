@@ -114,6 +114,8 @@ def queryDB():
                      .where(Conf.design_id == des['design'])
         mjds = [f"{e.epoch - 2400000.5:8.2f}" for e in epochs]
         status = des['status']
+        if des["mjd"] is None:
+            des["mjd"] = 99999.9
         formatted = f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:10s} {des['cadence']} {des['mjd']:8.2f}\n"
         if len(mjds) > 1:
             formatted += f"        hist: "
