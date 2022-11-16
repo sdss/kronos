@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+{% from 'queueMacro.html' import obsQueueEditable %}
+{% extends "layout.html" %}
+{% set active_page = "lookAhead" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Look Ahead</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+  {#  ${header("Plan Observing")} #}
+{% endblock head %}
+
+{% block body %}
+<!-- <script src="../static/js/core/d3.min.js"></script>
+<script src="../static/js/core/chroma.js"></script>
+<script src="../static/js/vizWindow-v1.5.0.js"></script>
+<script src="../static/js/drawFields-v1.0.0.js"></script> -->
+<script src="../static/js/formControls.js"></script>
+
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card card-nav-tabs" style="width: 25rem;">
+      <div class="card-header card-header-danger">
+        <h3> Obs Queue </h3>
+        <div class="queue-row">
+          <span class="queue-head">
+            <a class="queue-field">Field</a>
+            <a class="queue-design">Design</a>
+          </span>
+      </div>
+      </div>
+      {% if queue|length > 0 %}
+        <ul class="list-group" style="height: 350px; overflow: auto">
+          {{obsQueueEditable(queue)}}
+        </ul>
+      {% else %}
+        <div style="height: 350px; overflow: auto; text-align: center; line-height: 350px;">
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+
+<style>
+    .xaxis text {
+      font: 12px sans-serif;
+    }
+
+    .xaxis line,
+    .xaxis path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+</style>
+
+<script>
+
+</script>
+{% endblock body %}

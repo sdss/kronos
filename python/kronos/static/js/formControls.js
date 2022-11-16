@@ -348,3 +348,24 @@ function insertWhere(design_id){
         confirmInsertDesign(design_id, pos);
     }
 }
+
+function moveField(field_pk, direction){
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/altarQueue.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "field_pk";
+    hiddenField.value = field_pk;
+    form.appendChild(hiddenField);
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "direction";
+    hiddenField.value = direction;
+    form.appendChild(hiddenField);
+
+    document.body.appendChild(form);
+    form.submit();
+}

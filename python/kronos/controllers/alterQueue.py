@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import asyncio
-import datetime
-
 from quart import request, render_template, Blueprint
 
 from astropy.time import Time
@@ -9,8 +6,8 @@ import numpy as np
 
 from sdssdb.peewee.sdss5db import opsdb
 
-from kronos import wrapBlocking, observatory
-from kronos.scheduler import Scheduler, Design, Queue, offsetNow
+from kronos import wrapBlocking
+from kronos.scheduler import Queue
 
 from . import getTemplateDictBase
 
@@ -18,10 +15,14 @@ alterQueue_page = Blueprint("alterQueue_page", __name__)
 
 
 def moveDesigns(positions, designs):
-    # do stuff
+    Q = opsdb.Queue
+    for p, d in zip(positions, designs):
+        pos = Q.get(position=p)
+        pos.design_id = d
+        pos.save()
 
 
-@alterQueue_page.route('/alterQueue.html', methods=['GET', 'POST'])
+@alterQueue_page.route('/alterQueue.html', methods=['POST'])
 async def alterQueue():
     form = await request.form
 
@@ -33,8 +34,8 @@ async def alterQueue():
     up = direction > 0
 
     queue = await wrapBlocking(Queue)
-    pks = [d.field_pk for d in queue.designs]
-    design_ids = np.array([d.design_id for d in queue.designs])
+    pks = [d.field_pk for d in queue.designs if d.position > 0]
+    design_ids = np.array([d.design_id for d in queue.designs if d.position > 0])
 
     to_move = np.where([pk == field_pk for p in pks])
 
@@ -78,13 +79,21 @@ async def alterQueue():
 
     queue = await wrapBlocking(Queue)
 
+    last_pk = 0
+    color = "cyan"
+    next_color = "navy"
     for d in queue.designs:
         d.priority = queue.fieldDict[d.field_pk].priority
+        if d.field_pk != last_pk:
+            d.fieldColor = color
+            color = next_color
+            next_color = d.fieldColor
 
     templateDict.update({
         "mjd": mjd,
         "queue": queue.designs,
-        "errorMsg": errors
+        "errorMsg": errors,
+        "pk_to_color": pk_to_color
     })
 
     # findAndConvertDatetimes(templateDict)

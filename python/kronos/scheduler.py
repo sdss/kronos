@@ -86,6 +86,8 @@ class Design(object):
         self.position = position
         self.priority = 0
         self._priorityColor = None
+        # make life easier in alterQueue
+        self.fieldColor = "cyan"
 
         cadence = self.field.cadence
 
