@@ -18,7 +18,7 @@
 <script src="../static/js/core/d3.min.js"></script>
 <script src="../static/js/core/chroma.js"></script>
 <script src="../static/js/vizWindow-v1.5.0.js"></script>
-<script src="../static/js/formControls.js"></script>
+<script src="../static/js/formControls-v1.5.0.js"></script>
 
 {%if observatory == 'APO'%}
 <script src="../static/js/drawFields-v1.0.0.js"></script>
@@ -30,7 +30,11 @@
   <div class="col-lg-4">
     <div class="card card-nav-tabs" id="queue" style="width: 25rem;">
       <div class="card-header card-header-danger">
-        <h3> Obs Queue </h3>
+        <h3> Obs Queue
+        <a href="/alterQueue.html">
+          <button  class="btn btn-default" type="button">Rearrange Queue?</button>
+        </a>
+        </h3> 
         <div class="queue-row">
           <span class="queue-head">
             <a class="queue-field">Field</a>

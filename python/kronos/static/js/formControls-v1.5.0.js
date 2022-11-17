@@ -352,7 +352,7 @@ function insertWhere(design_id){
 function moveField(field_pk, direction){
     var form = document.createElement('form');
     form.method = "post";
-    form.action = "/altarQueue.html";
+    form.action = "/alterQueue.html";
 
     var hiddenField = document.createElement('input');
     hiddenField.type = 'hidden';

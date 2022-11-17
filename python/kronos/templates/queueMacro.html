@@ -59,18 +59,19 @@
         <li class="list-group-item">
             <div class="queue-row">
                 {% if des.position > 0%}
-                <span class="queue-item queue-hover" style="backgroundColor: {{des.fieldColor}}">
+                <span class="queue-item" 
+                      style="background-color: {{des.fieldColor}}">
                     <a class="queue-field field-{{des.fieldID}}">{{des.fieldID}}</a>
                     <a class="queue-design">{{des.designID}}</a>
                 </span>
                 <span class="queue-obsmode">{{des.obs_mode}}</span>
                 <span class="queue-buttons">
                     <a class="button-container">
-                        <i class="material-icons ArrowUpward" onclick="moveField({{des.field_pk}}, 1)">hahahaha</i>
+                        <i class="material-icons refresh-field" onclick="moveField({{des.field_pk}}, 1)">arrow_upward</i>
                         <span class="button-hover-field">move up</span>
                     </a>
                     <a class="button-container">
-                        <i class="material-icons ArrowDownward" onclick="moveField({{des.field_pk}}, -1)">lololol</i>
+                        <i class="material-icons refresh-field" onclick="moveField({{des.field_pk}}, -1)">arrow_downward</i>
                         <span class="button-hover-field">move down</span>
                     </a>
                 </span>

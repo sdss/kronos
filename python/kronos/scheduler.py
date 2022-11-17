@@ -193,6 +193,8 @@ class Field(object):
 
             partial_epoch = exp_epoch > 0
 
+            self.startTime
+
             delta_curr = self._startTime - mjd_prev
 
             dhi = cadence.delta_max[epoch_idx]

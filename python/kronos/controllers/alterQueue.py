@@ -22,54 +22,60 @@ def moveDesigns(positions, designs):
         pos.save()
 
 
-@alterQueue_page.route('/alterQueue.html', methods=['POST'])
+@alterQueue_page.route('/alterQueue.html', methods=['GET', 'POST'])
 async def alterQueue():
     form = await request.form
+
+    errors = list()
+
+    field_pk = None
 
     if "field_pk" in form:
         # expect direction to be positive or negative integer
         field_pk = int(form["field_pk"])
         direction = int(form["direction"])
 
-    up = direction > 0
+        up = direction > 0
 
-    queue = await wrapBlocking(Queue)
-    pks = [d.field_pk for d in queue.designs if d.position > 0]
-    design_ids = np.array([d.design_id for d in queue.designs if d.position > 0])
+        queue = await wrapBlocking(Queue)
+        pks = [d.field_pk for d in queue.designs if d.position > 0]
+        field_ids = np.array([d.fieldID for d in queue.designs if d.position > 0])
+        design_ids = np.array([d.designID for d in queue.designs if d.position > 0])
 
-    to_move = np.where([pk == field_pk for p in pks])
+        to_move = np.where([p == field_pk for p in pks])
 
-    errors = list()
+        move_id = field_ids[to_move][0]
 
-    if 0 in to_move[0] and up:
-        errors.append("cannot move field up, already first")
-    elif len(pks) - 1 in to_move[0] and not up:
-        errors.append("cannot move field down, already already last")
+        if 0 in to_move[0] and up:
+            errors.append(f"cannot move {move_id} up, already first")
+        elif len(pks) - 1 in to_move[0] and not up:
+            errors.append(f"cannot move {move_id} down, already already last")
 
-    if len(errors) == 0:
+    if len(errors) == 0 and field_pk is not None:
         if up:
             replace_field = pks[np.min(to_move[0]) - 1]
         else:
             replace_field = pks[np.max(to_move[0]) + 1]
 
-        move_by = len(replace_field)
-        replace_pos = np.where([pk == replace_field for p in pks])
+        replace_pos = np.where([p == replace_field for p in pks])
+        move_by = len(replace_pos[0])
 
         if up:
             n_moving = len(to_move[0])
-            upPos = [pos + move_by for pos in to_move]
+            # +1 since we've successfully 0-indexed here but queue starts at 1
+            upPos = [pos - move_by + 1 for pos in to_move[0]]
             upDesigns = design_ids[to_move]
             await wrapBlocking(moveDesigns, upPos, upDesigns)
-            downPos = [pos - n_moving for pos in replace_pos]
-            downDesigns = design_ids[replace_field]
+            downPos = [pos + n_moving + 1 for pos in replace_pos[0]]
+            downDesigns = design_ids[replace_pos]
             await wrapBlocking(moveDesigns, downPos, downDesigns)
         else:
             n_moving = len(to_move[0])
-            upPos = [pos - move_by for pos in to_move]
+            upPos = [pos + move_by + 1 for pos in to_move[0]]
             upDesigns = design_ids[to_move]
             await wrapBlocking(moveDesigns, upPos, upDesigns)
-            downPos = [pos + n_moving for pos in replace_pos]
-            downDesigns = design_ids[replace_field]
+            downPos = [pos - n_moving + 1 for pos in replace_pos[0]]
+            downDesigns = design_ids[replace_pos]
             await wrapBlocking(moveDesigns, downPos, downDesigns)
 
     templateDict = getTemplateDictBase()
@@ -81,19 +87,19 @@ async def alterQueue():
 
     last_pk = 0
     color = "cyan"
-    next_color = "navy"
+    next_color = "LightSteelBlue"
     for d in queue.designs:
         d.priority = queue.fieldDict[d.field_pk].priority
         if d.field_pk != last_pk:
-            d.fieldColor = color
+            last_pk = d.field_pk
+            old_color = color
             color = next_color
-            next_color = d.fieldColor
+            next_color = old_color
+        d.fieldColor = color
 
     templateDict.update({
-        "mjd": mjd,
         "queue": queue.designs,
-        "errorMsg": errors,
-        "pk_to_color": pk_to_color
+        "errorMsg": errors
     })
 
     # findAndConvertDatetimes(templateDict)

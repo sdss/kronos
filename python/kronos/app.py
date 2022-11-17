@@ -70,6 +70,7 @@ from kronos.controllers.designQuery import designQuery_page
 from kronos.controllers.mjdSummary import mjdSummary_page
 from kronos.controllers.fieldViz import fieldViz_page
 from kronos.controllers.dbEndPoints import dbEndPoints
+from kronos.controllers.alterQueue import alterQueue_page
 
 from kronos.controllers import getTemplateDictBase
 
@@ -83,6 +84,7 @@ app.register_blueprint(designQuery_page)
 app.register_blueprint(mjdSummary_page)
 app.register_blueprint(fieldViz_page)
 app.register_blueprint(dbEndPoints)
+app.register_blueprint(alterQueue_page)
 
 
 @app.errorhandler(404)
