@@ -569,88 +569,15 @@ function generateViz(vizObj, targetDiv, backups){
                 });
         }
 
-        function makeTextButton(){
+        function makeLegend(){
             var y = 0;
             var height = layout.margin-layout.rowBuffer;
-            var width = 200;
-            var x = width + layout.margin+2*layout.rowBuffer+layout.tableWidth;
-            svg
-                .append("rect")
-                .attr("class", "textRect")
-                .attr("fill", "steelblue")
-                .attr("stroke", "black")
-                .attr("opacity", 0.7)
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("y", y)
-                .attr("x", x)
-                .attr("width", width)
-                .attr("height", height);
-            svg
-                .append("text")
-                .text("Selected Plate Text")
-                .attr("class", "toggleTxt")
-                .attr("y", (y + 0.65*height))
-                .attr("x", x + 0.5*width)
-                .attr("font-family", "sans-serif")
-                .attr("font-size", "14px")
-                .attr("font-weight", "bold")
-                .attr("fill", "white")
-                // .attr("stroke", "black")
-                .attr("stroke-width", "1px")
-                .attr("text-anchor", "middle");
-            svg // overlay an invisible rectangle for clicking
-                .append("rect")
-                .attr("class", "invisRect")
-                .attr("fill", "white")
-                .attr("opacity", 0)
-                .attr("rx", 5)
-                .attr("ry", 5)
-                .attr("y", y)
-                .attr("x", x)
-                .attr("width", width)
-                .attr("height", height)
-                .on("mouseover", function(){
-                    d3.select(this)
-                        .attr("cursor", "pointer");
-                    svg.select(".textRect")
-                        .attr("fill", "orange");
-                })
-                .on("mouseout", function(){
-                    d3.select(this)
-                        .attr("cursor", "none");
-                    svg.select(".textRect")
-                        .attr("fill", "steelblue");
-                })
-                .on("click", function(){
-                    var nSelected = 0;
-                    var selectedPlates = "--Selected Plates--<br>(Cart) --> Plate ID:<br>";
-                    svgRow
-                        .each(function(row, i){
-                            if(row.selected){
-                                var cart = row.tableItems[0];
-                                if (cart == null){
-                                    cart = "None";
-                                }
-                                selectedPlates += " (" + cart + ") --> " + row.tableItems[1] + "<br>"
-                                // get a range of x's at which to print "special!"
-                            }
-                        });
-                    var newWindow = window.open("", "Selected Plates", "width=500, height=500, left=400, top=400");
-                    newWindow.document.write(selectedPlates);
-                    // alert(selectedPlates);
-                });
-        }
-
-        function makeClickFilterButton(){
-            var y = 0;
-            var height = layout.margin-layout.rowBuffer;
-            var x = layout.margin+2*layout.rowBuffer+layout.tableWidth;
-            var width = 200;
+            var x = layout.margin+2*layout.rowBuffer+layout.tableWidth+250;
+            var width = 150;
             svg
                 .append("rect")
                 .attr("class", "toggleRect")
-                .attr("fill", "steelblue")
+                .attr("fill", "green")
                 .attr("stroke", "black")
                 .attr("opacity", 0.7)
                 .attr("rx", 5)
@@ -661,7 +588,7 @@ function generateViz(vizObj, targetDiv, backups){
                 .attr("height", height);
             svg
                 .append("text")
-                .text("Compress/Expand")
+                .text("Scheduled")
                 .attr("class", "toggleTxt")
                 .attr("y", (y + 0.65*height))
                 .attr("x", x + 0.5*width)
@@ -672,70 +599,58 @@ function generateViz(vizObj, targetDiv, backups){
                 // .attr("stroke", "black")
                 .attr("stroke-width", "1px")
                 .attr("text-anchor", "middle");
-            svg // overlay an invisible rectangle for clicking
+            x += 200;
+            svg
                 .append("rect")
-                .attr("class", "invisRect")
-                .attr("fill", "white")
-                .attr("opacity", 0)
+                .attr("class", "toggleRect")
+                .attr("fill", "blue")
+                .attr("stroke", "black")
+                .attr("opacity", 0.5)
                 .attr("rx", 5)
                 .attr("ry", 5)
                 .attr("y", y)
                 .attr("x", x)
                 .attr("width", width)
-                .attr("height", height)
-                .on("mouseover", function(){
-                    d3.select(this)
-                        .attr("cursor", "pointer");
-                    svg.select(".toggleRect")
-                        .attr("fill", "orange");
-                })
-                .on("mouseout", function(){
-                    d3.select(this)
-                        .attr("cursor", "none");
-                    svg.select(".toggleRect")
-                        .attr("fill", "steelblue");
-                })
-                .on("click", function(){
-                    layout.showOnlySelected = !layout.showOnlySelected;
-                    // next adjust all y rows!
-                    layout.setRows(dataset);
-
-                    svg.transition()
-                        .duration(duration)
-                        .attr("height", layout.totalHeight)
-
-                    svgRow.each(function(row, i){
-                        // dont touch header row
-                        if(i==0){
-                            return;
-                        }
-                        d3.select(this)
-                            .selectAll("rect")
-                            .transition()
-                            .duration(duration)
-                            .attr("y", row.yValue);
-
-                        d3.select(this)
-                            .selectAll("text")
-                            .transition()
-                            .duration(duration)
-                            .attr("y", row.yValue+0.5*layout.rowHeight);
-
-                        d3.select(this)
-                            .transition()
-                            .duration(duration)
-                            .attr("opacity", function(){
-                                if(layout.showOnlySelected && !row.selected){
-                                    return "0"
-                                }
-                                else{
-                                    return "1"
-                                }
-                            });
-                    });
-                    makeTickOverlays();
-                    makeTickNow();
-                });
+                .attr("height", height);
+            svg
+                .append("text")
+                .text("Airmass < 1.4")
+                .attr("class", "toggleTxt")
+                .attr("y", (y + 0.65*height))
+                .attr("x", x + 0.5*width)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("font-weight", "bold")
+                .attr("fill", "white")
+                // .attr("stroke", "black")
+                .attr("stroke-width", "1px")
+                .attr("text-anchor", "middle");
+            x += 200;
+            svg
+                .append("rect")
+                .attr("class", "toggleRect")
+                .attr("fill", "orange")
+                .attr("stroke", "black")
+                .attr("opacity", 0.5)
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("y", y)
+                .attr("x", x)
+                .attr("width", width)
+                .attr("height", height);
+            svg
+                .append("text")
+                .text("Airmass < 2")
+                .attr("class", "toggleTxt")
+                .attr("y", (y + 0.65*height))
+                .attr("x", x + 0.5*width)
+                .attr("font-family", "sans-serif")
+                .attr("font-size", "14px")
+                .attr("font-weight", "bold")
+                .attr("fill", "white")
+                // .attr("stroke", "black")
+                .attr("stroke-width", "1px")
+                .attr("text-anchor", "middle");
         }
 
         svgRow
@@ -1022,13 +937,7 @@ function generateViz(vizObj, targetDiv, backups){
         makeAxis();
         makeTickNow();
         makeToggleScaleButton();
-        // if (vizObj.setCurrent){
-        //     makeToggleScaleButton();
-        // }
-        // else {
-        //     makeClickFilterButton();
-        //     makeTextButton();
-        // }
+        makeLegend();
         // start tick timer
         // first clear any potentially existing one
         if(tickNowTimer != null){
