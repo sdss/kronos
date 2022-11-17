@@ -302,7 +302,7 @@
         let w = qlcnvs.width;
         let o = 20;
 
-        let x_scale = (w-o)/46;
+        let x_scale = (w-o)/43;
         let y_scale = (h-o)/35;
 
         qlctx.rect(0, 0, w, h);
@@ -319,7 +319,7 @@
         qlctx.fillStyle = "black";
         qlctx.textAlign = "left";
         qlctx.textBaseline = "top";
-        qlctx.fillText('30', 0, y_scale*5);
+        qlctx.fillText('33', 0, y_scale*2);
 
         qlctx.font = '14px serif';
         qlctx.fillStyle = "black";
@@ -331,7 +331,7 @@
         qlctx.fillStyle = "black";
         qlctx.textAlign = "left";
         qlctx.textBaseline = "top";
-        qlctx.fillText('46', w-14, h-o);
+        qlctx.fillText('43', w-14, h-o);
 
         qlctx.font = '14px serif';
         qlctx.fillStyle = "green";
@@ -376,8 +376,17 @@
         qlctx.stroke();
 
         qlctx.beginPath();
+        qlctx.moveTo(o, h-33*y_scale-o);
+        qlctx.lineTo(w, h-33*y_scale-o);
+        qlctx.setLineDash([5, 15]);
+        qlctx.lineWidth = 2;
+        qlctx.strokeStyle = "green";
+        qlctx.stroke();
+
+        qlctx.beginPath();
+        qlctx.setLineDash([]);
         qlctx.moveTo(o, h-o);
-        qlctx.lineTo(w, h-30*y_scale-o);
+        qlctx.lineTo(w, h-33*y_scale-o);
         qlctx.lineWidth = 2;
         qlctx.strokeStyle = "green";
         qlctx.stroke();
