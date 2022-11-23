@@ -2,10 +2,11 @@ import datetime
 import itertools
 
 import numpy
-from astropy.time import Time
+from astropy.time import Time, TimeDelta
 import astropy.units as u
 from astropy.coordinates import SkyCoord, AltAz, get_sun, get_moon
 from astroplan import Observer
+from astroplan import TargetNeverUpWarning
 
 from kronos import observatory
 
@@ -120,10 +121,15 @@ class Site(object):
         """
         time = Time(mjd_evening_twilight, format="mjd")
         moon_pos = cls.site.moon_altaz(time)
+        bak_delta = TimeDelta(1, format="jd")
         if moon_pos.alt.value > 0:
             moon_set = cls.site.moon_set_time(time, which="next")
             moon_rise = cls.site.moon_rise_time(time, which="previous")
         else:
             moon_set = cls.site.moon_set_time(time, which="next")
+            if moon_set.mask:
+                moon_set = cls.site.moon_set_time(time+bak_delta, which="next")
             moon_rise = cls.site.moon_rise_time(time, which="next")
+            if moon_rise.mask:
+                moon_rise = cls.site.moon_set_time(time+bak_delta, which="next")
         return moon_rise.datetime, moon_set.datetime
