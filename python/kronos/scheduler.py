@@ -18,8 +18,8 @@ from kronos.site import Site
 if not opsdb.database.connected:
     print("!! CONFIG !!", opsdb.database._config)
 
-overhead = 1.5 / 60. / 24.  # days, keep in mjd
-change_field = 5. / 60. / 24.
+overhead = 5 / 60. / 24.  # days, keep in mjd
+change_field = 7. / 60. / 24.
 exp_time = 15. / 60. / 24.
 design_time = exp_time + overhead
 d2f = targetdb.DesignToField
