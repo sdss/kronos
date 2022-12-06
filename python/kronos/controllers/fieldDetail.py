@@ -21,7 +21,7 @@ fieldDetail_page = Blueprint("fieldDetail_page", __name__)
 
 
 def designsToEpoch(mjd_design=None, cadence_nexps=None,
-                   cadence_max_length=None, **kwargs):
+                   cadence_max_length=None, boss_count=None, **kwargs):
     designs = [d for d in mjd_design.keys()]
     # designs.sort()
 
@@ -64,7 +64,12 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
             mjds.extend([k for k in d.keys()])
         end = np.max(mjds)
         start = end - length
-        out = {"label": label, "mjd": int(end), "r_camera": 0, "b_camera": 0, "AP": 0}
+        epoch_count = 0
+        for d_id in des:
+            epoch_count += boss_count.get(d_id, 0)
+        out = {"label": label, "mjd": int(end),
+               "r_camera": 0, "b_camera": 0, "AP": 0,
+               "epoch_count": epoch_count}
         for mjds in theseDesigns:
             for mjd in mjds:
                 if mjd >= start:

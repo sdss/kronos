@@ -209,6 +209,7 @@ def getField(field_pk):
                      .where(dbField.pk == field_pk,
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
+    boss_count = defaultdict(lambda: 0)
     exps = defaultdict(list)
     mjd_design = defaultdict(lambda: defaultdict(sn_dict))
     for e in exp_query:
@@ -226,6 +227,7 @@ def getField(field_pk):
                 exp_dict["r_camera"] = f.sn2
                 mjd_design[exp_dict["design"]][exp_mjd]["r_camera"] += f.sn2
             if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
+                boss_count[exp_dict["design"]] += 1
                 exp_dict["b_camera"] = f.sn2
                 mjd_design[exp_dict["design"]][exp_mjd]["b_camera"] += f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
@@ -235,24 +237,24 @@ def getField(field_pk):
 
     sums = dict()
     exps_export = defaultdict(list)
-    for d, eps in exps.items():
-        sums[d] = dict()
+    for mjd, eps in exps.items():
+        sums[mjd] = dict()
 
         r1_sum = sum([e["r_camera"] for e in eps])
         if r1_sum > 0:
-            sums[d]["r_camera"] = f"{r1_sum:.2f}"
+            sums[mjd]["r_camera"] = f"{r1_sum:.2f}"
         else:
-            sums[d]["r_camera"] = "--"
+            sums[mjd]["r_camera"] = "--"
         b1_sum = sum([e["b_camera"] for e in eps])
         if b1_sum > 0:
-            sums[d]["b_camera"] = f"{b1_sum:.2f}"
+            sums[mjd]["b_camera"] = f"{b1_sum:.2f}"
         else:
-            sums[d]["b_camera"] = "--"
+            sums[mjd]["b_camera"] = "--"
         AP_sum = sum([e["AP"] for e in eps])
         if AP_sum > 0:
-            sums[d]["AP"] = f"{AP_sum:.1f}"
+            sums[mjd]["AP"] = f"{AP_sum:.1f}"
         else:
-            sums[d]["AP"] = "--"
+            sums[mjd]["AP"] = "--"
 
         for edict in eps:
             # nonZero = False
@@ -263,7 +265,7 @@ def getField(field_pk):
                 else:
                     edict[k] = "--"
             # if nonZero:
-            exps_export[d].append(edict)
+            exps_export[mjd].append(edict)
 
     return {"id": field.field_id,
             "ra": field.racen,
@@ -272,6 +274,7 @@ def getField(field_pk):
             "cadence": field.cadence.label,
             "exps": exps_export,
             "sums": sums,
+            "boss_count": boss_count,
             "mjd_design": mjd_design,
             "cadence_nexps": field.cadence.nexp,
             "cadence_max_length": field.cadence.max_length}
