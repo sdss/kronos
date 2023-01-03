@@ -212,6 +212,7 @@ def getField(field_pk):
     boss_count = defaultdict(lambda: 0)
     exps = defaultdict(list)
     mjd_design = defaultdict(lambda: defaultdict(sn_dict))
+    mjd_exposure = defaultdict(list)
     for e in exp_query:
         exp_dict = {"design": 0,
                     "timeStamp": "",
@@ -224,9 +225,11 @@ def getField(field_pk):
         exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
+                mjd_exposure[exp_mjd].append(exp_dict["exposure_no"])
                 exp_dict["r_camera"] = f.sn2
                 mjd_design[exp_dict["design"]][exp_mjd]["r_camera"] += f.sn2
             if f.camera.pk == b1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
+                mjd_exposure[exp_mjd].append(exp_dict["exposure_no"])
                 boss_count[exp_dict["design"]] += 1
                 exp_dict["b_camera"] = f.sn2
                 mjd_design[exp_dict["design"]][exp_mjd]["b_camera"] += f.sn2
@@ -275,6 +278,7 @@ def getField(field_pk):
             "exps": exps_export,
             "sums": sums,
             "boss_count": boss_count,
+            "mjd_exposure": mjd_exposure,
             "mjd_design": mjd_design,
             "cadence_nexps": field.cadence.nexp,
             "cadence_max_length": field.cadence.max_length}
