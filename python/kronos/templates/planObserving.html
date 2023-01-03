@@ -219,6 +219,9 @@
         let design_args = "?designs=" + design_ids.join(", ");
         $.getJSON('/designCompletion/' + design_args, function (designs) {
           let expTable = document.getElementById("expTable");
+          if (!expTable){
+            return
+          }
           for (i=0;i<expTable.rows.length;i++) {
             let row = expTable.rows[i];
             let row_design = parseInt(row.cells[0].textContent);
