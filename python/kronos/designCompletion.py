@@ -53,14 +53,15 @@ bright_time = checkCompletion(apSN2=2025, epoch_apSN2=2025)
 dark_plane = checkCompletion(bSN2=2, epoch_bSN2=10,
                              rSN2=0, epoch_rSN2=10)
 
-dark_monit = checkCompletion(bSN2=1.5, epoch_bSN2=10,
-                             rSN2=3, epoch_rSN2=20)
+dark_monit = checkCompletion(bSN2=1.5, epoch_bSN2=8,
+                             rSN2=3, epoch_rSN2=16)
 
-dark_rm = checkCompletion(bSN2=1.5, epoch_bSN2=20,
-                          rSN2=3, epoch_rSN2=40)
+dark_rm = checkCompletion(bSN2=1.5, epoch_bSN2=16,
+                          rSN2=3, epoch_rSN2=32)
 
-dark_faint = checkCompletion(bSN2=1.5, epoch_bSN2=2.5,
-                             rSN2=3, epoch_rSN2=5)
+# don't forget this one is scaled by N exp
+dark_faint = checkCompletion(bSN2=1.5, epoch_bSN2=2,
+                             rSN2=3, epoch_rSN2=4)
 checker = {
     "bright_time": bright_time,
     "dark_plane": dark_plane,
