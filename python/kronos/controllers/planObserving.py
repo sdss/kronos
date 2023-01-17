@@ -69,6 +69,7 @@ def summmerOrWinter(startTime):
         fall = startTime.day >= 22
     return winter or fall
 
+
 async def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
     for field_id, coord, field_pk in zip(*args):
