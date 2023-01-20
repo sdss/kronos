@@ -630,7 +630,20 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             # priority_max = np.max(priorities[np.where(mjds == latest_mjd)])
 
-            now += len(designs) * self.exp_nom * airmass + change_field
+            next_change, next_brightness = self.scheduler.next_change(now)
+
+            mjd_duration += len(designs) * exp_time * airmass + change_field
+
+            if now + mjd_duration > next_change and\
+               np.abs(mjdEnd - next_change) > 30 / 60 / 24:
+                # dark fields allowed to extend past dark time
+                # start bright fields when bright time starts
+                # buffer for next_change function
+                now = next_change + 5 / 60 / 24
+            else:
+                now += mjd_duration
+
+            # now += len(designs) * exp_time * airmass + change_field
 
         tnow = datetime.datetime.now()
         tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
@@ -741,7 +754,18 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             fields.append(field_wrap)
 
-            now += mjd_duration
+            next_change, next_brightness = self.scheduler.next_change(now)
+
+            if now + mjd_duration > next_change and\
+               np.abs(mjdEnd - next_change) > 30 / 60 / 24:
+                # dark fields allowed to extend past dark time
+                # start bright fields when bright time starts
+                # buffer for next_change function
+                now = next_change + 5 / 60 / 24
+            else:
+                now += mjd_duration
+            # now += mjd_duration
+
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         fname = "lookAhead" + tstamp
 
