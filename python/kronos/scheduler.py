@@ -632,7 +632,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             next_change, next_brightness = self.scheduler.next_change(now)
 
-            mjd_duration += len(designs) * exp_time * airmass + change_field
+            mjd_duration = len(designs) * exp_time * airmass + change_field
 
             if now + mjd_duration > next_change and\
                np.abs(mjdEnd - next_change) > 30 / 60 / 24:
