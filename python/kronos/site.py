@@ -89,6 +89,17 @@ class Site(object):
         # which means relative to sunrise, "nearest" seems to work best
         t_time = cls.site.target_meridian_transit_time(time, target, which="nearest")
 
+        t_time.format = "mjd"
+        time.format = "mjd"
+
+        check = t_time - time
+        if check > 0.5:
+            days = numpy.floor(check.value)
+            t_time = t_time - datetime.timedelta(days=days)
+        if check < - 0.5:
+            days = numpy.abs(numpy.floor(check.value))
+            t_time = t_time + datetime.timedelta(days=days)
+
         return t_time
 
     @classmethod
