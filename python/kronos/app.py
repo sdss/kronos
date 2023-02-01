@@ -9,9 +9,9 @@ from quart import Quart, render_template, jsonify, request
 
 from kronos import jinja_filters
 
-getLogger('quart.serving').setLevel(ERROR)
-
 app = Quart(__name__)
+
+getLogger('quart.serving').setLevel(ERROR)
 
 print("{0}App '{1}' created.{2}".format('\033[92m', __name__, '\033[0m')) # to remove later
 
@@ -30,7 +30,7 @@ try:
     import cdecimal
     sys.modules["decimal"] = cdecimal
 except ImportError:
-    pass # no available
+    pass  # no available
 
 # -----------------------------------------------------------------------------
 # The JSON module is unable to serialize Decimal objects, which is a problem

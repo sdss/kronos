@@ -210,6 +210,14 @@ async def planObserving():
 
     schedule.update(**brightDark)
 
+    if brightDark["Dark Start"]:
+        # dark start could be None
+        if brightDark["Bright Start"] < brightDark["Dark Start"]:
+            brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
+    else:
+        brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
+        brightDark["Bright End"] = Time(mjd_morning_twilight, format="mjd").datetime
+
     for k, v in brightDark.items():
         if v is None:
             continue
@@ -242,8 +250,17 @@ async def planObserving():
 
     almanac = await wrapBlocking(getAlmanac, mjd)
 
+    last_pk = 0
+    color = "cyan"
+    next_color = "LightSteelBlue"
     for d in queue.designs:
         d.priority = queue.fieldDict[d.field_pk].priority
+        if d.field_pk != last_pk:
+            last_pk = d.field_pk
+            old_color = color
+            color = next_color
+            next_color = old_color
+        d.fieldColor = color
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
