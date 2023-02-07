@@ -78,10 +78,16 @@
 {% block body %}
 
 <script src="../static/js/autoComplete.js"></script>
-<script src="../static/js/formControls.js"></script>
+<script src="../static/js/formControls-v1.5.0.js"></script>
 
 <div class="card">
 <form autocomplete="off" action="/fieldQuery.html">
+  <div class="form-row">
+    <div class="form-group col-md-10">
+      <label for="fieldids">Field IDs (comma seperated)</label>
+      <input id="fieldids" name="fieldids" type="text" class="form-control" {% if design_ids|length > 0 %} value="{% for d in design_ids %}{{d}}, {% endfor %}"{% endif %}>
+    </div>
+  </div>
   <div class="form-row">
     <div class="form-group col-md-6">
       <label for="cadenceSelect">Cadence</label>

@@ -40,6 +40,7 @@ async def fieldDetail():
     templateDict = getTemplateDictBase()
 
     form = await request.form
+    field_ids = list()
 
     if "prioritizeField" in form:
         fieldPk = form["prioritizeField"]
@@ -73,6 +74,18 @@ async def fieldDetail():
             ra_start = 0
             ra_end = 360
 
+        if "fieldids" in request.args:
+            f_text = request.args["fieldids"]
+            if len(f_text) > 0:
+                try:
+                    if "," in f_text:
+                        field_ids = [int(d) for d in f_text.strip().split(",") if len(d)]
+                    else:
+                        field_ids = [int(f_text)]
+                except:
+                    errors.append("invalid design input")
+                    field_ids = list()
+
     if chosenCadence == "none":
         queryCadence = None
     else:
@@ -85,7 +98,8 @@ async def fieldDetail():
     fields = await wrapBlocking(fieldQuery,
                                 cadence=queryCadence,
                                 priority=dbPriority,
-                                ra_range=[ra_start, ra_end])
+                                ra_range=[ra_start, ra_end],
+                                field_ids=field_ids)
     fields.sort(key=sortFunc)
 
     templateDict.update({

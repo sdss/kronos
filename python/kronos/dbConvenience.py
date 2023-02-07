@@ -79,7 +79,8 @@ def getRecentExps(mjd):
     return exp_list
 
 
-def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
+def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100,
+               field_ids=[]):
     """query targetdb for fields matching parameters
     """
 
@@ -88,6 +89,12 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
         matchingCad = dbCad.select().where(dbCad.label.contains(cadence))
     else:
         matchingCad = dbCad.select()
+
+    if len(field_ids) > 0:
+        # override; we want these specific fields
+        cadence = None
+        priority =  None
+        ra_range = None
 
     Field = targetdb.Field
     dbVersion = targetdb.Version.get(plan=rs_version)
@@ -136,7 +143,9 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100):
             fields = fields.where((Field.racen > ra_range[0]) &
                                   (Field.racen < ra_range[1])).order_by(Field.racen)
 
-    # print(fields.sql())
+    if len(field_ids) > 0:
+        fields = fields.where(Field.field_id << field_ids)
+
     # select returns query object, we want a list
     return [f for f in fields]
 
