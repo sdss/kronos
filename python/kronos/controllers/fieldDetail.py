@@ -154,6 +154,18 @@ async def fieldDetail():
     else:
         last_status = "not started"
 
+    f2p = opsdb.FieldToPriority
+    fp = opsdb.FieldPriority
+
+    pr_query = await wrapBlocking(f2p.select(fp.label)
+                                     .join(fp)
+                                     .where(f2p.field == pk)
+                                     .get_or_none)
+    if pr_query:
+        priority = pr_query.FieldPriority.label
+    else:
+        priority = None
+
     # kronos scheduler
     scheduler = await wrapBlocking(Scheduler)
 
@@ -239,6 +251,7 @@ async def fieldDetail():
         "errorMsg": errors,
         "epochSN": epochSN,
         "done_status": last_status,
+        "priority": priority,
         **field
     })
 

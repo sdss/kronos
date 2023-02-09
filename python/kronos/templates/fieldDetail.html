@@ -28,6 +28,14 @@
   const countSkies = times.length - 1;
 </script>
 
+{% if priority %}
+<div class="row">
+  <div class="alert alert-danger" role="alert">
+    <strong>Warning!</strong> This field is flagged {{priority}}
+  </div>
+</div>
+{% endif %}
+
 <div class="well">
   <div class="row">
     <div class="col-lg-6">
