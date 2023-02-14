@@ -212,8 +212,9 @@ async def planObserving():
 
     if brightDark["Dark Start"]:
         # dark start could be None
-        if brightDark["Bright Start"] < brightDark["Dark Start"]:
-            brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
+        if brightDark["Bright Start"]:
+            if brightDark["Bright Start"] < brightDark["Dark Start"]:
+                brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
     else:
         brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
         brightDark["Bright End"] = Time(mjd_morning_twilight, format="mjd").datetime
