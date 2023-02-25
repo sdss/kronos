@@ -42,7 +42,7 @@ def datetime2dict(datetimeObj):
     if datetimeObj is None:
         return None
 
-    if datetimeObj.day > 25:
+    if datetimeObj.day > 28:
         adjust = -1
     else:
         adjust = 0
