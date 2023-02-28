@@ -42,13 +42,14 @@ def datetime2dict(datetimeObj):
     if datetimeObj is None:
         return None
 
-    if datetimeObj.day > 28:
-        adjust = -1
-    else:
-        adjust = 0
+    # if datetimeObj.day > 28:
+    #     adjust = -1
+    # else:
+    #     adjust = 0
+    adjust = 0
     return {
         "year": datetimeObj.year,
-        "month": datetimeObj.month,
+        "month": datetimeObj.month - 1,
         "day": datetimeObj.day + adjust,
         "hour": datetimeObj.hour,
         "minute": datetimeObj.minute,
