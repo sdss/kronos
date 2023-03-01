@@ -90,6 +90,66 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
     return backup
 
 
+async def nightBounds(mjd=None, scheduler=None, errors=None, mjd_now=None):
+    if not mjd:
+        mjd = round(offsetNow())
+    if not scheduler:
+        scheduler = await wrapBlocking(Scheduler)
+    if not errors:
+        errors = list()
+    if not mjd_now:
+        now = Time.now()
+        now.format = "mjd"
+        mjd_now = now.value
+    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+
+    if mjd_morning_twilight - mjd_now < 1 / 24 / 4:  # 15 minutes
+        # Night's basically over, we're doing tomorrow
+        errors.append("END OF NIGHT. Scheduling tomorrow")
+        mjd += 1
+        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
+
+    startTime = Time(mjd_evening_twilight, format="mjd").datetime
+    endTime = Time(mjd_morning_twilight, format="mjd").datetime
+
+    north_winter = summmerOrWinter(startTime)
+
+    if north_winter and observatory == "APO":
+        long_night = True
+    elif not north_winter and observatory == "LCO":
+        long_night = True
+    else:
+        long_night = False
+
+    if long_night:
+        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
+                                                                        mjd,
+                                                                        twilight=-12)
+        startTime = Time(mjd_evening_twilight, format="mjd").datetime
+        endTime = Time(mjd_morning_twilight, format="mjd").datetime
+
+    evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
+
+    evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
+    morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
+
+    brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
+
+    schedule.update(**brightDark)
+
+    if brightDark["Dark Start"]:
+        # dark start could be None
+        if brightDark["Bright Start"]:
+            if brightDark["Bright Start"] < brightDark["Dark Start"]:
+                brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
+    else:
+        brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
+        brightDark["Bright End"] = Time(mjd_morning_twilight, format="mjd").datetime
+
+    return startTime, endTime, mjd_evening_twilight, mjd_morning_twilight,\
+        evening_twilight_utc, morning_twilight_utc, brightDark, errors
+
+
 @planObserving_page.route('/planObserving.html', methods=['GET', 'POST'])
 async def planObserving():
     mjd = round(offsetNow())
@@ -139,44 +199,14 @@ async def planObserving():
     else:
         redoFromField = False
 
-    errors = list()
-
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
     scheduler = await wrapBlocking(Scheduler)
 
-    mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
-
-    if mjd_morning_twilight - mjd_now < 1 / 24 / 4:  # 15 minutes
-        # Night's basically over, we're doing tomorrow
-        errors.append("END OF NIGHT. Scheduling tomorrow")
-        mjd += 1
-        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
-
-    startTime = Time(mjd_evening_twilight, format="mjd").datetime
-    endTime = Time(mjd_morning_twilight, format="mjd").datetime
-
-    north_winter = summmerOrWinter(startTime)
-
-    if north_winter and observatory == "APO":
-        long_night = True
-    elif not north_winter and observatory == "LCO":
-        long_night = True
-    else:
-        long_night = False
-
-    if long_night:
-        mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds,
-                                                                        mjd,
-                                                                        twilight=-12)
-        startTime = Time(mjd_evening_twilight, format="mjd").datetime
-        endTime = Time(mjd_morning_twilight, format="mjd").datetime
-
-    evening_twilight_dark, morning_twilight_dark = await wrapBlocking(scheduler.getDarkBounds, mjd)
-
-    evening_twilight_utc = Time(evening_twilight_dark, format="mjd").datetime
-    morning_twilight_utc = Time(morning_twilight_dark, format="mjd").datetime
+    startTime, endTime, mjd_evening_twilight, mjd_morning_twilight,\
+        evening_twilight_utc, morning_twilight_utc, brightDark, errors =\
+        await nightBounds(mjd=mjd, scheduler=scheduler, mjd_now=mjd_now)
 
     if replacementField is not None:
         # replacing a field
@@ -206,18 +236,7 @@ async def planObserving():
             "morningTwilightUTC": morning_twilight_utc
         }
 
-    brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
-
     schedule.update(**brightDark)
-
-    if brightDark["Dark Start"]:
-        # dark start could be None
-        if brightDark["Bright Start"]:
-            if brightDark["Bright Start"] < brightDark["Dark Start"]:
-                brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
-    else:
-        brightDark["Bright Start"] = Time(mjd_evening_twilight, format="mjd").datetime
-        brightDark["Bright End"] = Time(mjd_morning_twilight, format="mjd").datetime
 
     for k, v in brightDark.items():
         if v is None:

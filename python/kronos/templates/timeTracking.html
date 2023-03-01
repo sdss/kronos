@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+{% extends "layout.html" %}
+{% set active_page = "timeTracking" %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"/>
+  <title>Time Tracking</title>
+  <meta http-equiv="refresh" CONTENT="600"/>
+
+{% endblock head %}
+
+{% block body %}
+
+
+{% if update %}
+<div class="row">
+  <div class="alert alert-success" role="alert">
+    <strong>Success!</strong> Time tracking updated!
+  </div>
+</div>
+{% elif doneAlready %}
+<div class="row">
+  <div class="alert alert-danger" role="alert">
+    <strong>WARNING!</strong> An entry for {{mjd}} already exists
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+<form autocomplete="off" action="/timeTracking.html">
+  <div class="form-row">
+    <div class="form-group col-md-12">
+      <label for="Btot">Bright Total</label>
+      <input id="Btot" type="text" name="Btot" value="{{Btot}}">
+      <div class="form-group col-md-3">
+        <label for="Bqu">Bright Queue</label>
+        <input id="Bqu" type="text" name="Bqu" value="{{Bqu}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="Bcom">Bright commissioning</label>
+        <input id="Bcom" type="text" name="Bcom" value="{{Bcom}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="BLw">Bright lost to weather</label>
+        <input id="BLw" type="text" name="BLw" value="{{BLw}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="BLtec">Bright lost to tech</label>
+        <input id="BLtec" type="text" name="BLtec" value="{{BLtec}}">
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-12">
+      <label for="Dtot">Bright Total</label>
+      <input id="Dtot" type="text" name="Dtot" value="{{Dtot}}">
+      <div class="form-group col-md-3">
+        <label for="Dqu">Bright Queue</label>
+        <input id="Dqu" type="text" name="Dqu" value="{{Dqu}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="Dcom">Bright commissioning</label>
+        <input id="Dcom" type="text" name="Dcom" value="{{Dcom}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="DLw">Bright lost to weather</label>
+        <input id="DLw" type="text" name="DLw" value="{{DLw}}">
+      </div>
+      <div class="form-group col-md-3">
+        <label for="DLtec">Bright lost to tech</label>
+        <input id="DLtec" type="text" name="DLtec" value="{{DLtec}}">
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+</div>
+
+
+<script>
+  var cadences = [{% for cad in cadences %} "{{cad}}", {% endfor %}];
+
+  autocomplete(document.getElementById("cadenceSelect"), cadences);
+</script>
+
+
+{% endblock body %}
