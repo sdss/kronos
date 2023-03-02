@@ -135,8 +135,6 @@ async def nightBounds(mjd=None, scheduler=None, errors=None, mjd_now=None):
 
     brightDark = scheduler.nightSchedule(evening_twilight_dark, morning_twilight_dark)
 
-    schedule.update(**brightDark)
-
     if brightDark["Dark Start"]:
         # dark start could be None
         if brightDark["Bright Start"]:

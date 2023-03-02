@@ -6,6 +6,9 @@ import numpy as np
 
 from kronos import wrapBlocking, observatory
 from kronos.scheduler import offsetNow
+from kronos.controllers.planObserving import nightBounds
+
+from . import getTemplateDictBase
 
 timeTracking_page = Blueprint("timeTracking_page", __name__)
 
@@ -27,32 +30,34 @@ async def timeTracking():
 
     update = False
 
-    form = await request.form
-    if "Dqu" in form:
+    if "Dqu" in request.args:
         update = True
-        Btot = form["Btot"]
-        Dtot = form["Dtot"]
-        Dqu = form["Dqu"]
-        Dcom = form["Dcom"]
-        DLw = form["DLw"]
-        DLtec = form["DLtec"]
-        Bqu = form["Bqu"]
-        Bcom = form["Bcom"]
-        BLw = form["BLw"]
-        BLtec = form["BLtec"]
+        Btot = float(request.args["Btot"])
+        Dtot = float(request.args["Dtot"])
+        Dqu = float(request.args["Dqu"])
+        Dcom = float(request.args["Dcom"])
+        DLw = float(request.args["DLw"])
+        DLtec = float(request.args["DLtec"])
+        Bqu = float(request.args["Bqu"])
+        Bcom = float(request.args["Bcom"])
+        BLw = float(request.args["BLw"])
+        BLtec = float(request.args["BLtec"])
 
     logName = "/data/logs/timetracking/timetracking.txt"
-    logFile = wrapBlocking(np.genfromtxt, logName, dtype=None, delimiter=",",
-                           names=True, encoding="UTF8")
+    logFile = await wrapBlocking(np.genfromtxt, logName, dtype=None,
+                                 delimiter=",", names=True, encoding="UTF8")
 
     wTonight = np.where(logFile["MJD"] == mjd)
-
-    if not len(wTonight[0]):
-        nextIdx = logFile.shape[0] + 1
-        logFile.resize(nextIdx)
-        wTonight = nextIdx - 1
+    if len(wTonight[0]):
+        wTonight = int(wTonight[0])
+    else:
+        wTonight = None
 
     if update:
+        if wTonight is None:
+            nextIdx = int(logFile.shape[0]) + 1
+            logFile.resize(nextIdx, refcheck=False)
+            wTonight = nextIdx - 1
         shutil.copyfile(logName, f"/data/logs/timetracking/timetracking_{mjd}.dat")
 
         logFile[wTonight]["Dtot"] = Dtot
@@ -70,7 +75,11 @@ async def timeTracking():
         logFile[wTonight]["MJD"] = mjd
         logFile[wTonight]["Observatory"] = observatory.upper()
 
-        await wrapBlocking(np.savetxt, logName, logFile, delimiter=",")
+        header = "MJD , Observatory , Btot , Bqu , Bcom , BLw , BLtec , Dtot , Dqu , Dcom , DLw , DLtec"
+        fmt = "%5d,%4s, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f, %2.1f"
+
+        await wrapBlocking(np.savetxt, logName, logFile,
+                           delimiter=",", header=header, fmt=fmt, comments="")
 
     if not update:
         startTime, endTime, mjd_evening_twilight, mjd_morning_twilight,\
@@ -78,15 +87,16 @@ async def timeTracking():
             await nightBounds(mjd=mjd)
 
         if brightDark["Bright Start"]:
-            Btot = (brightDark["Bright End"] - brightDark["Bright Start"]).hours
+            Btot = (brightDark["Bright End"] - brightDark["Bright Start"]).seconds/3600
+            Bqu = Btot
         if brightDark["Dark Start"]:
-            Dtot = (brightDark["Dark End"] - brightDark["Dark Start"]).hours
+            Dtot = (brightDark["Dark End"] - brightDark["Dark Start"]).seconds/3600
+            Dqu = Dtot
 
     doneAlready = False
 
-    tonight = logFile[wTonight]
-
-    if len(tonight) == 1:
+    if wTonight:
+        tonight = logFile[wTonight]
         doneAlready = True
         Dtot = tonight["Dtot"]
         Dqu = tonight["Dqu"]
@@ -103,20 +113,19 @@ async def timeTracking():
     templateDict = getTemplateDictBase()
 
     templateDict.update({
-        "Dtot": Dtot,
-        "Btot": Btot,
-        "Dqu": Dqu,
-        "Dcom": Dcom,
-        "DLw": DLw,
-        "DLtec": DLtec,
-        "Bqu": Bqu,
-        "Bcom": Bcom,
-        "BLw": BLw,
-        "BLtec": BLtec,
+        "Dtot": f"{Dtot:.1f}",
+        "Btot": f"{Btot:.1f}",
+        "Dqu": f"{Dqu:.1f}",
+        "Dcom": f"{Dcom:.1f}",
+        "DLw": f"{DLw:.1f}",
+        "DLtec": f"{DLtec:.1f}",
+        "Bqu": f"{Bqu:.1f}",
+        "Bcom": f"{Bcom:.1f}",
+        "BLw": f"{BLw:.1f}",
+        "BLtec": f"{BLtec:.1f}",
         "update": update,
         "doneAlready": doneAlready,
-        "mjd": mjd,
-        "errorMsg": errors
+        "mjd": mjd
     })
 
     # findAndConvertDatetimes(templateDict)

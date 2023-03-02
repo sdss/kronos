@@ -12,6 +12,11 @@
 
 {% block body %}
 
+<div class="col-lg-12">
+  <div class="card">
+    <h1>Time Tracking for {{mjd}}</h1>
+  </div>
+</div>
 
 {% if update %}
 <div class="row">
@@ -30,47 +35,51 @@
 <div class="card">
 <form autocomplete="off" action="/timeTracking.html">
   <div class="form-row">
-    <div class="form-group col-md-12">
+    <div class="form-group col-md-8 input-group-static">
       <label for="Btot">Bright Total</label>
-      <input id="Btot" type="text" name="Btot" value="{{Btot}}">
-      <div class="form-group col-md-3">
-        <label for="Bqu">Bright Queue</label>
-        <input id="Bqu" type="text" name="Bqu" value="{{Bqu}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="Bcom">Bright commissioning</label>
-        <input id="Bcom" type="text" name="Bcom" value="{{Bcom}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="BLw">Bright lost to weather</label>
-        <input id="BLw" type="text" name="BLw" value="{{BLw}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="BLtec">Bright lost to tech</label>
-        <input id="BLtec" type="text" name="BLtec" value="{{BLtec}}">
-      </div>
+      <input id="Btot" type="text" name="Btot" value="{{Btot}}" class="form-control">
     </div>
   </div>
   <div class="form-row">
-    <div class="form-group col-md-12">
-      <label for="Dtot">Bright Total</label>
-      <input id="Dtot" type="text" name="Dtot" value="{{Dtot}}">
-      <div class="form-group col-md-3">
-        <label for="Dqu">Bright Queue</label>
-        <input id="Dqu" type="text" name="Dqu" value="{{Dqu}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="Dcom">Bright commissioning</label>
-        <input id="Dcom" type="text" name="Dcom" value="{{Dcom}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="DLw">Bright lost to weather</label>
-        <input id="DLw" type="text" name="DLw" value="{{DLw}}">
-      </div>
-      <div class="form-group col-md-3">
-        <label for="DLtec">Bright lost to tech</label>
-        <input id="DLtec" type="text" name="DLtec" value="{{DLtec}}">
-      </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="Bqu">Bright Queue</label>
+      <input id="Bqu" type="text" name="Bqu" value="{{Bqu}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="Bcom">Bright commissioning</label>
+      <input id="Bcom" type="text" name="Bcom" value="{{Bcom}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="BLw">Bright lost to weather</label>
+      <input id="BLw" type="text" name="BLw" value="{{BLw}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="BLtec">Bright lost to tech</label>
+      <input id="BLtec" type="text" name="BLtec" value="{{BLtec}}" class="form-control">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-8 input-group-static">
+      <label for="Dtot">Dark Total</label>
+      <input id="Dtot" type="text" name="Dtot" value="{{Dtot}}" class="form-control">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-2 input-group-static">
+      <label for="Dqu">Dark Queue</label>
+      <input id="Dqu" type="text" name="Dqu" value="{{Dqu}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="Dcom">Dark commissioning</label>
+      <input id="Dcom" type="text" name="Dcom" value="{{Dcom}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="DLw">Dark lost to weather</label>
+      <input id="DLw" type="text" name="DLw" value="{{DLw}}" class="form-control">
+    </div>
+    <div class="form-group col-md-2 input-group-static">
+      <label for="DLtec">Dark lost to tech</label>
+      <input id="DLtec" type="text" name="DLtec" value="{{DLtec}}" class="form-control">
     </div>
   </div>
   <button type="submit" class="btn btn-primary">Submit</button>

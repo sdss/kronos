@@ -71,6 +71,8 @@ from kronos.controllers.mjdSummary import mjdSummary_page
 from kronos.controllers.fieldViz import fieldViz_page
 from kronos.controllers.dbEndPoints import dbEndPoints
 from kronos.controllers.alterQueue import alterQueue_page
+from kronos.controllers.timeTracking import timeTracking_page
+
 
 from kronos.controllers import getTemplateDictBase
 
@@ -85,7 +87,7 @@ app.register_blueprint(mjdSummary_page)
 app.register_blueprint(fieldViz_page)
 app.register_blueprint(dbEndPoints)
 app.register_blueprint(alterQueue_page)
-
+app.register_blueprint(timeTracking_page)
 
 @app.errorhandler(404)
 async def page_not_found(e):
