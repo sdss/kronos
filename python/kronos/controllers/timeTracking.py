@@ -12,10 +12,20 @@ from . import getTemplateDictBase
 
 timeTracking_page = Blueprint("timeTracking_page", __name__)
 
+@timeTracking_page.route('/timeTracking/', defaults={'mjd': None})
+@timeTracking_page.route('/timeTracking/<int:mjd>', methods=['GET', 'POST'])
+async def timeTracking(mjd):
+    # mjd = round(offsetNow())
 
-@timeTracking_page.route('/timeTracking.html', methods=['GET', 'POST'])
-async def timeTracking():
-    mjd = round(offsetNow())
+    templateDict = getTemplateDictBase()
+
+    if "mjd" in request.args:
+        mjd = int(request.args["mjd"])
+
+    if mjd is None:
+        mjd = round(offsetNow())
+        templateDict.update({"mjd": mjd})
+        return await render_template("timeTrackingLanding.html", **templateDict)
 
     Btot = 0.0
     Dtot = 0.0
@@ -110,8 +120,6 @@ async def timeTracking():
         BLw = tonight["BLw"]
         BLtec = tonight["BLtec"]
 
-    templateDict = getTemplateDictBase()
-
     templateDict.update({
         "Dtot": f"{Dtot:.1f}",
         "Btot": f"{Btot:.1f}",
@@ -128,5 +136,4 @@ async def timeTracking():
         "mjd": mjd
     })
 
-    # findAndConvertDatetimes(templateDict)
     return await render_template("timeTracking.html", **templateDict)
