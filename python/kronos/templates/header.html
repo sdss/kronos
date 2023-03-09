@@ -35,11 +35,13 @@
           <p>Summary</p>
         </a>
       </li>
+      {% if observatory == "LCO" %}
       <li class="nav-item" {% if active_page == 'timeTracking' %} style="background-color: rgba(224, 45, 45, .6);" {% endif %}>
         <a class="nav-link" href="/timeTracking">
           <p>Time Tracking</p>
         </a>
       </li>
+      {% endif %}
     </ul>
   </div>
   

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     Cadence = targetdb.Cadence
 
     fields = Field.select(Field.field_id, Field.pk, Cadence.obsmode_pk,
-                          Cadence.label_root,
+                          Cadence.label_root, Field.racen, Field.deccen,
                           fn.COUNT(Design))\
                   .join(d2f)\
                   .join(Design).join(Conf)\
@@ -26,12 +26,12 @@ if __name__ == "__main__":
                   .switch(Field).join(Ver).where(Ver.plan == rs_version)\
                   .group_by(Field.field_id, Field.pk, Cadence.obsmode_pk, Cadence.label_root).tuples()
 
-    print("{field_id:7s}, {label:13s}, {mjd:5s}, {AP:7s}, {r1:4s}, {b1:4s}, N, obs_mode, exposures, mjds".format(
+    print("{field_id:7s}, {label:13s}, {mjd:5s}, {AP:7s}, {r1:4s}, {b1:4s}, N, obs_mode, ra, dec".format(
            field_id="fieldID", label="label", mjd="mjd", AP="AP", r1="r1", b1="b1"))
-    form = "{field_id:7d}, {label:13s}, {mjd:5d}, {AP:7.1f}, {r_camera:4.1f}, {b_camera:4.1f}, {epoch_count}, {obs_mode}, {exp_list}, {mjd_list}"
+    form = "{field_id:7d}, {label:13s}, {mjd:5d}, {AP:7.1f}, {r_camera:4.1f}, {b_camera:4.1f}, {epoch_count}, {obs_mode}, {ra}, {dec}"
     summary = "\n field_id, field_pk, designs done, cadence \n"
     for tup in fields:
-        field_id, pk, obs_modes, cadence, cnt = tup
+        field_id, pk, obs_modes, cadence, ra, dec, cnt = tup
         kwargs = getField(pk)
         epochs, last_design = designsToEpoch(**kwargs)
         designs = [d for d in kwargs["mjd_design"].keys()]
@@ -39,9 +39,9 @@ if __name__ == "__main__":
         for e, m in zip(epochs, obs_modes):
             done = checker[m].epoch(ap=e["AP"], b=e["b_camera"], r=e["r_camera"])
             if done:
-                mjd_list = "; ".join([str(i) for i in e["mjds"]])
-                exp_list = "; ".join([str(i) for i in e["exposures"]])
+                # mjd_list = "; ".join([str(i) for i in e["mjds"]])
+                # exp_list = "; ".join([str(i) for i in e["exposures"]])
                 print(form.format(field_id=field_id, obs_mode=m,
-                                  mjd_list=mjd_list, exp_list=exp_list, **e))
+                                  ra=ra, dec=dec, **e))
 
     # print(summary)

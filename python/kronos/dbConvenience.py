@@ -219,6 +219,7 @@ def getField(field_pk):
                             opsdb.Exposure.exposure_flavor == db_flavor)
 
     boss_count = defaultdict(lambda: 0)
+    ap_count = defaultdict(lambda: 0)
     exps = defaultdict(list)
     mjd_design = defaultdict(lambda: defaultdict(sn_dict))
     mjd_exposure = defaultdict(list)
@@ -244,6 +245,7 @@ def getField(field_pk):
                 mjd_design[exp_dict["design"]][exp_mjd]["b_camera"] += f.sn2
             if f.camera.pk == ap_db.pk and f.ql_sn2 is not None and f.ql_sn2 > 100:
                 exp_dict["AP"] = f.ql_sn2
+                ap_count[exp_dict["design"]] += 1
                 mjd_design[exp_dict["design"]][exp_mjd]["AP"] += f.ql_sn2
         exps[exp_mjd].append(exp_dict)
 
@@ -287,6 +289,7 @@ def getField(field_pk):
             "exps": exps_export,
             "sums": sums,
             "boss_count": boss_count,
+            "ap_count": ap_count,
             "mjd_exposure": mjd_exposure,
             "mjd_design": mjd_design,
             "cadence_nexps": field.cadence.nexp,
