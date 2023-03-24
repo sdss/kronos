@@ -584,11 +584,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                    live=True,
                                                    ignore=inQueue)
 
-            if field_pk == 33242:
-                # horrible horrible terrible no good hack
-                # to fix that one time I didn't test my
-                # completion checking script
-                designs = [d-8 for d in designs]
+            # if field_pk == 33242:
+            #     # horrible horrible terrible no good hack
+            #     # to fix that one time I didn't test my
+            #     # completion checking script
+            #     designs = [d-8 for d in designs]
 
             if field_pk is None:
                 errors.append(unfilledMjdError(now))
