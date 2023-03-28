@@ -177,10 +177,16 @@ async def fieldDetail():
         last_design_mode = None
 
     if last_design_mode in checker.keys():
+        n_exp = 1
+        if last_design_mode == "dark_faint":
+            try:
+                n_exp = field["cadence"].split("_")[-2].split("x")[-1]
+            except:
+                errors.append("dark faint error, S/N goals may be inaccurate")
         mode_checker = checker[last_design_mode]
         sn_reqs = {"AP": mode_checker.epoch_apSN2,
-                   "R": mode_checker.epoch_rSN2,
-                   "B": mode_checker.epoch_bSN2}
+                   "R": mode_checker.epoch_rSN2*n_exp,
+                   "B": mode_checker.epoch_bSN2*n_exp}
     else:
         sn_reqs = {"AP": 0,
                    "R": 0,
