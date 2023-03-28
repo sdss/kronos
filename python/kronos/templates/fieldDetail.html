@@ -52,6 +52,14 @@
   </div>
   <div class="row">
     <div class="col-lg-3">
+      {% if last_chance %}
+      <div class="row">
+        <div class="alert alert-primary" role="alert">
+          <strong>Heads up!</strong> Current epoch ends at {{last_chance}}
+          <p>Epoch Goal is {% for m in sn_reqs.keys() %} <strong> {{m}}: </strong> {{sn_reqs[m]}} {% endfor %} </p>
+        </div>
+      </div>
+      {% endif %}
       <div class="card">
         <div class="card card-nav-tabs">
           <div class="card-header card-header-info">

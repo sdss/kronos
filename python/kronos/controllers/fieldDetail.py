@@ -9,11 +9,12 @@ from peewee import DoesNotExist
 
 from quart import request, render_template, Blueprint
 
-from sdssdb.peewee.sdss5db import opsdb
+from sdssdb.peewee.sdss5db import opsdb, targetdb
 
 from kronos import wrapBlocking
 from kronos.dbConvenience import getField, fieldIdToPks
 from kronos.scheduler import Scheduler
+from kronos.designCompletion import checker
 
 from . import getTemplateDictBase
 
@@ -84,6 +85,9 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
                     out["exposures"].extend(mjd_exposure[mjd])
                     if mjd not in out["mjds"]:
                         out["mjds"].append(mjd)
+        end_mjd = np.min(out["mjds"]) + length
+        end_time = Time(end_mjd, format="mjd")
+        out["last_chance"] = end_time.datetime.strftime("%Y/%m/%d, %H:%M")
         epoch_sn.append(out)
 
     if len(epoch_sn) > 0:
@@ -144,18 +148,43 @@ async def fieldDetail():
         epochSN = list()
         errors.append("Designs observed out of order, no epochs for you")
 
+    if len(epochSN) > 0:
+        last_chance = epochSN[-1]["last_chance"]
+    else:
+        last_chance = None
+
     d2s = opsdb.DesignToStatus
     status = opsdb.CompletionStatus
+    design = targetdb.Design
 
     if last_design:
-        last_status = await wrapBlocking(d2s.select(status.label)
+        stats_query = await wrapBlocking(d2s.select(status.label,
+                                                    design.design_mode_label)\
                                             .join(status)
+                                            .switch(d2s)
+                                            .join(design)
                                             .where(d2s.design_id == last_design)
                                             .get)
 
-        last_status = last_status.status.label
+        last_status = stats_query.status.label
+        if last_status != "done":
+            last_design_mode = stats_query.design.design_mode.label
+        else:
+            last_design_mode = None
+            last_chance = None
     else:
         last_status = "not started"
+        last_design_mode = None
+
+    if last_design_mode in checker.keys():
+        mode_checker = checker[last_design_mode]
+        sn_reqs = {"AP": mode_checker.epoch_apSN2,
+                   "R": mode_checker.epoch_rSN2,
+                   "B": mode_checker.epoch_bSN2}
+    else:
+        sn_reqs = {"AP": 0,
+                   "R": 0,
+                   "B": 0}
 
     f2p = opsdb.FieldToPriority
     fp = opsdb.FieldPriority
@@ -255,6 +284,8 @@ async def fieldDetail():
         "epochSN": epochSN,
         "done_status": last_status,
         "priority": priority,
+        "sn_reqs": sn_reqs,
+        "last_chance": last_chance,
         **field
     })
 
