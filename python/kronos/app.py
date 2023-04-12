@@ -5,13 +5,40 @@ from inspect import getmembers, isfunction
 from logging import getLogger, ERROR
 
 import psycopg2
-from quart import Quart, render_template, jsonify, request
+from quart import render_template, jsonify, request
+
+# custom imports to suppress logging
+from hypercorn.config import Config as HyperConfig
+from hypercorn.asyncio import serve
+from quart import Quart as _Quart
 
 from kronos import jinja_filters
 
-app = Quart(__name__)
+logger = getLogger('quart.serving')
+logger.setLevel(ERROR)
 
-getLogger('quart.serving').setLevel(ERROR)
+
+class Quart(_Quart):
+    def run_task(
+        self,
+        host: str = "127.0.0.1",
+        port: int = 5000,
+        debug=None,
+        ca_certs=None,
+        certfile=None,
+        keyfile=None,
+        shutdown_trigger=None
+    ):
+        config = HyperConfig()
+        config.access_log_format = "%(r)s %(s)s %(b)s %(D)s"
+        config.accesslog = logger
+        config.bind = [f"{host}:{port}"]
+        config.errorlog = config.accesslog
+
+        return serve(self, config, shutdown_trigger=None)
+
+
+app = Quart(__name__)
 
 print("{0}App '{1}' created.{2}".format('\033[92m', __name__, '\033[0m')) # to remove later
 
