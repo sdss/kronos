@@ -72,7 +72,7 @@ def summmerOrWinter(startTime):
 
 async def backupDicts(*args, sched=None, mjd=None, prev=None):
     backup = list()
-    for field_id, coord, field_pk in zip(*args):
+    for field_id, coord, field_pk, obs_mode in zip(*args):
         await asyncio.sleep(0)
         alt, az = sched.scheduler.radec2altaz(mjd=mjd, ra=coord[0], dec=coord[1])
         lst = sched.scheduler.lst(mjd=mjd)
@@ -86,6 +86,7 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
                        "selected": False,
                        "expanded": True,
                        "color": "#FF0000",
+                       "obs_mode": obs_mode,
                        "prev": prev})
     return backup
 

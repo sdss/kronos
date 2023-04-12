@@ -469,14 +469,19 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 coords.append([ra, dec])
 
         dbField = targetdb.Field
+        dbCad = targetdb.Cadence
         id_query = await wrapBlocking(dbField.select(dbField.pk, dbField.field_id,
-                                                     dbField.racen, dbField.deccen).where,
-                                      dbField.pk << fields)
-        field_pks = [q.pk for q in id_query]
-        field_ids = [q.field_id for q in id_query]
-        coords = [[q.racen, q.deccen] for q in id_query]
+                                                     dbField.racen, dbField.deccen,
+                                                     dbCad.obsmode_pk)
+                                             .join(dbCad)
+                                             .where(
+                                      dbField.pk << fields).dicts)
+        field_pks = [q["pk"] for q in id_query]
+        field_ids = [q["field_id"] for q in id_query]
+        coords = [[q["racen"], q["deccen"]] for q in id_query]
+        obs_modes = [q["obsmode_pk"][0] for q in id_query]
 
-        return field_ids, coords, field_pks
+        return field_ids, coords, field_pks, obs_modes
 
     async def replaceField(self, oldField, backup):
         """replace oldField with backup in the queue

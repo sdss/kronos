@@ -1,7 +1,6 @@
 #!/usr/bin/env/python
 
 import sys
-from inspect import getmembers, isfunction
 from logging import getLogger, ERROR
 
 import psycopg2
@@ -11,8 +10,6 @@ from quart import render_template, jsonify, request
 from hypercorn.config import Config as HyperConfig
 from hypercorn.asyncio import serve
 from quart import Quart as _Quart
-
-from kronos import jinja_filters
 
 logger = getLogger('quart.serving')
 logger.setLevel(ERROR)
@@ -41,16 +38,6 @@ class Quart(_Quart):
 app = Quart(__name__)
 
 print("{0}App '{1}' created.{2}".format('\033[92m', __name__, '\033[0m')) # to remove later
-
-# Define custom filters into the Jinja2 environment.
-# Any filters defined in the jinja_env submodule are made available.
-# See: http://stackoverflow.com/questions/12288454/how-to-import-custom-jinja2-filters-from-another-file-and-using-flask
-custom_filters = {name: function
-                  for name, function in getmembers(jinja_filters)
-                  if isfunction(function)}
-app.jinja_env.filters.update(custom_filters)
-app.jinja_env.globals.update(zip=zip)
-
 
 # Change the implementation of "decimal" to a C-based version (much! faster)
 try:

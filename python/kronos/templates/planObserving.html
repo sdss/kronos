@@ -89,7 +89,7 @@
     <div class="row">
       {% for b in backups %}
         <li class="list-group-item">
-          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field_pk}})" id="backup-{{b.field_pk}}" style="background-color: {{b.color}}; color: black;">{{b.field_id}}</button>
+          <button class="btn btn-primary btn-round" onclick="highlightBackup({{b.field_pk}})" id="backup-{{b.field_pk}}" style="background-color: {{b.color}}; color: black;">Field ID <br> {{b.field_id}} <br> {{b.obs_mode}}</button>
         </li>
       {% endfor %}
       {% if backups|length > 0 %}
