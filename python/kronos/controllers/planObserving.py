@@ -11,7 +11,7 @@ from sdssdb.peewee.sdss5db import opsdb
 
 from kronos import wrapBlocking, observatory
 from kronos.vizWindow import ApogeeViz
-from kronos.scheduler import Scheduler, Design, Queue, offsetNow
+from kronos.scheduler import Scheduler, Design, Queue, offsetNow, queueExtraField
 from kronos.site import Site
 from kronos.dbConvenience import getRecentExps
 
@@ -197,6 +197,9 @@ async def planObserving():
         redoFromField = True
     else:
         redoFromField = False
+
+    if "queueExtraField" in form:
+        errors.append(await wrapBlocking(queueExtraField))
 
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()

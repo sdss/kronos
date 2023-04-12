@@ -550,6 +550,99 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             queuePos += 1
             mjd += self.exp_nom
 
+    async def queueExtraField(self):
+        """Schedule the night from mjdStart to mjdEnd and populate the queue
+        with those designs.
+
+        Parameters:
+        ----------
+
+        mjdStart : float
+            the MJD start time
+
+        mjdStop : float
+            the MJD stop time
+        """
+        # re-cache fields in case priorities changed
+        await wrapBlocking(self.scheduler.fields.fromdb)
+
+        now = mjdStart
+
+        queue = await wrapBlocking(Queue)
+
+        dbQueue = opsdb.Queue
+        now = await wrapBlocking(fn.MAX(Queue.mjd_plan).scalar)
+
+        inQueue = [f.pk for f in queue.fields]
+
+        Field = targetdb.Field
+        Design = targetdb.Design
+        Version = targetdb.Version
+        dbVersion = await wrapBlocking(Version.get, plan=self.plan)
+
+        errors = list()
+
+        exp_max = 1
+        # field id and exposure nums of designs
+        field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
+                                               mjd=now,
+                                               maxExp=exp_max,
+                                               live=True,
+                                               ignore=inQueue)
+
+        if field_pk is None:
+            errors.append(unfilledMjdError(now))
+            return errors
+        designs = await wrapBlocking(Design.select()
+                                     .join(d2f, on=(Design.design_id == d2f.design_id))
+                                     .join(Field, on=(Field.pk == d2f.field_pk))
+                                     .where,
+                                     Field.pk == field_pk,
+                                     Field.version == dbVersion,
+                                     d2f.exposure << designs)
+        for i, d in enumerate(designs):
+            await asyncio.sleep(0)
+            mjd_plan = now + i * self.exp_nom
+            await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+
+        # inQueue.append(field_pk)
+
+        # w_field = np.where(self.scheduler.fields.pk == field_pk)[0][0]
+
+        # cadence_label = self.scheduler.fields.cadence[w_field]
+        # cadence = self.scheduler.cadencelist.cadences[cadence_label]
+
+        # obs_mode = cadence.obsmode_pk[0]
+
+        # if "bright" not in obs_mode:
+        #     racen = self.scheduler.fields.racen[w_field]
+        #     deccen = self.scheduler.fields.deccen[w_field]
+        #     alt, az = self.scheduler.radec2altaz(now, ra=racen, dec=deccen)
+        #     airmass = float(1. / np.sin(np.pi / 180. * alt))
+        # else:
+        #     airmass = 1
+
+        # next_change, next_brightness = self.scheduler.next_change(now)
+
+        # mjd_duration = len(designs) * (exp_time * airmass)
+        # mjd_duration += (len(designs) - 1) * overhead + change_field
+
+        # if now + mjd_duration > next_change and\
+        #    np.abs(mjdEnd - next_change) > 30 / 60 / 24:
+        #     # dark fields allowed to extend past dark time
+        #     # start bright fields when bright time starts
+        #     # buffer for next_change function
+        #     now = next_change + 5 / 60 / 24
+        # else:
+        #     now += mjd_duration
+
+        tnow = datetime.datetime.now()
+        tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
+
+        self.scheduler.priorityLogger.write(name=tstamp)
+
+        return errors
+
     async def queueFromSched(self, mjdStart, mjdEnd):
         """Schedule the night from mjdStart to mjdEnd and populate the queue
         with those designs.

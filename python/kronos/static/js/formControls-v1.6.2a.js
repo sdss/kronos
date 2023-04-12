@@ -105,6 +105,32 @@ function confirmReplace(fieldID, field_pk){
         }
 }
 
+function queueExtraField(){
+    //submit post request to replace field, behind the scenes
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/planObserving.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "queueExtraField";
+    hiddenField.value = "1";
+    form.appendChild(hiddenField);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function callQueueExtraField(){
+
+    var forReal = confirm("Would you like to add another design to the queue?")
+        if (forReal) {
+            showLoading();
+            queueExtraField();
+        }
+}
+
 function submitBackup(field_pk){
     //submit chosen replacement
 
