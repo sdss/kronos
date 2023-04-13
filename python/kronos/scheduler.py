@@ -551,17 +551,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             mjd += self.exp_nom
 
     async def queueExtraField(self):
-        """Schedule the night from mjdStart to mjdEnd and populate the queue
-        with those designs.
-
-        Parameters:
-        ----------
-
-        mjdStart : float
-            the MJD start time
-
-        mjdStop : float
-            the MJD stop time
+        """Add an extra field after the end of the queue,
+           in case we're super efficient
         """
         # re-cache fields in case priorities changed
         await wrapBlocking(self.scheduler.fields.fromdb)
@@ -628,14 +619,24 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         now = mjdStart
 
-        queue = await wrapBlocking(Queue)
-
-        inQueue = [f.pk for f in queue.fields]
-
+        dbQueue = opsdb.Queue
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
         dbVersion = await wrapBlocking(Version.get, plan=self.plan)
+
+        field_check = await wrapBlocking(Field.select(Field.pk)
+                                              .join(d2f, on=(Field.pk == d2f.field_pk))
+                                              .join(dbQueue, on=(dbQueue.design_id == d2f.design_id))
+                                              .where,
+                                              Field.version == dbVersion,
+                                              dbQueue.position < 0,
+                                              dbQueue.mjd_plan > (mjdStart - 0.5))
+
+        inQueue = [f.pk for f in field_check]
+
+        # clear the queue
+        await wrapBlocking(opsdb.Queue.flushQueue)
 
         errors = list()
 

@@ -225,8 +225,6 @@ async def planObserving():
             await scheduler.replaceField(oldField, replacementField)
 
     if redo:
-        # clear the queue
-        await wrapBlocking(opsdb.Queue.flushQueue)
         # redo the whole queue, but check if it's during the night
 
         if mjd_now > mjd_evening_twilight:
