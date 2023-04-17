@@ -3,7 +3,7 @@
     {% for design in designs %}
         <tr>
             <td><a href="designDetail.html?designID={{design.design_id}}">{{design.design_id}}</a></td>
-            <td class="text-left"> <a href="fieldDetail.html?fieldID={{design.field_id}}">{{design.field_id}}</a></td>
+            <td class="text-left"> <a href="fieldDetail.html?fieldID={{design.field_id}}&pk={{design.field_pk}}">{{design.field_id}}</a></td>
             <td class="text-left">{{"%.2f" % design.racen}}</td>
             <td class="text-left">{{"%.2f" % design.deccen}}</td>
             <td class="text-left">{{"%.2f" % design.position_angle}}</td>

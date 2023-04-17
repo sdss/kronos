@@ -380,7 +380,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     designs = dbDesign.select(compStatus.label, dbDesign.design_id, dbField.field_id,
                               dbField.racen, dbField.deccen, dbField.position_angle,
-                              fn.COUNT(Assign.pk))\
+                              dbField.pk, fn.COUNT(Assign.pk))\
                       .join(d2s, on=(d2s.design_id == dbDesign.design_id))\
                       .join(compStatus, on=(d2s.completion_status_pk == compStatus.pk))\
                       .switch(dbDesign)\
@@ -401,7 +401,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     designs = designs.group_by(compStatus.label, dbDesign.design_id,
                                dbField.field_id, dbField.racen,
-                               dbField.deccen, dbField.position_angle)
+                               dbField.deccen, dbField.position_angle,
+                               dbField.pk)
 
     if field_id is not None:
         designs = designs.where(dbField.field_id == field_id)
@@ -463,7 +464,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
             "racen": d[3],
             "deccen": d[4],
             "position_angle": d[5],
-            "assigned": d[6],
+            "field_pk": d[6],
+            "assigned": d[7],
             "oassigned": dCounts.get(d[1], 0)} for d in resTuples]
 
     return res
