@@ -97,7 +97,7 @@ def queryDB():
 
     last_night = Conf.select(Conf.design_id, CompStatus.label.alias("status"),
                              d2f.exposure, Cadence.label.alias("cadence"),
-                             d2s.mjd, Field.field_id)\
+                             d2s.mjd, d2s.manual, Field.field_id)\
                      .join(d2f, on=(d2f.design == Conf.design_id))\
                      .join(Field)\
                      .join(Cadence)\
@@ -116,7 +116,11 @@ def queryDB():
         status = des['status']
         if des["mjd"] is None:
             des["mjd"] = 99999.9
-        formatted = f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:10s} {des['cadence']} {des['mjd']:8.2f}\n"
+        if des["manual"]:
+            manual = "!!manual!!"
+        else:
+            manual = ""
+        formatted = manual + f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:10s} {des['cadence']} {des['mjd']:8.2f}\n"
         if len(mjds) > 1:
             formatted += f"        hist: "
             formatted += ", ".join(mjds) + "\n"
