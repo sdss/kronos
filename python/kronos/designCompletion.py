@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import yaml
 import numpy as np
 
 
@@ -46,6 +47,16 @@ class checkCompletion(object):
             if bSN2 > self.epoch_bSN2 * scale and rSN2 > self.epoch_rSN2 * scale:
                 return True
 
+
+user_reqs = os.path.expanduser('~/.sn_reqs.yml')
+
+if os.path.exists(user_reqs):
+    reqs_file = user_reqs
+else:
+    prod_dir = os.path.abspath(__file__).split("/designCompletion.py")[0]
+    reqs_file = os.path.join(prod_dir, 'etc', 'sn_reqs.yml')
+
+reqs = yaml.load(open(reqs_file), Loader=yaml.FullLoader)
 
 bright_time = checkCompletion(apSN2=2025, epoch_apSN2=2025)
 

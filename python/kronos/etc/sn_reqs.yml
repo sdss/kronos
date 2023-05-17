@@ -1,0 +1,28 @@
+bright_time:
+    apSN2: 2025
+    epoch_apSN2: 2025
+
+dark_plane:
+    bSN2: 2
+    epoch_bSN2: 10
+    rSN2: 0
+    epoch_rSN2=: 10
+
+dark_monit:
+    bSN2: 1.5
+    epoch_bSN2: 8
+    rSN2: 3
+    epoch_rSN2: 16
+
+dark_rm:
+    bSN2: 1.5
+    epoch_bSN2: 16
+    rSN2: 3
+    epoch_rSN2: 32
+
+
+dark_faint:
+    bSN2: 1.5
+    epoch_bSN2: 2
+    rSN2: 3
+    epoch_rSN2: 4
