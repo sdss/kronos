@@ -63,7 +63,12 @@ reqs = yaml.load(open(reqs_file), Loader=yaml.FullLoader)
 bright_time = checkCompletion(**reqs["bright_time"])
 
 # set epoch obscenely high so it fails if it's checked
+<<<<<<< HEAD
 dark_plane = checkCompletion(**reqs["dark_plane"])
+=======
+dark_plane = checkCompletion(bSN2=2, epoch_bSN2=10,
+                             rSN2=0, epoch_rSN2=20)
+>>>>>>> fa6e0402cf384210cc83aa1e076bfbebb1006a11
 
 dark_monit = checkCompletion(**reqs["dark_monit"])
 
