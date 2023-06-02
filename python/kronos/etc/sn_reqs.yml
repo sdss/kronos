@@ -6,7 +6,7 @@ dark_plane:
     bSN2: 2
     epoch_bSN2: 10
     rSN2: 0
-    epoch_rSN2=: 10
+    epoch_rSN2: 10
 
 dark_monit:
     bSN2: 1.5

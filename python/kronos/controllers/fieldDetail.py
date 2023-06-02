@@ -184,6 +184,9 @@ async def fieldDetail():
             except:
                 errors.append("dark faint error, S/N goals may be inaccurate")
         mode_checker = checker[last_design_mode]
+        if mode_checker.epoch_bSN2 is None:
+            mode_checker.epoch_rSN2 = 0
+            mode_checker.epoch_bSN2 = 0
         sn_reqs = {"AP": mode_checker.epoch_apSN2,
                    "R": mode_checker.epoch_rSN2*n_exp,
                    "B": mode_checker.epoch_bSN2*n_exp}
