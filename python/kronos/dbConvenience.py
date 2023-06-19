@@ -232,7 +232,7 @@ def getField(field_pk):
         exp_dict["design"] = int(e.configuration.design.design_id)
         exp_dict["exposure_no"] = int(e.exposure_no)
         exp_dict["timeStamp"] = e.start_time.strftime("%H:%M:%S")
-        exp_mjd = int(Time(e.start_time).mjd)  # this truncates so it's probably "wrong", TBD
+        exp_mjd = int(Time(e.start_time).mjd + 0.2)  # this truncates so it's probably "wrong", TBD
         for f in e.CameraFrames:
             if f.camera.pk == r1_db.pk and f.sn2 is not None and f.sn2 > boss_threshold:
                 mjd_exposure[exp_mjd].append(exp_dict["exposure_no"])
