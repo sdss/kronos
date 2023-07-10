@@ -94,7 +94,7 @@ async def timeTracking(mjd):
     if not update:
         startTime, endTime, mjd_evening_twilight, mjd_morning_twilight,\
             evening_twilight_utc, morning_twilight_utc, brightDark, errors =\
-            await nightBounds(mjd=mjd)
+            await nightBounds(mjd=mjd, planning=False)
 
         if brightDark["Bright Start"]:
             Btot = (brightDark["Bright End"] - brightDark["Bright Start"]).seconds/3600
