@@ -42,6 +42,8 @@ logger.setLevel(ERROR)
 
 print("{0}App '{1}' created.{2}".format('\033[92m', __name__, '\033[0m')) # to remove later
 
+app.jinja_env.globals.update(zip=zip)
+
 # Change the implementation of "decimal" to a C-based version (much! faster)
 try:
     import cdecimal
