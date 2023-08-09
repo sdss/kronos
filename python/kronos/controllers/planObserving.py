@@ -91,7 +91,8 @@ async def backupDicts(*args, sched=None, mjd=None, prev=None):
     return backup
 
 
-async def nightBounds(mjd=None, scheduler=None, errors=None, mjd_now=None):
+async def nightBounds(mjd=None, scheduler=None, errors=None, mjd_now=None,
+                      planning=True):
     if not mjd:
         mjd = round(offsetNow())
     if not scheduler:
@@ -104,7 +105,7 @@ async def nightBounds(mjd=None, scheduler=None, errors=None, mjd_now=None):
         mjd_now = now.value
     mjd_evening_twilight, mjd_morning_twilight = await wrapBlocking(scheduler.getNightBounds, mjd)
 
-    if mjd_morning_twilight - mjd_now < 1 / 24 / 4:  # 15 minutes
+    if mjd_morning_twilight - mjd_now < 1 / 24 / 4 and planning:  # 15 minutes
         # Night's basically over, we're doing tomorrow
         errors.append("END OF NIGHT. Scheduling tomorrow")
         mjd += 1

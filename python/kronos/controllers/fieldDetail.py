@@ -180,7 +180,7 @@ async def fieldDetail():
         n_exp = 1
         if last_design_mode == "dark_faint":
             try:
-                n_exp = field["cadence"].split("_")[-2].split("x")[-1]
+                n_exp = int(field["cadence"].split("_")[-2].split("x")[-1])
             except:
                 errors.append("dark faint error, S/N goals may be inaccurate")
         mode_checker = checker[last_design_mode]

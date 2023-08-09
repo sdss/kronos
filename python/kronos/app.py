@@ -11,10 +11,7 @@ from hypercorn.config import Config as HyperConfig
 from hypercorn.asyncio import serve
 from quart import Quart as _Quart
 
-logger = getLogger('quart.serving')
-logger.setLevel(ERROR)
-
-
+# this hack quiets logs a bit in theory
 class Quart(_Quart):
     def run_task(
         self,
@@ -34,10 +31,18 @@ class Quart(_Quart):
 
         return serve(self, config, shutdown_trigger=None)
 
+if sys.version_info.minor > 9:
+    # only works in 3.10+? just hacks at this point...
+    app = Quart(__name__)
+else:
+    app = _Quart(__name__)
 
-app = Quart(__name__)
+logger = getLogger('quart.serving')
+logger.setLevel(ERROR)
 
 print("{0}App '{1}' created.{2}".format('\033[92m', __name__, '\033[0m')) # to remove later
+
+app.jinja_env.globals.update(zip=zip)
 
 # Change the implementation of "decimal" to a C-based version (much! faster)
 try:
