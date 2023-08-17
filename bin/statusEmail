@@ -42,7 +42,12 @@ def sendEmail(msgBody, recipients):
     # Adds the time to the text
     # time = time.strftime('%Y-%m-%d ', time.gmtime()) + '\n'
 
-    sender = "kronos@apo.nmsu.edu"
+    if observatory == "LCO":
+        sender = "sdss-alerts@lco.cl"
+        client = "139.229.97.11"
+    else:
+        sender = "kronos@apo.nmsu.edu"
+        client = "mail.apo.nmsu.edu"
 
     msg = MIMEText(msgBody)
 
@@ -50,7 +55,7 @@ def sendEmail(msgBody, recipients):
     now.format = "mjd"
     mjd_last_night_hopefully = int(np.floor(now.value))
 
-    msg['Subject'] = f"Kronos summary {mjd_last_night_hopefully}"
+    msg['Subject'] = f"{observatory} Kronos summary {mjd_last_night_hopefully}"
 
     msg['From'] = sender
 
@@ -61,7 +66,7 @@ def sendEmail(msgBody, recipients):
     # Send mail through the mail server
     try:
         s = smtplib.SMTP()
-        s.connect("mail.apo.nmsu.edu")
+        s.connect(client)
         # Send the email - real from, real to, extra headers and content ...
         s.sendmail(sender, recipients, msg.as_string())
         print(f"Sent email")
