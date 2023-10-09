@@ -23,18 +23,20 @@ fieldDetail_page = Blueprint("fieldDetail_page", __name__)
 
 def designsToEpoch(mjd_design=None, cadence_nexps=None,
                    cadence_max_length=None, boss_count=None,
-                   mjd_exposure=None, ap_count=None, **kwargs):
-    designs = [d for d in mjd_design.keys()]
+                   mjd_exposure=None, ap_count=None,
+                   design_ids=None, **kwargs):
+    # designs = [d for d in mjd_design.keys()]
     # designs.sort()
 
-    if len(designs) == 0:
+    if len(mjd_design.keys()) == 0:
         return [], None
 
     # assert designs[-1] - designs[0] == len(designs) - 1, "designs observed out of order"
-    first = np.min(designs)
-    last = np.max(designs)
+    # first = np.min(designs)
+    # last = np.max(designs)
 
-    designs = [i for i in range(first, last+1)]
+    # designs = [i for i in range(first, last+1)]
+    designs = design_ids
 
     expCount = [np.sum(cadence_nexps[:i+1]) for i in range(len(cadence_nexps))]
 
@@ -92,7 +94,8 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
 
     if len(epoch_sn) > 0:
         # find last design of last epoch
-        last_design = first + expCount[len(epoch_sn) - 1] - 1
+        # last_design = first + expCount[len(epoch_sn) - 1] - 1
+        last_design = design_ids[expCount[len(epoch_sn) - 1] - 1]
     else:
         last_design = None
 

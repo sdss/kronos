@@ -207,7 +207,8 @@ def getField(field_pk):
     d2f = targetdb.DesignToField
 
     field = dbField.get(pk=field_pk)
-    # designs = field.designs.select()
+    designs = d2f.select().where(d2f.field_pk == field_pk).order_by(d2f.exposure)
+    design_ids = [d.design_id for d in designs]
 
     exp_query = opsdb.Exposure.select()\
                      .join(opsdb.Configuration)\
@@ -293,7 +294,8 @@ def getField(field_pk):
             "mjd_exposure": mjd_exposure,
             "mjd_design": mjd_design,
             "cadence_nexps": field.cadence.nexp,
-            "cadence_max_length": field.cadence.max_length}
+            "cadence_max_length": field.cadence.max_length,
+            "design_ids": design_ids}
 
 
 def getConfigurations(design_id=None):
