@@ -697,3 +697,36 @@ def fetchMjds(N=30):
     mjds = np.ceil(last) - np.arange(N, dtype=int)
 
     return [int(m) for m in mjds]
+
+
+def latestFieldID():
+    Field = targetdb.Field
+    d2f = targetdb.DesignToField
+    Version = targetdb.Version
+    cfg = opsdb.Configuration
+    exp = opsdb.Exposure
+    query = Field.select(Field.pk)\
+                   .join(Version)\
+                   .switch(Field)\
+                   .join(d2f)\
+                   .join(cfg, on=(cfg.design_id == d2f.design_id))\
+                   .join(exp)\
+                   .where(Version.plan == rs_version)\
+                   .order_by(exp.start_time.desc()).first()
+
+    return query.pk
+
+def getDesignStatus(design_id):
+    d2s = opsdb.DesignToStatus
+    status = opsdb.CompletionStatus
+    design = targetdb.Design
+
+    query = d2s.select(status.label,
+                       design.design_mode_label)\
+               .join(status)\
+               .switch(d2s)\
+               .join(design)\
+               .where(d2s.design_id == design_id)\
+               .get()
+    
+    return query.status.label

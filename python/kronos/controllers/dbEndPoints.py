@@ -3,8 +3,12 @@
 from quart import Blueprint, request, jsonify
 
 from kronos import wrapBlocking
-from kronos.dbConvenience import (getRecentExps, designCompletion, queueLength,
-                                  apql, modifyDesignStatus)
+from kronos.dbConvenience import (getRecentExps, designCompletion,
+                                  queueLength, getDesignStatus,
+                                  apql, modifyDesignStatus,
+                                  getField, latestFieldID)
+from kronos.controllers.fieldDetail import designsToEpoch
+
 
 dbEndPoints = Blueprint("dbEndPoints", __name__)
 
@@ -58,3 +62,18 @@ async def manualDesignCompletion():
         return jsonify(status)
     else:
         return jsonify("failed")
+
+@dbEndPoints.route('/lastEpoch/', methods=["GET"])
+async def lastEpoch():
+    pk = await wrapBlocking(latestFieldID)
+    kwargs = getField(pk)
+    epochs, last_design = designsToEpoch(**kwargs)
+
+    last_status = await wrapBlocking(getDesignStatus, last_design)
+
+    last_epoch = epochs[-1]
+
+    last_epoch["field_id"] = kwargs.get("id")
+    last_epoch["done"] = last_status == "done"
+
+    return jsonify(last_epoch)
