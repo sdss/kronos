@@ -344,8 +344,14 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                            Queue.position > 0)\
                                     .count()
                 if fieldInQueue > 0:
-                    popped = Queue.pop()
-                    print(f"design {popped} popped off queue")
+                    # popped = Queue.pop()
+                    # print(f"design {popped} popped off queue")
+                    # Dan wants designs to disappear, this should do the trick
+                    Queue.delete().where(Queue.design_id << done_ids,
+                                         Queue.position > 0).execute()
+                    query = Queue.update(position=Queue.position - fieldInQueue)\
+                                 .where(Queue.position > 0)
+                    query.execute()
                 else:
                     inQueue = False
 
