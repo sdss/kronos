@@ -70,31 +70,6 @@
     </div>
     <div class="card">
       <div class="card card-nav-tabs">
-        <table class="table" id="epochTable">
-          <thead>
-            <tr>
-              <th class="text-center">Field ID</th>
-              <th class="text-center">Epoch</th>
-              <th class="text-center">MJD</th>
-              <th class="text-center">AP</th>
-              <th class="text-center">r</th>
-              <th class="text-center">b</th>
-            </tr>
-          </thead>
-          <tbody>
-              <td class="text-center">00</td>
-              <td class="text-center">00</td>
-              <td class="text-center">00</td>
-              <td class="text-center">00</td>
-              <td class="text-center">00</td>
-              <td class="text-center">00</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card card-nav-tabs">
         <div class="card-header card-header-danger">
           <h3> Recent Exps </h3>
         </div>
@@ -106,7 +81,38 @@
   </div>
 
   <div class="col-lg-5">
-      <div id="cloudCam">
+    <div class="col-lg-2"></div>
+    <div class="col-lg-8">
+      <div class="card">
+        <div style="text-align: center;">
+          <h4>Most Recent Epoch Status</h4>
+        </div>
+        <div class="card card-nav-tabs">
+          <table class="table" id="epochTable">
+            <thead>
+              <tr>
+                <th class="text-center">Field ID</th>
+                <th class="text-center">Designs</th>
+                <th class="text-center">MJD</th>
+                <th class="text-center">AP</th>
+                <th class="text-center">r</th>
+                <th class="text-center">b</th>
+              </tr>
+            </thead>
+            <tbody>
+                <td class="text-center">00</td>
+                <td class="text-center">00</td>
+                <td class="text-center">00</td>
+                <td class="text-center">00</td>
+                <td class="text-center">00</td>
+                <td class="text-center">00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="cloudCam">
         <!-- <h3> Cloud Cam </h3> -->
         {%if observatory == 'APO'%}
           <canvas id='myCanvas' width="640" height="480"></canvas>
@@ -452,15 +458,22 @@
       $.getJSON('/lastEpoch/', function (last_epoch) {
         let epochTable = document.getElementById("epochTable");
         let trow = epochTable.rows[1];
-        trow.cells[0].innerHTML = last_epoch.field_id;
+        let field_html = "<a href='fieldDetail.html?fieldID="
+                         + last_epoch.field_id + "&pk="
+                         + last_epoch.field_pk + "'>"
+                         + last_epoch.field_id + "</a>";
+        trow.cells[0].innerHTML = field_html;
         trow.cells[1].innerHTML = last_epoch.label;
         trow.cells[2].innerHTML = last_epoch.mjd;
         trow.cells[3].innerHTML = last_epoch.AP.toFixed(2);
         trow.cells[4].innerHTML = last_epoch.r_camera.toFixed(2);
         trow.cells[5].innerHTML = last_epoch.b_camera.toFixed(2);
-        if(epochTable){
+        if(last_epoch.done){
           trow.style.backgroundColor = "rgba(0, 160, 0, 0.6)";
           }
+        else{
+          trow.style.backgroundColor = "rgba(253, 189, 0, 0.6)";
+        }
         });
 
       setTimeout(lastEpoch, 5000);

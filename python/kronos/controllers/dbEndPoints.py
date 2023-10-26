@@ -75,5 +75,6 @@ async def lastEpoch():
 
     last_epoch["field_id"] = kwargs.get("id")
     last_epoch["done"] = last_status == "done"
+    last_epoch["field_pk"] = pk
 
     return jsonify(last_epoch)
