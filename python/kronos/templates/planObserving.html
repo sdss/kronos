@@ -95,8 +95,8 @@
                 <th class="text-center">Designs</th>
                 <th class="text-center">MJD</th>
                 <th class="text-center">AP</th>
-                <th class="text-center">r</th>
                 <th class="text-center">b</th>
+                <th class="text-center">r</th>
               </tr>
             </thead>
             <tbody>
@@ -466,8 +466,8 @@
         trow.cells[1].innerHTML = last_epoch.label;
         trow.cells[2].innerHTML = last_epoch.mjd;
         trow.cells[3].innerHTML = last_epoch.AP.toFixed(2);
-        trow.cells[4].innerHTML = last_epoch.r_camera.toFixed(2);
-        trow.cells[5].innerHTML = last_epoch.b_camera.toFixed(2);
+        trow.cells[4].innerHTML = last_epoch.b_camera.toFixed(2);
+        trow.cells[5].innerHTML = last_epoch.r_camera.toFixed(2);
         if(last_epoch.done){
           trow.style.backgroundColor = "rgba(0, 160, 0, 0.6)";
           }

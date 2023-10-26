@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from quart import request, render_template, Blueprint
-from astropy.time import Time
-
-from sdssdb.peewee.sdss5db import targetdb, opsdb
+import numpy as np
 
 from kronos import wrapBlocking
 from kronos.scheduler import Scheduler
 from kronos.dbConvenience import designQuery, cartonLabels
 from kronos.controllers.fieldQuery import getRaRange
+from kronos.controllers.planObserving import nightBounds
 from . import getTemplateDictBase
 
 designQuery_page = Blueprint("designQuery_page", __name__)
@@ -113,6 +112,28 @@ async def designDetail():
         oinstrument = "APOGEE"
     else:
         oinstrument = "BOSS"
+
+    sched = await wrapBlocking(Scheduler)
+    rs = sched.scheduler
+    startTime, endTime, mjd_evening_twilight, mjd_morning_twilight,\
+        evening_twilight_utc, morning_twilight_utc, brightDark, errors =\
+    await nightBounds(scheduler=sched)
+
+    ra = np.array([d["racen"] for d in designs])
+    dec = np.array([d["deccen"] for d in designs])
+    
+    mjds = np.linspace(mjd_evening_twilight, mjd_morning_twilight, 9)
+
+    for d in designs:
+        d["airmass"] = list()
+    for m in mjds:
+        alt, az = rs.radec2altaz(mjd=m, ra=ra, dec=dec)
+        am = rs.alt2airmass(alt)
+        for i, a in enumerate(am):
+            if a > 4 or a < 1:
+                designs[i]["airmass"].append(9)
+            else:
+                designs[i]["airmass"].append(a)
 
     templateDict.update({
         "errorMsg": errors,

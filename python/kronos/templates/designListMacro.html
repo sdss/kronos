@@ -18,6 +18,19 @@
                     <span>{{design.label}}</span>
                 {% endif %}
             </td>
+            {% for a in design.airmass %}
+            <td class="align-middle text-center text-sm">
+                {% if a < 1.2 %}
+                        <span class="badge badge-sm badge-success">{{"%.1f" % a}}</span>
+                {% elif a < 1.3 %}
+                    <span class="badge badge-sm badge-info">{{"%.1f" % a}}</span>
+                {% elif a < 1.4 %}
+                    <span class="badge badge-sm badge-warning">{{"%.1f" % a}}</span>
+                {% else %}
+                    <span class="badge badge-sm badge-danger">{{"%.1f" % a}}</span>
+                {% endif %}
+            </td>
+            {% endfor %}
         </tr>
     {% endfor %}
 {% endmacro %}
