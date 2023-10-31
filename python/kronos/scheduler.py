@@ -580,8 +580,14 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                ignore=inQueue)
 
         if field_pk is None:
-            errors.append(unfilledMjdError(now))
-            return errors
+            field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
+                                                   mjd=now-20/60/24,
+                                                   maxExp=exp_max,
+                                                   live=True,
+                                                   ignore=inQueue)
+            if field_pk is None:
+                errors.append(unfilledMjdError(now))
+                return errors
         designs = await wrapBlocking(Design.select()
                                      .join(d2f, on=(Design.design_id == d2f.design_id))
                                      .join(Field, on=(Field.pk == d2f.field_pk))
