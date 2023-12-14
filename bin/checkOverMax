@@ -3,7 +3,7 @@
 from datetime import datetime
 
 import numpy as np
-from peewee import fn
+from peewee import fn, JOIN
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 
@@ -41,13 +41,14 @@ for field in recent_fields.dicts():
     designs = Design.select(Design.design_id, d2f.exposure,
                             DesignToStatus.completion_status_pk,
                             fn.MAX(Exp.start_time))\
-                    .join(Conf)\
-                    .join(Exp)\
+                    .join(Conf, JOIN.LEFT_OUTER)\
+                    .join(Exp, JOIN.LEFT_OUTER)\
                     .switch(Design)\
                     .join(DesignToStatus)\
                     .switch(Design)\
                     .join(d2f)\
-                    .where(d2f.field_pk == field["pk"])\
+                    .where(d2f.field_pk == field["pk"],
+                           DesignToStatus.completion_status_pk != notStartedStatus)\
                     .group_by(Design.design_id, d2f.exposure,
                               DesignToStatus.completion_status_pk).dicts()
 
@@ -56,13 +57,13 @@ for field in recent_fields.dicts():
         # default, nothing observed, empty query returned
         continue
 
-    statuses = [d["status"] for d in designs]
-    if len(np.unique(statuses)) == 1:
-        # only one status, is it "not done?"
-        if np.unique(statuses) == int(notStartedStatus):
-            # if we're here, there are exposures on the design
-            # but it isn't enough to call it done, so we can ignore it
-            continue
+    # statuses = [d["status"] for d in designs]
+    # if len(np.unique(statuses)) == 1:
+    #     # only one status, is it "not done?"
+    #     if np.unique(statuses) == int(notStartedStatus):
+    #         # if we're here, there are exposures on the design
+    #         # but it isn't enough to call it done, so we can ignore it
+    #         continue
 
     exposures = np.array([d["exposure"] for d in designs])
 
@@ -108,6 +109,7 @@ for field in recent_fields.dicts():
     # epochs slide
     all_present = len(design_ids[idxs]) == field["nexp"][current_epoch]
 
+    statuses = [d["status"] for d in designs]
     epoch_statuses = np.array(statuses)[idxs]
     if len(np.unique(epoch_statuses)) == 1 and all_present:
         # only one status, is it "done?"
@@ -121,11 +123,18 @@ for field in recent_fields.dicts():
             # epoch finished early, it's all good.
             continue
 
-    minTime = np.min(times[idxs])
-    maxTime = np.max(times[idxs])
+    filteredTimes = [t for t in times[idxs] if t is not None]
+
+    if len(filteredTimes) == 0:
+        print(f"WARN! {field['pk']} marked irregularly",
+                  "\n", design_ids[idxs])
+        continue
+
+    minTime = np.min(filteredTimes)
+    maxTime = np.max(filteredTimes)
     maxTime = np.max([maxTime, now])
 
-    if (maxTime - minTime).days >= field["max_length"][current_epoch]:
+    if (maxTime - minTime).seconds / 86400 >= field["max_length"][current_epoch]:
         these_statuses = np.unique(np.array(statuses)[idxs])
         if len(these_statuses) == 1:
             if these_statuses == int(notStartedStatus):
