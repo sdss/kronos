@@ -34,6 +34,8 @@ def sortFunc(elem):
 async def fieldDetail():
 
     ra_start, ra_end = await getRaRange()
+    dec_start = -90
+    dec_end = 90
 
     cadences = getCadences()
 
@@ -73,6 +75,12 @@ async def fieldDetail():
         except:
             ra_start = 0
             ra_end = 360
+        try:
+            dec_start = int(request.args["dec0Select"])
+            dec_end = int(request.args["dec1Select"])
+        except:
+            dec_start = 0
+            dec_end = 360
 
         if "fieldids" in request.args:
             f_text = request.args["fieldids"]
@@ -99,6 +107,7 @@ async def fieldDetail():
                                 cadence=queryCadence,
                                 priority=dbPriority,
                                 ra_range=[ra_start, ra_end],
+                                dec_range=[dec_start, dec_end],
                                 field_ids=field_ids)
     fields.sort(key=sortFunc)
 
@@ -107,7 +116,8 @@ async def fieldDetail():
         "specialStatus": specialStatus,
         "chosenCadence": chosenCadence,
         "fields": fields,
-        "ra_range": [int(ra_start), int(ra_end)]
+        "ra_range": [int(ra_start), int(ra_end)],
+        "dec_range": [int(dec_start), int(dec_end)]
     })
 
     return await render_template("fieldQuery.html", **templateDict)

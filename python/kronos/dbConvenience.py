@@ -79,8 +79,8 @@ def getRecentExps(mjd):
     return exp_list
 
 
-def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100,
-               field_ids=[]):
+def fieldQuery(cadence=None, priority=None, ra_range=None,
+               dec_range=None, limit=100, field_ids=[]):
     """query targetdb for fields matching parameters
     """
 
@@ -142,6 +142,10 @@ def fieldQuery(cadence=None, priority=None, ra_range=None, limit=100,
         else:
             fields = fields.where((Field.racen > ra_range[0]) &
                                   (Field.racen < ra_range[1])).order_by(Field.racen)
+    if dec_range:
+        assert len(dec_range) == 2, "must specify only begin and end of Dec range"
+        fields = fields.where((Field.deccen > dec_range[0]) &
+                              (Field.deccen < dec_range[1]))
 
     if len(field_ids) > 0:
         fields = fields.where(Field.field_id << field_ids)
