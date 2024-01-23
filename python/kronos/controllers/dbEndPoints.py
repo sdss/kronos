@@ -66,7 +66,7 @@ async def manualDesignCompletion():
 @dbEndPoints.route('/lastEpoch/', methods=["GET"])
 async def lastEpoch():
     pk = await wrapBlocking(latestFieldID)
-    kwargs = getField(pk)
+    kwargs = await wrapBlocking(getField, pk)
     epochs, last_design = designsToEpoch(**kwargs)
 
     last_status = await wrapBlocking(getDesignStatus, last_design)
