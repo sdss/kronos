@@ -61,11 +61,11 @@ def summmerOrWinter(startTime):
     """Check whether we're between equinoxes, "winter"
        Expects datetime object to check
     """
-    winter = startTime.month <= 3
-    if not winter and startTime.month <= 4:
+    winter = startTime.month < 3
+    if not winter and startTime.month == 3:
         winter = startTime.day <= 20
     fall = startTime.month >= 10
-    if not fall and startTime.month >= 9:
+    if not fall and startTime.month == 9:
         fall = startTime.day >= 22
     return winter or fall
 
