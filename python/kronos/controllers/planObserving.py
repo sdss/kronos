@@ -204,6 +204,11 @@ async def planObserving():
     else:
         extraField = False
 
+    if "brightNow" in args:
+        brightNow = True
+    else:
+        brightNow = False
+
     templateDict = getTemplateDictBase()
     # date = datetime.datetime.utcnow()
     # date = datetimenow.date()
@@ -233,6 +238,9 @@ async def planObserving():
         else:
             start_mjd = mjd_evening_twilight
         errors.append(await scheduler.queueFromSched(start_mjd, mjd_morning_twilight))
+
+    if brightNow:
+       errors.append(await scheduler.brightFieldNow())
 
     schedule = {
             "queriedMJD": mjd,

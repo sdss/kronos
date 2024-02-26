@@ -847,6 +847,146 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         return fields, errors
 
+    async def brightFieldNow(self):
+        """schedule bright field(s) now
+
+        Intended to be used when there is poor weather in dark time
+        to grab relatively easier to get infrared photons.
+
+        We need to ensure there isn't a dark time field that is about to
+        hit epoch max_length, besides that no current limitations; it is
+        up to the observers.
+
+        Parameters:
+        ----------
+
+        """
+
+        Field = targetdb.Field
+        Design = targetdb.Design
+        Cadence = targetdb.Cadence
+        Queue = opsdb.Queue
+        Status = opsdb.DesignToStatus
+        Version = targetdb.Version
+        dbVersion = await wrapBlocking(Version.get, plan=self.plan)
+
+        currentdesigns = await wrapBlocking(Queue.select(Queue.design_id,
+                                                         Queue.mjd_plan,
+                                                         Status.completion_status_pk,
+                                                         d2f.exposure,
+                                                         Cadence.nexp,
+                                                         Cadence.max_length,
+                                                         Field.pk.alias("field_pk"))
+                                            .join(Status,
+                                                  on=(Queue.design_id == 
+                                                      Status.design_id))
+                                            .join(d2f,
+                                                  on=(Status.design_id ==
+                                                      d2f.design_id))
+                                            .join(Field,
+                                                  on=(Field.pk ==
+                                                      d2f.field_pk))
+                                            .join(Cadence)
+                                            .where((Queue.position == 1) |
+                                                   (Queue.position == -1))
+                                            .order_by(Queue.position.asc()).dicts)
+
+        assert len(currentdesigns) == 2, "queue has duplicate positions"
+
+        if int(currentdesigns[0]["status"]) == 3:
+            replaceDesign = currentdesigns[1]
+        else:
+            replaceDesign = currentdesigns[0]
+
+        expNo = int(replaceDesign["exposure"])
+
+        cumulative_exps = np.cumsum(replaceDesign["nexp"])
+
+        # 0 indexed
+        # -1 to make it 0 indexed like expNo
+        currentEpoch = np.where(cumulative_exps -1 >= expNo)[0][0]
+
+        max_length = float(replaceDesign["max_length"][currentEpoch])
+
+        if currentEpoch == 0:
+            first_design_exp = 0
+        else:
+            first_design_exp = cumulative_exps[currentEpoch - 1]
+
+        begin_mjd = await wrapBlocking(Status.select(Status.mjd)
+                                             .join(d2f,
+                                                   on=(Status.design_id ==
+                                                       d2f.design_id))
+                                            .where(d2f.exposure ==
+                                                   first_design_exp,
+                                                   d2f.field_pk ==
+                                                   replaceDesign["field_pk"]).scalar)
+
+
+        errors = list()
+        if begin_mjd is not None:
+            if replaceDesign["mjd_plan"] - begin_mjd > max_length - 2.0:
+                # epoch ending in two days, don't do it
+                errors.append("dark epoch expiring soon, please finish")
+                return errors
+
+        now = await wrapBlocking(Queue.select(fn.MIN(Queue.mjd_plan))
+                                      .join(Design)
+                                      .join(d2f, on=(Design.design_id == d2f.design_id))
+                                      .join(Field, on=(Field.pk == d2f.field_pk))
+                                      .where(Field.pk == replaceDesign["field_pk"]).scalar)
+
+        try:
+            await wrapBlocking(Queue.rm, replaceDesign["field_pk"])
+        except ValueError:
+            # could be we're checking field in position -1
+            # different field in position 1
+            # so this would fail
+            pass
+
+        queue_fields = await wrapBlocking(Queue.select(Field.pk)
+                                               .join(d2f,
+                                                     on=(Queue.design_id ==
+                                                         d2f.design_id))
+                                               .join(Field,
+                                                     on=(Field.pk ==
+                                                         d2f.field_pk)).tuples)
+
+        inQueue = [q[0] for q in queue_fields]
+        end = now + 1 / 24
+        while now < end:
+            await asyncio.sleep(0)
+            field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
+                                                   mjd=now,
+                                                   maxExp=4,
+                                                   live=True,
+                                                   ignore=inQueue,
+                                                   schedule_bright=True)
+
+            if field_pk is None:
+                errors.append(unfilledMjdError(now))
+                now += self.exp_nom
+                continue
+            designs = await wrapBlocking(Design.select()
+                                         .join(d2f, on=(Design.design_id == d2f.design_id))
+                                         .join(Field, on=(Field.pk == d2f.field_pk))
+                                         .where,
+                                         Field.pk == field_pk,
+                                         Field.version == dbVersion,
+                                         d2f.exposure << designs)
+            for i, d in enumerate(designs):
+                await asyncio.sleep(0)
+                mjd_plan = now + i * self.exp_nom
+                await wrapBlocking(opsdb.Queue.insertInQueue, d, 1,
+                                   exp_length=0, mjd=mjd_plan)
+
+            inQueue.append(field_pk)
+
+            now += len(designs) * exp_time 
+            now += (len(designs) - 1) * overhead + change_field
+
+        return errors
+
     def getDarkBounds(self, mjd):
         """find the beginning and end of the night
 
