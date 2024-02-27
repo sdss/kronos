@@ -204,7 +204,7 @@ async def planObserving():
     else:
         extraField = False
 
-    if "brightNow" in args:
+    if "brightNow" in form:
         brightNow = True
     else:
         brightNow = False

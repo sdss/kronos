@@ -79,6 +79,31 @@ function confirmRedo(){
     }
 }
 
+function brightNow(){
+    //submit post request to add bright fields
+
+    var form = document.createElement('form');
+    form.method = "post";
+    form.action = "/planObserving.html";
+
+    var hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = "brightNow";
+    hiddenField.value = true;
+    form.appendChild(hiddenField);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function confirmBrightNow(){
+    var forReal = confirm("Force bright fields now?");
+    if (forReal) {
+        showLoading();
+        brightNow();
+    }
+}
+
 function replaceField(field_pk){
     //submit post request to replace field, behind the scenes
 
