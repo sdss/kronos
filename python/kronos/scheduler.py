@@ -888,7 +888,9 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                       d2f.field_pk))
                                             .join(Cadence)
                                             .where((Queue.position == 1) |
-                                                   (Queue.position == -1))
+                                                   (Queue.position == -1),
+                                                   Field.version ==
+                                                   dbVersion)
                                             .order_by(Queue.position.asc()).dicts)
 
         assert len(currentdesigns) == 2, "queue has duplicate positions"
