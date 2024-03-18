@@ -13,11 +13,14 @@ from kronos.controllers.fieldDetail import designsToEpoch
 dbEndPoints = Blueprint("dbEndPoints", __name__)
 
 
-@dbEndPoints.route('/recentExposures/<int:mjd>', methods=['GET'])
+# @dbEndPoints.route('/recentExposures/<int:mjd>', methods=['GET'])
 async def recentExposures(mjd):
     exps = await wrapBlocking(getRecentExps, mjd)
 
-    return jsonify(exps)
+    response = {"target": "addExps",
+                "data": exps}
+
+    return response
 
 
 @dbEndPoints.route('/designCompletion/', methods=["GET"])

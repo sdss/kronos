@@ -273,20 +273,7 @@
       // setTimeout(checkComplete, 15000);
       };
 
-    const socket = new WebSocket("ws://localhost:5000/ws");
-
-    // Connection opened
-    socket.addEventListener("open", (event) => {
-      socket.send("Hello Server!");
-    });
-
-    // Listen for messages
-    socket.addEventListener("message", (event) => {
-      alert("Message from server ", event.data);
-    });
-
-    function addExps(){
-      $.getJSON('/recentExposures/{{mjd}}', function (exps) {
+    function addExps(exps){
         for (i=0;i<exps.length;i++) {
           let exp = exps[i];
           if(!design_ids.includes(exp.design)){
@@ -322,12 +309,8 @@
             r_camera.innerHTML = exp.r_camera;
           }
         };
-      });
     setTimeout(checkComplete, 2000);
-    setTimeout(addExps, 5000);
     };
-
-    addExps();
 
     function refreshForQueue() {
       $.getJSON('/currentQueueLength/', function (currentLength) {
@@ -493,6 +476,30 @@
     }
 
     lastEpoch();
+
+    const socket = new WebSocket("ws://localhost:5000/ws");
+
+    function checkExps(){
+      let msg = {
+        target : "addExps",
+        payload : {{mjd}},
+      };
+      socket.send(JSON.stringify(msg));
+      setTimeout(checkExps, 5000);
+    }
+
+    // Connection opened
+    socket.addEventListener("open", (event) => {
+      socket.send("Hello Server!");
+      checkExps();
+    });
+
+    socket.addEventListener("message", (event) => {
+      let msg = JSON.parse(event.data);
+      if(msg.target === "addExps"){
+        addExps(msg.data);
+      }
+    });
 
 </script>
 {% endblock body %}

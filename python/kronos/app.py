@@ -2,6 +2,8 @@
 
 import sys
 from logging import getLogger, ERROR
+import json
+from json.decoder import JSONDecodeError
 
 import psycopg2
 from quart import render_template, jsonify, websocket
@@ -92,6 +94,7 @@ from kronos.controllers.dbEndPoints import dbEndPoints
 from kronos.controllers.alterQueue import alterQueue_page
 from kronos.controllers.timeTracking import timeTracking_page
 
+from kronos.controllers.dbEndPoints import recentExposures
 
 from kronos.controllers import getTemplateDictBase
 
@@ -122,5 +125,12 @@ async def err_page(e):
 @app.websocket('/ws')
 async def ws():
     while True:
-        data = await websocket.receive()
-        await websocket.send(f"I hear you, you said: {data}")
+        msg = await websocket.receive()
+        try:
+            data = json.loads(msg)
+        except JSONDecodeError:
+            # not anything we care about
+            continue
+        if data["target"] == "addExps":
+            response = await recentExposures(data["payload"])
+            await websocket.send(json.dumps(response))
