@@ -4,7 +4,7 @@ import sys
 from logging import getLogger, ERROR
 
 import psycopg2
-from quart import render_template, jsonify, request
+from quart import render_template, jsonify, websocket
 
 # custom imports to suppress logging
 from hypercorn.config import Config as HyperConfig
@@ -117,3 +117,10 @@ async def page_not_found(e):
 async def err_page(e):
     """ Err page. """
     return await render_template("500.html", **getTemplateDictBase())
+
+
+@app.websocket('/ws')
+async def ws():
+    while True:
+        data = await websocket.receive()
+        await websocket.send(f"I hear you, you said: {data}")
