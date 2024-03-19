@@ -479,7 +479,7 @@
 
     {% if isDev %}
     const wsAddress = "ws://localhost:5000/ws"
-    {% elif observatory == "APO"}
+    {% elif observatory == "APO" %}
     const wsAddress = "ws://kronos.apo.nmsu.edu:5000/ws"
     {% else %}
     const wsAddress = "ws://kronos.lco.cl:5000/ws"
