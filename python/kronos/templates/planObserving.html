@@ -71,6 +71,14 @@
     </div>
     <div class="card">
       <div class="card card-nav-tabs">
+        <h6 style="text-align: center;">Avg Recent BOSS S/N</h6>
+        <div style="text-align: center;">
+          B: <a id="avgB">0.0</a> R: <a id="avgR">0.0</a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card card-nav-tabs">
         <div class="card-header card-header-danger">
           <h3> Recent Exps </h3>
         </div>
@@ -273,6 +281,44 @@
       // setTimeout(checkComplete, 15000);
       };
 
+    function predictBoss(){
+      let now = new Date();
+      let hoursNow = now.getUTCHours();
+      let expTable = document.getElementById("expTable");
+      let sumB = 0;
+      let sumR = 0;
+      let N = 0;
+      for (j=0;j<expTable.rows.length;j++) {
+        let row = expTable.rows[j].cells;
+        let expTime = parseInt(row[1].textContent.substring(0, 2));
+        let b = parseFloat(row[3].textContent);
+        let r = parseFloat(row[4].textContent);
+        if (isNaN(b) || isNaN(r)){
+          continue;
+        }
+        let diff = hoursNow - expTime;
+        if(diff < 0){
+          diff += 24;
+        }
+        if(diff < 1){
+          sumB += b;
+          sumR += r;
+          N += 2;
+        }
+        else if (diff < 2){
+          sumB += b;
+          sumR += r;
+          N += 1;
+        }
+      };
+    let avgB = sumB / N;
+    let avgR = sumR / N;
+    let Bbox = document.getElementById("avgB");
+    Bbox.innerText = avgB.toFixed(2);
+    let Rbox = document.getElementById("avgR");
+    Rbox.innerText = avgR.toFixed(2);
+    }
+
     function addExps(){
       $.getJSON('/recentExposures/{{mjd}}', function (exps) {
         for (i=0;i<exps.length;i++) {
@@ -311,6 +357,7 @@
           }
         };
       });
+    predictBoss();
     setTimeout(checkComplete, 2000);
     setTimeout(addExps, 5000);
     };
