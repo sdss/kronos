@@ -893,7 +893,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                    dbVersion)
                                             .order_by(Queue.position.asc()).dicts)
 
-        assert len(currentdesigns) == 2, "queue has duplicate positions"
+        assert len(currentdesigns) <= 2, "queue has duplicate positions"
 
         if int(currentdesigns[0]["status"]) == 3:
             replaceDesign = currentdesigns[1]
@@ -925,9 +925,17 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                    replaceDesign["field_pk"]).scalar)
 
 
+        rm = len(replaceDesign["nexp"]) > 20
+        # by default assume no rm therefore rm ok
+        rm_bad = False
+        if rm:
+            # have we done at least 4 designs?
+            rm_ok = expNo - first_design_exp > 3
+
         errors = list()
         if begin_mjd is not None:
-            if replaceDesign["mjd_plan"] - begin_mjd > max_length - 2.0:
+            dark_problem = replaceDesign["mjd_plan"] - begin_mjd > max_length - 2.0
+            if rm_bad and dark_problem:
                 # epoch ending in two days, don't do it
                 errors.append("dark epoch expiring soon, please finish")
                 return errors
