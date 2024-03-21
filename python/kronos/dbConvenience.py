@@ -37,7 +37,9 @@ def getRecentExps(mjd):
     ap_db = opsdb.Camera.get(label="APOGEE")
     db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
 
-    useTime = Time(mjd - 1, format="mjd").datetime
+    # this is only used for plan observing? for lazy boss math
+    # we don't want any from last night, and we only need very recent
+    useTime = Time(mjd - 8/24, format="mjd").datetime
 
     cf = opsdb.CameraFrame
     exp = opsdb.Exposure
