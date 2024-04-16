@@ -69,6 +69,7 @@
       <h4 id="ql-label">APOGEE reads</h4>
       <canvas id='apql' width="300" height="150"></canvas>
     </div>
+    {%if observatory == 'LCO'%}
     <div class="card">
       <div class="card card-nav-tabs">
         <h6 style="text-align: center;">Avg Recent BOSS S/N</h6>
@@ -77,6 +78,7 @@
         </div>
       </div>
     </div>
+    {% endif %}
     <div class="card">
       <div class="card card-nav-tabs">
         <div class="card-header card-header-danger">
@@ -221,7 +223,11 @@
     }
 
     // this populates the .<nameViz> div with the visualization
-    generateViz(vizObj,".apogeeViz", backupFields);
+    try {
+      generateViz(vizObj,".apogeeViz", backupFields);
+    } catch (error) {
+      console.error(error);
+    }
 
     function selectField(fieldID){
         toggleOff = false;
@@ -357,7 +363,9 @@
           }
         };
       });
+    {%if observatory == 'LCO'%}
     predictBoss();
+    {% endif %}
     setTimeout(checkComplete, 2000);
     setTimeout(addExps, 5000);
     };
@@ -476,6 +484,24 @@
         qlctx.strokeStyle = "green";
         qlctx.stroke();
 
+        {%if observatory == 'APO'%}
+
+        qlctx.font = '14px serif';
+        qlctx.fillStyle = "black";
+        qlctx.textAlign = "left";
+        qlctx.textBaseline = "top";
+        qlctx.fillText('35', w-(43-35+1)*x_scale, h-o);
+
+        qlctx.beginPath();
+        qlctx.moveTo(w-(43-35)*x_scale, h-o);
+        qlctx.lineTo(w-(43-35)*x_scale, 0);
+        qlctx.setLineDash([5, 15]);
+        qlctx.lineWidth = 2;
+        qlctx.strokeStyle = "black";
+        qlctx.stroke();
+
+        {% endif %}
+
         let qlLabel = document.getElementById("ql-label")
         qlLabel.innerText = "APOGEE reads: " + ramp.design
 
@@ -490,6 +516,7 @@
           let d = ramp.reads[i];
           // console.log(d[0]*x_scale+o, h-d[1]*y_scale-o)
           qlctx.beginPath();
+          qlctx.setLineDash([]);
           qlctx.arc(d[0]*x_scale+o, h-d[1]*y_scale-o, 3, 0, 2 * Math.PI);
           qlctx.lineWidth = 1;
           qlctx.strokeStyle = "red";
