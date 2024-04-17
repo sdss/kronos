@@ -12,7 +12,7 @@
       </thead>
       <tbody style="height: 200px; overflow-y:scroll; display:block;">
     {% for e in exposures %}
-        <tr id={{e.pk}} class="hover-table">
+        <tr id={{e.pk}} class="hover-table" data-obsmode="{{e.obsmode}}">
           <td class="text-center"><a href="designDetail.html?designID={{e.design}}">{{e.design}}</a></td>
           <td class="text-center hover-table"><span class="hover-field">{{e.timeStamp}}</span>{{e.exposure_no}}</td>
           <td class="text-center">{{e.AP}}</td>

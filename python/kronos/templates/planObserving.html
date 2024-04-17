@@ -296,6 +296,9 @@
       let N = 0;
       for (j=0;j<expTable.rows.length;j++) {
         let row = expTable.rows[j].cells;
+        if (row.dataset.obsmode == "dark_plane"){
+          continue;
+        }
         let expTime = parseInt(row[1].textContent.substring(0, 2));
         let b = parseFloat(row[3].textContent);
         let r = parseFloat(row[4].textContent);
@@ -335,6 +338,7 @@
           let expTable = document.getElementById("expTable");
           for (j=0;j<expTable.rows.length;j++) {
             let trow = expTable.rows[j];
+            trow.dataset.obsmode = exp.obsmode;
             if(parseInt(trow.id) == exp.pk){
               if(trow.cells[3].innerHTML == "--"){
                 trow.cells[3].innerHTML = exp.b_camera;
