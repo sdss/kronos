@@ -295,10 +295,10 @@
       let sumR = 0;
       let N = 0;
       for (j=0;j<expTable.rows.length;j++) {
-        let row = expTable.rows[j].cells;
-        if (row.dataset.obsmode == "dark_plane"){
+        if (expTable.rows[j].dataset.obsmode == "dark_plane"){
           continue;
         }
+        let row = expTable.rows[j].cells;
         let expTime = parseInt(row[1].textContent.substring(0, 2));
         let b = parseFloat(row[3].textContent);
         let r = parseFloat(row[4].textContent);
