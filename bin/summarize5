@@ -37,7 +37,7 @@ if __name__ == "__main__":
         designs = [d for d in kwargs["mjd_design"].keys()]
         summary += f"{field_id}, {pk}, {len(designs)}, {cadence} \n"
         for e, m in zip(epochs, obs_modes):
-            done = checker[m].epoch(ap=e["AP"], b=e["b_camera"], r=e["r_camera"])
+            done = checker[m.strip()].epoch(ap=e["AP"], b=e["b_camera"], r=e["r_camera"])
             if done:
                 # mjd_list = "; ".join([str(i) for i in e["mjds"]])
                 # exp_list = "; ".join([str(i) for i in e["exposures"]])
