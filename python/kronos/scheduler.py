@@ -559,6 +559,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
         dbQueue = opsdb.Queue
         now = await wrapBlocking(dbQueue.select(fn.MAX(dbQueue.mjd_plan)).scalar)
+        maxPos = await wrapBlocking(dbQueue.select(fn.MAX(dbQueue.position)).scalar)
 
         queue = await wrapBlocking(Queue)
 
@@ -598,7 +599,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         for i, d in enumerate(designs):
             await asyncio.sleep(0)
             mjd_plan = now + i * self.exp_nom
-            await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+            if maxPos < 1:
+                await wrapBlocking(opsdb.Queue.insertInQueue, d, 1, mjd=mjd_plan)
+            else:
+                await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
 
         tnow = datetime.datetime.now()
         tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
