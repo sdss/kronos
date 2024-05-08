@@ -654,17 +654,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
             # field id and exposure nums of designs
-            field_pk, designs = await wrapBlocking(self.scheduler.nextfield,
-                                                   mjd=now,
-                                                   maxExp=exp_max,
-                                                   live=True,
-                                                   ignore=inQueue)
-
-            # if field_pk == 33242:
-            #     # horrible horrible terrible no good hack
-            #     # to fix that one time I didn't test my
-            #     # completion checking script
-            #     designs = [d-8 for d in designs]
+            field_pk, design_idxs = await wrapBlocking(self.scheduler.nextfield,
+                                                       mjd=now,
+                                                       maxExp=exp_max,
+                                                       live=True,
+                                                       ignore=inQueue)
 
             if field_pk is None:
                 errors.append(unfilledMjdError(now))
@@ -676,11 +670,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                          .where,
                                          Field.pk == field_pk,
                                          Field.version == dbVersion,
-                                         d2f.exposure << designs)
-            for i, d in enumerate(designs):
-                await asyncio.sleep(0)
-                mjd_plan = now + i * self.exp_nom
-                await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+                                         d2f.exposure << design_idxs)
 
             inQueue.append(field_pk)
 
@@ -691,25 +681,37 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             obs_mode = cadence.obsmode_pk[0]
 
-            if "bright" not in obs_mode:
-                racen = self.scheduler.fields.racen[w_field]
-                deccen = self.scheduler.fields.deccen[w_field]
-                alt, az = self.scheduler.radec2altaz(now, ra=racen, dec=deccen)
+            racen = self.scheduler.fields.racen[w_field]
+            deccen = self.scheduler.fields.deccen[w_field]
+
+            cumulative_exps = np.cumsum(cadence.nexp)
+
+            # 0 indexed
+            # -1 to make it 0 indexed like expNo
+            currentEpoch = np.where(cumulative_exps -1 >= design_idxs[0])[0][0]
+            max_airmass = cadence.max_airmass[currentEpoch]
+
+            exposures = 0
+
+            for i, d in enumerate(designs):
+                await asyncio.sleep(0)
+
+                mjd_plan = now + (i - 1) * self.exp_nom
+                alt, az = self.scheduler.radec2altaz(mjd_plan, ra=racen, dec=deccen)
                 airmass = float(1. / np.sin(np.pi / 180. * alt))
-            else:
+                if airmass > max_airmass - 0.05:
+                    continue
+                exposures += 1
+                await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+                        
+            if "bright" in obs_mode:
                 airmass = 1
-
-            # pri_log = self.scheduler.priorityLogger
-            # priorities = np.array(pri_log.priority)
-            # mjds = np.array(pri_log.mjd)
-            # latest_mjd = np.max(mjds)
-
-            # priority_max = np.max(priorities[np.where(mjds == latest_mjd)])
 
             next_change, next_brightness = self.scheduler.next_change(now)
 
-            mjd_duration = len(designs) * (exp_time * airmass)
-            mjd_duration += (len(designs) - 1) * overhead + change_field
+            mjd_duration = exposures * (exp_time * airmass) + change_field
+            if len(designs) < 5:
+                mjd_duration += (exposures - 1) * overhead
 
             if now + mjd_duration > next_change and\
                np.abs(mjdEnd - next_change) > 30 / 60 / 24:
@@ -720,41 +722,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             else:
                 now += mjd_duration
 
-            # now += len(designs) * exp_time * airmass + change_field
-
         tnow = datetime.datetime.now()
         tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
 
         self.scheduler.priorityLogger.write(name=tstamp)
-
-        # cfg = opsdb.Configuration
-        # exp = opsdb.Exposure
-        # db_flavor = opsdb.ExposureFlavor.get(pk=1)
-
-        # tthen = tnow - datetime.timedelta(hours=4)
-
-        # designs = await wrapBlocking(Design.select()
-        #                                    .join(cfg, on=(Design.design_id == cfg.design_id))
-        #                                    .join(exp)
-        #                                    .where(
-        #                              exp.start_time > tthen,
-        #                              exp.exposure_flavor == db_flavor).order_by,
-        #                              exp.start_time
-        #                              )
-
-        # no_duplicates = list()
-
-        # for d in [d.design_id for d in designs]:
-        #     if d not in no_duplicates:
-        #         no_duplicates.append(d)
-
-        # queue = opsdb.Queue
-
-        # for i, d in enumerate(no_duplicates):
-        #     mjd_plan = mjdStart - i * self.exp_nom
-        #     await wrapBlocking(queue.insert(design_id=d,
-        #                                     position=-1-i,
-        #                                     mjd_plan=mjd_plan).execute)
 
         return errors
 
