@@ -696,7 +696,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             for i, d in enumerate(designs):
                 await asyncio.sleep(0)
 
-                mjd_plan = now + (i - 1) * self.exp_nom
+                mjd_plan = now + (i) * self.exp_nom
                 alt, az = self.scheduler.radec2altaz(mjd_plan, ra=racen, dec=deccen)
                 airmass = float(1. / np.sin(np.pi / 180. * alt))
                 if airmass > max_airmass - 0.05:
