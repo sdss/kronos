@@ -44,7 +44,7 @@ def sendEmail(msgBody, recipients):
 
     if observatory == "LCO":
         sender = "sdss-alerts@lco.cl"
-        client = "139.229.97.11"
+        client = "smtp-01.lco.cl:25"
     else:
         sender = "kronos@apo.nmsu.edu"
         client = "mail.apo.nmsu.edu"
