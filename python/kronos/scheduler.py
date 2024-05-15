@@ -18,9 +18,14 @@ from kronos.site import Site
 if not opsdb.database.connected:
     print("!! CONFIG !!", opsdb.database._config)
 
+observatory = os.environ["OBSERVATORY"]
+
 overhead = 5 / 60. / 24.  # days, keep in mjd
 change_field = 7. / 60. / 24.
-exp_time = 15. / 60. / 24.
+if observatory.upper() == "APO":
+    exp_time = 12. / 60. / 24.
+else:
+    exp_time = 15. / 60. / 24.
 design_time = exp_time + overhead
 d2f = targetdb.DesignToField
 
@@ -407,8 +412,6 @@ class Scheduler(object, metaclass=SchedulerSingleton):
     def __init__(self, live=True, **kwargs):
         self.plan = rs_version
         self.exp_nom = exp_time + overhead
-
-        observatory = os.environ["OBSERVATORY"]
 
         self.scheduler = roboscheduler.scheduler.Scheduler(observatory=observatory.lower(),
                                                            exp_time=self.exp_nom)
