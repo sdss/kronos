@@ -693,6 +693,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             # -1 to make it 0 indexed like expNo
             currentEpoch = np.where(cumulative_exps -1 >= design_idxs[0])[0][0]
             max_airmass = cadence.max_airmass[currentEpoch]
+            max_length = cadence.max_length[currentEpoch]
 
             exposures = 0
 
@@ -702,11 +703,11 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 mjd_plan = now + (i) * self.exp_nom
                 alt, az = self.scheduler.radec2altaz(mjd_plan, ra=racen, dec=deccen)
                 airmass = float(1. / np.sin(np.pi / 180. * alt))
-                if airmass > max_airmass - 0.05:
+                if airmass > max_airmass and max_length > 2:
                     continue
                 exposures += 1
                 await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
-                        
+
             if "bright" in obs_mode:
                 airmass = 1
 
