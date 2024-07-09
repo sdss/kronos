@@ -434,7 +434,12 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             how many exposures to schedule for (i.e. how much time do we have?)
         """
         # re-cache fields in case priorities changed
-        await wrapBlocking(self.scheduler.fields.fromdb)
+        # this is slow for now and in practice not needed
+        # await wrapBlocking(self.scheduler.fields.fromdb)
+
+        queue = await wrapBlocking(Queue)
+
+        inQueue = [f.pk for f in queue.fields]
 
         if exp < 4:
             exp = 4
@@ -442,7 +447,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                                                 mjd=mjd,
                                                 maxExp=exp,
                                                 live=True,
-                                                returnAll=True)
+                                                returnAll=True,
+                                                ignore=inQueue)
         fields = list()
         # design_count = list()
         if oldPos is not None:
