@@ -32,7 +32,7 @@ class checkCompletion(object):
             if ap > self.apSN2:
                 return True
         else:
-            if b > self.bSN2 and r > self.rSN2:
+            if b >= self.bSN2 and r >= self.rSN2:
                 return True
 
     def epoch(self, ap=None, b=None, r=None, N=1, partial=False):
