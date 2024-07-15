@@ -772,6 +772,11 @@ def predictNext():
     done_designs = [d["design"] for d in done]
     done_times = [d["mjd"] for d in done]
 
+    queue = opsdb.Queue
+
+    next_queue = queue.get(position=1)
+    next_design = next_queue.design_id
+
     if len(exps) == 0 or  len(done_times) == 0:
         result = {
             "current_design_id": -1,
@@ -781,24 +786,36 @@ def predictNext():
             "next_field_id": -1,
             "next_coordinates": -1,
             "coord_order": ["ra", "dec"],
-            "hours_till_next": -1
+            "hours_till_next": -1,
+            "warning_flag": True
         }
+        till_start = next_queue.mjd_plan - mjd 
+        if till_start < 2/24:
+            next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
+                              .join(d2f)\
+                              .where(d2f.design_id == next_design,
+                                     Field.version == dbVersion).limit(1)[0]
+
+            next_coords = [next_field.racen, next_field.deccen]
+            result["next_design_id"] = next_design
+            result["next_field_id"] = next_field.field_id
+            result["next_coordinates"] = next_coords
+            result["hours_till_next"] = till_start
+
         return result
 
     exps_per_design = len(exps) / len(done_times)
-
-    queue = opsdb.Queue
 
     last_design = queue.get(position=-1).design_id
     if last_design in done_designs:
         last_design = queue.get(position=1).design_id
         next_design = queue.get(position=2).design_id
-    else:
-        next_design = queue.get(position=1).design_id
 
     last_done = max(done)
     since_last = mjd - last_done
     till_next = since_last * 24 - exps_per_design * (18 / 60)
+
+    warning_flag = since_last > 1/24 or exps_per_design > 2.5
 
     Field = targetdb.Field
     d2f = targetdb.DesignToField
@@ -825,7 +842,8 @@ def predictNext():
         "next_field_id": next_field.field_id,
         "next_coordinates": next_coords,
         "coord_order": ["ra", "dec"],
-        "hours_till_next": till_next
+        "hours_till_next": till_next,
+        "warning_flag": warning_flag
     }
 
     return result
