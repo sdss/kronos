@@ -6,7 +6,8 @@ from kronos import wrapBlocking
 from kronos.dbConvenience import (getRecentExps, designCompletion,
                                   queueLength, getDesignStatus,
                                   apql, modifyDesignStatus,
-                                  getField, latestFieldID)
+                                  getField, latestFieldID,
+                                  predictNext)
 from kronos.controllers.fieldDetail import designsToEpoch
 
 
@@ -78,3 +79,10 @@ async def lastEpoch():
     last_epoch["field_pk"] = pk
 
     return jsonify(last_epoch)
+
+
+@dbEndPoints.route('/status/', methods=['GET'])
+async def status():
+    res = await wrapBlocking(predictNext)
+
+    return jsonify(res)

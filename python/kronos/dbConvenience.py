@@ -725,6 +725,7 @@ def latestFieldID():
 
     return query.pk
 
+
 def getDesignStatus(design_id):
     d2s = opsdb.DesignToStatus
     status = opsdb.CompletionStatus
@@ -739,3 +740,92 @@ def getDesignStatus(design_id):
                .get()
     
     return query.status.label
+
+
+def predictNext():
+    db_flavor = opsdb.ExposureFlavor.get(pk=1)  # science
+    b1_db = opsdb.Camera.get(label=b_camera)
+
+    mjd = Time.now().mjd
+
+    useTime = Time(mjd - 2/24, format="mjd").datetime
+
+    cf = opsdb.CameraFrame
+    exp = opsdb.Exposure
+    cfg = opsdb.Configuration
+
+    exps = cf.select(exp.start_time)\
+                .join(exp)\
+                .join(cfg)\
+                .where(exp.start_time > useTime,
+                        exp.exposure_flavor == db_flavor,
+                        cfg.design_id.is_null(False),
+                        cf.camera_pk == b1_db.pk).tuples()[:]
+
+    d2s = opsdb.DesignToStatus
+    done_pk = opsdb.CompletionStatus.get(label="done").pk
+
+    done = d2s.select(d2s.design_id, d2s.mjd)\
+              .where(d2s.mjd > mjd, 
+                     d2s.completion_status_pk == done_pk).dicts()
+
+    done_designs = [d["design"] for d in done]
+    done_times = [d["mjd"] for d in done]
+
+    if len(exps) == 0 or  len(done_times) == 0:
+        result = {
+            "current_design_id": -1,
+            "current_field_id": -1,
+            "current_coordinates": -1,
+            "next_design_id": -1,
+            "next_field_id": -1,
+            "next_coordinates": -1,
+            "coord_order": ["ra", "dec"],
+            "hours_till_next": -1
+        }
+        return result
+
+    exps_per_design = len(exps) / len(done_times)
+
+    queue = opsdb.Queue
+
+    last_design = queue.get(position=-1).design_id
+    if last_design in done_designs:
+        last_design = queue.get(position=1).design_id
+        next_design = queue.get(position=2).design_id
+    else:
+        next_design = queue.get(position=1).design_id
+
+    last_done = max(done)
+    since_last = mjd - last_done
+    till_next = since_last * 24 - exps_per_design * (18 / 60)
+
+    Field = targetdb.Field
+    d2f = targetdb.DesignToField
+    dbVersion = targetdb.Version.get(plan=rs_version)
+
+    last_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
+                      .join(d2f)\
+                      .where(d2f.design_id == last_design,
+                             Field.version == dbVersion).limit(1)[0]
+
+    next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
+                      .join(d2f)\
+                      .where(d2f.design_id == next_design,
+                             Field.version == dbVersion).limit(1)[0]
+
+    last_coords = [last_field.racen, last_field.deccen]
+    next_coords = [next_field.racen, next_field.deccen]
+
+    result = {
+        "current_design_id": last_design,
+        "current_field_id": last_field.field_id,
+        "current_coordinates": last_coords,
+        "next_design_id": next_design,
+        "next_field_id": next_field.field_id,
+        "next_coordinates": next_coords,
+        "coord_order": ["ra", "dec"],
+        "hours_till_next": till_next
+    }
+
+    return result
