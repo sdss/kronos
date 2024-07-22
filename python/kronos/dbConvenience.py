@@ -774,6 +774,10 @@ def predictNext():
 
     queue = opsdb.Queue
 
+    Field = targetdb.Field
+    d2f = targetdb.DesignToField
+    dbVersion = targetdb.Version.get(plan=rs_version)
+
     next_queue = queue.get(position=1)
     next_design = next_queue.design_id
 
@@ -816,10 +820,6 @@ def predictNext():
     till_next = since_last * 24 - exps_per_design * (18 / 60)
 
     warning_flag = since_last > 1/24 or exps_per_design > 2.5
-
-    Field = targetdb.Field
-    d2f = targetdb.DesignToField
-    dbVersion = targetdb.Version.get(plan=rs_version)
 
     last_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
                       .join(d2f)\
