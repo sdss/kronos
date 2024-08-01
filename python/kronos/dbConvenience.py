@@ -778,10 +778,10 @@ def predictNext():
     d2f = targetdb.DesignToField
     dbVersion = targetdb.Version.get(plan=rs_version)
 
-    next_queue = queue.get(position=1)
-    next_design = next_queue.design_id
+    next_queue = queue.get_or_none(position=1)
 
-    if len(exps) == 0 or  len(done_times) == 0:
+    if len(exps) == 0 or len(done_times) == 0\
+        or next_queue is None:
         result = {
             "current_design_id": -1,
             "current_field_id": -1,
@@ -793,6 +793,9 @@ def predictNext():
             "hours_till_next": -1,
             "warning_flag": True
         }
+        if next_queue is None:
+            return result
+        next_design = next_queue.design_id
         till_start = next_queue.mjd_plan - mjd 
         if till_start < 2/24:
             next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
@@ -807,6 +810,8 @@ def predictNext():
             result["hours_till_next"] = till_start
 
         return result
+
+    next_design = next_queue.design_id
 
     exps_per_design = len(exps) / len(done_times)
 
