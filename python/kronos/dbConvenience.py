@@ -807,7 +807,7 @@ def predictNext():
             result["next_design_id"] = next_design
             result["next_field_id"] = next_field.field_id
             result["next_coordinates"] = next_coords
-            result["hours_till_next"] = till_start
+            result["hours_till_next"] = till_start * 24
 
         return result
 
