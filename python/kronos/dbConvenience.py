@@ -748,7 +748,9 @@ def predictNext():
 
     mjd = Time.now().mjd
 
-    useTime = Time(mjd - 2/24, format="mjd").datetime
+    lookBack = 2/24
+
+    useTime = Time(mjd - lookBack, format="mjd").datetime
 
     cf = opsdb.CameraFrame
     exp = opsdb.Exposure
@@ -766,7 +768,7 @@ def predictNext():
     done_pk = opsdb.CompletionStatus.get(label="done").pk
 
     done = d2s.select(d2s.design_id, d2s.mjd)\
-              .where(d2s.mjd > mjd, 
+              .where(d2s.mjd > mjd - lookBack, 
                      d2s.completion_status_pk == done_pk).dicts()
 
     done_designs = [d["design"] for d in done]
@@ -796,8 +798,8 @@ def predictNext():
         if next_queue is None:
             return result
         next_design = next_queue.design_id
-        till_start = next_queue.mjd_plan - mjd 
-        if till_start < 2/24:
+        till_start = next_queue.mjd_plan - mjd
+        if till_start < 2/24 and till_start > 0:
             next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
                               .join(d2f)\
                               .where(d2f.design_id == next_design,
@@ -820,7 +822,7 @@ def predictNext():
         last_design = queue.get(position=1).design_id
         next_design = queue.get(position=2).design_id
 
-    last_done = max(done)
+    last_done = max(done_times)
     since_last = mjd - last_done
     till_next = since_last * 24 - exps_per_design * (18 / 60)
 
