@@ -190,7 +190,7 @@ async def fieldDetail():
         if mode_checker.epoch_bSN2 is None:
             mode_checker.epoch_rSN2 = 0
             mode_checker.epoch_bSN2 = 0
-        elif mode_checker.bSN2 * n_exp * 2 < mode_checker.epoch_bSN2:
+        elif last_design_mode == "dark_plane":
             mode_checker.epoch_bSN2 = mode_checker.bSN2 * n_exp
             mode_checker.epoch_rSN2 = mode_checker.rSN2 * n_exp
         sn_reqs = {"AP": mode_checker.epoch_apSN2,
