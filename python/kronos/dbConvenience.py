@@ -502,7 +502,7 @@ def designDetails(design):
                  .join(Design, on=(Assignment.design_id == Design.design_id))\
                  .where(Design.design_id == design).dicts()
 
-    c2Query = [c for c in c2Query if "ops_" not in c["carton"]]
+    c2Query = [c for c in c2Query] # if "ops_" not in c["carton"]]
     targets = [c["target"] for c in c2Query]
     versions = np.unique([c["version_pk"] for c in c2Query])
     versions = list(versions)
