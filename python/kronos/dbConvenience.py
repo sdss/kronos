@@ -492,8 +492,8 @@ def designDetails(design):
     Assignment = targetdb.Assignment
     Inst = targetdb.Instrument
 
-    c2Query = c2t.select(c2t.target_pk, Inst.label,
-                         Carton.carton, Carton.version_pk.alias("version_pk"))\
+    c2Query = c2t.select(c2t.target_pk, Inst.label, Carton.carton, 
+                        Carton.version_pk.alias("version_pk"))\
                  .join(Carton)\
                  .switch(c2t)\
                  .join(Assignment, on=(Assignment.carton_to_target == c2t.pk))\
@@ -501,18 +501,7 @@ def designDetails(design):
                  .switch(Assignment)\
                  .join(Design, on=(Assignment.design_id == Design.design_id))\
                  .where(Design.design_id == design).dicts()
-
-    c2Query = [c for c in c2Query] # if "ops_" not in c["carton"]]
-    targets = [c["target"] for c in c2Query]
-    versions = np.unique([c["version_pk"] for c in c2Query])
-    versions = list(versions)
-
-    cartonQuery = Carton.select(Carton.carton)\
-                        .join(c2t)\
-                        .where(c2t.target_pk << targets,
-                               Carton.version_pk << versions)\
-                        .dicts()
-
+    
     CompStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
 
@@ -522,13 +511,40 @@ def designDetails(design):
 
     status = status[0].label
 
-    cartons = [c["carton"] for c in cartonQuery]
-    first_cartons = [c["carton"] for c in c2Query]
+    c2Query = [c for c in c2Query]
+    targets = np.array([c["target"] for c in c2Query])
+    versions = np.unique([c["version_pk"] for c in c2Query])
+    versions = list(versions)
 
-    instruments = [1 for c in c2Query if c["label"] == "BOSS"]
-    boss = sum(instruments)
-    instruments = [1 for c in c2Query if c["label"] == "APOGEE"]
-    apogee = sum(instruments)
+    assn_apogee = np.where([c["label"] == "APOGEE" for c in c2Query])
+    assn_boss = np.where([c["label"] == "BOSS" for c in c2Query])
+
+    boss_targets = list(targets[assn_boss])
+    apogee_targets = list(targets[assn_apogee])
+
+    boss = len(boss_targets)
+    apogee = len(apogee_targets)
+
+    bossQuery = Carton.select(Carton.carton)\
+                      .join(c2t)\
+                      .join(Inst)\
+                      .where(c2t.target_pk << boss_targets,
+                              Carton.version_pk << versions,
+                              Inst.label == "BOSS")\
+                      .dicts()
+
+    apogeeQuery = Carton.select(Carton.carton)\
+                        .join(c2t)\
+                        .join(Inst)\
+                        .where(c2t.target_pk << apogee_targets,
+                                Carton.version_pk << versions,
+                                Inst.label == "APOGEE")\
+                        .dicts()
+
+    apogee_cartons = [c["carton"] for c in apogeeQuery]
+    boss_cartons = [c["carton"] for c in bossQuery]
+    cartons = apogee_cartons + boss_cartons
+    first_cartons = [c["carton"] for c in c2Query]
 
     return status, cartons, first_cartons, {"boss": boss, "apogee": apogee}
 
@@ -782,6 +798,15 @@ def predictNext():
 
     next_queue = queue.get_or_none(position=1)
 
+    timestamp = useTime.strftime("%m/%d/%Y, %H:%M:%S")
+
+    log_entry = f"{timestamp} {len(exps)} {len(done_times)} {next_queue}"
+
+    logfile = f"/home/jdonor/tmp/{useTime.strftime('%m%d%Y')}_kronos.log"
+
+    with open(logfile, "a") as log:
+        print(log_entry, file=log)
+
     if len(exps) == 0 or len(done_times) == 0\
         or next_queue is None:
         result = {
@@ -796,9 +821,15 @@ def predictNext():
             "warning_flag": True
         }
         if next_queue is None:
+            with open(logfile, "a") as log:
+                print("next queue is none", file=log)
             return result
         next_design = next_queue.design_id
         till_start = next_queue.mjd_plan - mjd
+        log_entry = f"{timestamp} {next_design} {till_start * 24}"
+
+        with open(logfile, "a") as log:
+            print(log_entry, file=log)
         if till_start < 2/24 and till_start > 0:
             next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
                               .join(d2f)\
@@ -840,6 +871,12 @@ def predictNext():
 
     last_coords = [last_field.racen, last_field.deccen]
     next_coords = [next_field.racen, next_field.deccen]
+
+    log_entry = f"{timestamp} {next_design} {till_next} success \n"
+    log_entry += f"{timestamp} {last_done} {last_field}"
+
+    with open(logfile, "a") as log:
+        print(log_entry, file=log)
 
     result = {
         "current_design_id": last_design,
