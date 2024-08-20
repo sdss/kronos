@@ -376,15 +376,18 @@
 
     addExps();
 
+    var refreshID = 0;
+
     function refreshForQueue() {
       $.getJSON('/currentQueueLength/', function (currentLength) {
           let qLength = document.getElementsByClassName("queue-buttons").length;
           if (currentLength != qLength & !ignoreTimers){
+            clearTimeout(refreshID);
             window.location.assign("/planObserving.html");
           }
         });
 
-      setTimeout(refreshForQueue, 5000);
+        refreshID = setTimeout(refreshForQueue, 5000);
     }
 
     refreshForQueue();

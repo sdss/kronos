@@ -70,7 +70,10 @@ async def lastEpoch():
     kwargs = await wrapBlocking(getField, pk)
     epochs, last_design = designsToEpoch(**kwargs)
 
-    last_status = await wrapBlocking(getDesignStatus, last_design)
+    if last_design:
+        last_status = await wrapBlocking(getDesignStatus, last_design)
+    else:
+        last_status = "not done"
 
     last_epoch = epochs[-1]
 
