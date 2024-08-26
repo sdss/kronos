@@ -798,15 +798,6 @@ def predictNext():
 
     next_queue = queue.get_or_none(position=1)
 
-    timestamp = useTime.strftime("%m/%d/%Y, %H:%M:%S")
-
-    log_entry = f"{timestamp} {len(exps)} {len(done_times)} {next_queue}"
-
-    logfile = f"/home/jdonor/tmp/{useTime.strftime('%m%d%Y')}_kronos.log"
-
-    # with open(logfile, "a") as log:
-    #     print(log_entry, file=log)
-
     if len(exps) == 0 or len(done_times) == 0\
         or next_queue is None:
         result = {
@@ -821,15 +812,9 @@ def predictNext():
             "warning_flag": True
         }
         if next_queue is None:
-            # with open(logfile, "a") as log:
-            #     print("next queue is none", file=log)
             return result
         next_design = next_queue.design_id
         till_start = next_queue.mjd_plan - mjd
-        log_entry = f"{timestamp} {next_design} {till_start * 24}"
-
-        # with open(logfile, "a") as log:
-        #     print(log_entry, file=log)
         if till_start < 2/24 and till_start > 0:
             next_field = Field.select(Field.racen, Field.deccen, Field.field_id)\
                               .join(d2f)\
@@ -855,7 +840,9 @@ def predictNext():
 
     last_done = max(done_times)
     since_last = mjd - last_done
-    till_next = since_last * 24 - exps_per_design * (18 / 60)
+    till_next = since_last * 24 - exps_per_design * (15 / 60)
+    if till_next < 0:
+        till_next = 5 / 60
 
     warning_flag = since_last > 1/24 or exps_per_design > 2.5
 
@@ -871,12 +858,6 @@ def predictNext():
 
     last_coords = [last_field.racen, last_field.deccen]
     next_coords = [next_field.racen, next_field.deccen]
-
-    log_entry = f"{timestamp} {next_design} {till_next} success \n"
-    log_entry += f"{timestamp} {last_done} {last_field}"
-
-    # with open(logfile, "a") as log:
-    #     print(log_entry, file=log)
 
     result = {
         "current_design_id": last_design,
