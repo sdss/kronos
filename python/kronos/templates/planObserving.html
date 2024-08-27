@@ -11,6 +11,8 @@
   <title>Plan Observing</title>
   <meta http-equiv="refresh" CONTENT="300"/>
 
+  <script src='https://cdn.plot.ly/plotly-2.18.2.min.js'></script>
+
   {#  ${header("Plan Observing")} #}
 {% endblock head %}
 
@@ -69,16 +71,13 @@
       <h4 id="ql-label">APOGEE reads</h4>
       <canvas id='apql' width="300" height="150"></canvas>
     </div>
-    {%if observatory == 'LCO'%}
-    <div class="card">
-      <div class="card card-nav-tabs">
-        <h6 style="text-align: center;">Avg Recent BOSS S/N</h6>
-        <div style="text-align: center;">
-          B: <a id="avgB">0.0</a> R: <a id="avgR">0.0</a>
-        </div>
-      </div>
+    <div>
+      <h5>BOSS Predictions</h5>
     </div>
-    {% endif %}
+    <div id="predBossRed" style="text-align: center;">
+    </div>
+    <div id="predBossBlue" style="text-align: center;">
+    </div>
     <div class="card">
       <div class="card card-nav-tabs">
         <div class="card-header card-header-danger">
@@ -562,6 +561,77 @@
     }
 
     lastEpoch();
+
+    function latestBossPred() {
+      $.getJSON('/predBoss/', function (pred_sn) {
+          var pred_r = {
+            name: "R SN2 Pred",
+            type: "scatter",
+            mode: 'markers',
+            marker: {
+              color: 'red',
+              size: 4
+            },
+            x: pred_sn.r_times,
+            y: pred_sn.r_sn
+          }
+
+          var pred_b = {
+            name: "B SN2 Pred",
+            type: "scatter",
+            mode: 'markers',
+            marker: {
+              color: 'blue',
+              size: 4
+            },
+            x: pred_sn.b_times,
+            y: pred_sn.b_sn
+          }
+
+          var red_data = [pred_r];
+          var layout = {
+            title: 'Predicted Red SN',
+            width: 350,
+            height: 200,
+            margin: {
+              l: 20,
+              r: 0,
+              b: 20,
+              t: 25
+            },
+            xaxis:{
+              type: 'date',
+              tickformat: "%H:%M"
+            }
+          }
+
+          Plotly.newPlot('predBossRed', red_data, layout);
+
+          var blue_data = [pred_b];
+          var layout = {
+            title: 'Predicted Blue SN',
+            width: 350,
+            height: 200,
+            margin: {
+              l: 20,
+              r: 0,
+              b: 20,
+              t: 25
+            },
+            xaxis:{
+              type: 'date',
+              tickformat: "%H:%M"
+            }
+          }
+
+          Plotly.newPlot('predBossBlue', blue_data, layout);
+
+        });
+
+        setTimeout("latestBossPred", 5000);
+    }
+
+    latestBossPred();
 
 </script>
 {% endblock body %}
