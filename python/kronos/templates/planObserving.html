@@ -202,6 +202,26 @@
 </style>
 
 <script>
+    // https://stackoverflow.com/questions/45309447/calculating-median-javascript
+    // thanks internet!
+    function median(values){
+
+      if (values.length === 0) {
+        throw new Error('Input array is empty');
+      }
+
+      // Sorting values, preventing original array
+      // from being mutated.
+      values = [...values].sort((a, b) => a - b);
+
+      const half = Math.floor(values.length / 2);
+
+      return (values.length % 2
+        ? values[half]
+        : (values[half - 1] + values[half]) / 2
+      );
+    }
+
     // show the cloud cam image
     // testViz({{apogeeViz| tojson}})
     document.getElementById("backup-field-pk").hidden=true;
@@ -562,33 +582,75 @@
 
     lastEpoch();
 
+    function runningMedian(values){
+      var output = [];
+      for(i=0;i<values.length;i++){
+        let subset = values.slice(i, i+100);
+        if(subset.length === 0){
+          output.push(values[i])
+        }
+        else{
+          output.push(median(subset))
+        }
+      }
+      return(output);
+    }
+
     function latestBossPred() {
       $.getJSON('/predBoss/', function (pred_sn) {
           var pred_r = {
             name: "R SN2 Pred",
             type: "scatter",
             mode: 'markers',
+            opacity: 0.5,
             marker: {
               color: 'red',
-              size: 4
+              size: 2
             },
             x: pred_sn.r_times,
             y: pred_sn.r_sn
+          }
+
+          var avg_r = {
+            name: "R SN2 avg",
+            type: "scatter",
+            mode: 'lines',
+            marker: {
+              color: 'rgb(255, 0, 127)',
+              dash: 'dot',
+              width: 3
+            },
+            x: pred_sn.r_times,
+            y: runningMedian(pred_sn.r_sn)
           }
 
           var pred_b = {
             name: "B SN2 Pred",
             type: "scatter",
             mode: 'markers',
+            opacity: 0.5,
             marker: {
               color: 'blue',
-              size: 4
+              size: 2
             },
             x: pred_sn.b_times,
             y: pred_sn.b_sn
           }
 
-          var red_data = [pred_r];
+          var avg_b = {
+            name: "B SN2 avg",
+            type: "scatter",
+            mode: 'lines',
+            marker: {
+              color: 'rgb(127, 0, 255)',
+              dash: 'dot',
+              width: 3
+            },
+            x: pred_sn.b_times,
+            y: runningMedian(pred_sn.b_sn)
+          }
+
+          var red_data = [pred_r, avg_r];
           var layout = {
             title: 'Predicted Red SN',
             width: 350,
@@ -602,12 +664,13 @@
             xaxis:{
               type: 'date',
               tickformat: "%H:%M"
-            }
+            },
+            showlegend: false
           }
 
           Plotly.newPlot('predBossRed', red_data, layout);
 
-          var blue_data = [pred_b];
+          var blue_data = [pred_b,avg_b];
           var layout = {
             title: 'Predicted Blue SN',
             width: 350,
@@ -621,7 +684,8 @@
             xaxis:{
               type: 'date',
               tickformat: "%H:%M"
-            }
+            },
+            showlegend: false
           }
 
           Plotly.newPlot('predBossBlue', blue_data, layout);
