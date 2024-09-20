@@ -233,6 +233,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         mjd_now = astroT.value
 
         if partial and expInEpoch[a] > 2:
+            done = True
             idxs = exp_idxs[a]
             done_count = Design.select(Design.design_id)\
                                .join(DesignToStatus)\
