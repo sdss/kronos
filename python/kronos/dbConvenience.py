@@ -1,5 +1,6 @@
 from collections import defaultdict
 from operator import itemgetter
+from datetime import datetime, timedelta
 
 import numpy as np
 from astropy.time import Time
@@ -872,3 +873,49 @@ def predictNext():
     }
 
     return result
+
+
+def robodamus():
+    pred = opsdb.PredSnr
+    cf = opsdb.CameraFrame
+    exp = opsdb.Exposure
+
+    r1_db = opsdb.Camera.get(label=r_camera)
+    b1_db = opsdb.Camera.get(label=b_camera)
+
+    use_time = datetime.now() - timedelta(hours=12)
+
+    predQuery = pred.select(pred.camera_pk,
+                            pred.gfa_date_obs,
+                            pred.pred_value)\
+                    .where(pred.gfa_date_obs > use_time)\
+                    .order_by(pred.gfa_date_obs.asc()).dicts()
+
+    sosQuery = cf.select(cf.sn2, cf.camera, exp.start_time)\
+                 .join(exp)\
+                 .where(exp.start_time >= use_time)\
+                .order_by(exp.start_time.asc()).dicts()
+
+    b_pred = [[p["gfa_date_obs"], p["pred_value"]] for p in predQuery
+              if p["camera_pk"] == b1_db.pk]
+    r_pred = [[p["gfa_date_obs"], p["pred_value"]] for p in predQuery
+              if p["camera_pk"] == r1_db.pk]
+
+    b_sos = [[s["start_time"] + timedelta(minutes=7), s["sn2"]] for s in sosQuery
+             if s["camera"] == b1_db.pk]
+    r_sos = [[s["start_time"] + timedelta(minutes=7), s["sn2"]] for s in sosQuery
+             if s["camera"] == r1_db.pk]
+
+    outformat = "%Y-%m-%d %H:%M:%S"
+    output = {
+        "b_sn" : [b[1] for b in b_pred],
+        "r_sn" : [r[1] for r in r_pred],
+        "b_times" : [b[0].strftime(outformat) for b in b_pred],
+        "r_times" : [r[0].strftime(outformat) for r in r_pred],
+        "b_sn_sos" : [b[1] for b in b_sos],
+        "r_sn_sos" : [r[1] for r in r_sos],
+        "b_times_sos" : [b[0].strftime(outformat) for b in b_sos],
+        "r_times_sos" : [r[0].strftime(outformat) for r in r_sos],
+    }
+
+    return output

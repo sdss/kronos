@@ -582,18 +582,21 @@
 
     lastEpoch();
 
-    function runningMedian(values){
-      var output = [];
-      for(i=0;i<values.length;i++){
-        let subset = values.slice(i, i+100);
-        if(subset.length === 0){
-          output.push(values[i])
+    function runningMedian(times, values){
+      var med_vals = [];
+      var med_times = [];
+      for(i=25;i<values.length;i++){
+        let subset = values.slice(i-25, i+24);
+        if(subset.length < 20){
+          /* med_vals.push(values[i]); */
+          continue;
         }
         else{
-          output.push(median(subset))
+          med_vals.push(median(subset));
+          med_times.push(times[i]);
         }
       }
-      return(output);
+      return [med_times, med_vals];
     }
 
     function latestBossPred() {
@@ -611,6 +614,7 @@
             y: pred_sn.r_sn
           }
 
+          var [med_times, med_vals] = runningMedian(pred_sn.r_times, pred_sn.r_sn);
           var avg_r = {
             name: "R SN2 avg",
             type: "scatter",
@@ -620,8 +624,8 @@
               dash: 'dot',
               width: 3
             },
-            x: pred_sn.r_times,
-            y: runningMedian(pred_sn.r_sn)
+            x: med_times,
+            y: med_vals
           }
 
           var pred_b = {
@@ -637,6 +641,7 @@
             y: pred_sn.b_sn
           }
 
+          var [med_times_b, med_vals_b] = runningMedian( pred_sn.b_times, pred_sn.b_sn);
           var avg_b = {
             name: "B SN2 avg",
             type: "scatter",
@@ -646,13 +651,58 @@
               dash: 'dot',
               width: 3
             },
-            x: pred_sn.b_times,
-            y: runningMedian(pred_sn.b_sn)
+            x: med_times_b,
+            y: med_vals_b
           }
 
-          var red_data = [pred_r, avg_r];
+          var base_time = new Date("2024-10-01T12:07:30Z")
+          var b_error = [];
+          for(i=0;i<pred_sn.b_times_sos.length;i++){
+          let new_time = new Date("2024-10-01T12:00:00Z")   
+            b_error.push(base_time - new_time)
+          }
+
+          var sos_r = {
+            name: "R SN2 SOS",
+            type: "scatter",
+            mode: 'markers',
+            opacity: 0.8,
+            marker: {
+              color: 'red',
+              size: 10,
+              /* symbol: 'triangle' */
+            },
+            x: pred_sn.r_times_sos,
+            y: pred_sn.r_sn_sos,
+            error_x: {
+              type: 'constant',
+              value: b_error[0],
+              visible: true
+            },
+          }
+
+          var sos_b = {
+            name: "B SN2 SOS",
+            type: "scatter",
+            mode: 'markers',
+            opacity: 0.8,
+            marker: {
+              color: 'blue',
+              size: 10,
+              /* symbol: 'triangle' */
+            },
+            x: pred_sn.b_times_sos,
+            y: pred_sn.b_sn_sos,
+            error_x: {
+              type: 'data',
+              array: b_error,
+              visible: true
+            },
+          }
+
+          var red_data = [pred_r, avg_r, sos_r];
           var layout = {
-            title: 'Predicted Red SN',
+            title: 'Predicted and SOS Red SN2',
             width: 350,
             height: 200,
             margin: {
@@ -670,9 +720,9 @@
 
           Plotly.newPlot('predBossRed', red_data, layout);
 
-          var blue_data = [pred_b,avg_b];
+          var blue_data = [pred_b, avg_b, sos_b];
           var layout = {
-            title: 'Predicted Blue SN',
+            title: 'Predicted and SOS Blue SN2',
             width: 350,
             height: 200,
             margin: {

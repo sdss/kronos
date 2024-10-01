@@ -11,7 +11,7 @@ from kronos.dbConvenience import (getRecentExps, designCompletion,
                                   queueLength, getDesignStatus,
                                   apql, modifyDesignStatus,
                                   getField, latestFieldID,
-                                  predictNext)
+                                  predictNext, robodamus)
 from kronos.controllers.fieldDetail import designsToEpoch
 
 
@@ -97,26 +97,6 @@ async def status():
 
 @dbEndPoints.route('/predBoss/', methods=['GET'])
 async def predBoss():
-    predictions = np.genfromtxt("/home/jdonor/pred_snr.test", 
-                  dtype=None, delimiter="|", names=True,
-                  encoding="UTF-8")
-    
-    b_pk = 2
-    r_pk = 1
-
-    b_mask = np.where(predictions["camera_pk"] == b_pk)[0][:1000]
-    r_mask = np.where(predictions["camera_pk"] == r_pk)[0][:1000]
-    r_time_array = predictions["gfa_date_obs"][b_mask]
-    b_time_array = predictions["gfa_date_obs"][b_mask]
-    format = '%Y-%m-%d %H:%M:%S.%f'
-    b_times = [datetime.strptime(d.strip(), format) for d in b_time_array]
-    r_times = [datetime.strptime(d.strip(), format) for d in r_time_array]
-    outformat = "%Y-%m-%d %H:%M:%S"
-    output = {
-        "b_sn" : list(predictions["pred_value"][b_mask]),
-        "r_sn" : list(predictions["pred_value"][r_mask]),
-        "b_times" : [d.strftime(outformat) for d in b_times],
-        "r_times" : [d.strftime(outformat) for d in r_times],
-    }
+    output = robodamus()
 
     return jsonify(output)
