@@ -879,6 +879,8 @@ def robodamus():
     pred = opsdb.PredSnr
     cf = opsdb.CameraFrame
     exp = opsdb.Exposure
+    design = targetdb.Design
+    cfg = opsdb.Configuration
 
     r1_db = opsdb.Camera.get(label=r_camera)
     b1_db = opsdb.Camera.get(label=b_camera)
@@ -891,8 +893,11 @@ def robodamus():
                     .where(pred.gfa_date_obs > use_time)\
                     .order_by(pred.gfa_date_obs.asc()).dicts()
 
-    sosQuery = cf.select(cf.sn2, cf.camera, exp.start_time)\
+    sosQuery = cf.select(cf.sn2, cf.camera, exp.start_time,
+                         design.design_mode)\
                  .join(exp)\
+                 .join(cfg)\
+                 .join(design, on=(design.design_id == cfg.design_id))\
                  .where(exp.start_time >= use_time)\
                 .order_by(exp.start_time.asc()).dicts()
 
@@ -901,10 +906,32 @@ def robodamus():
     r_pred = [[p["gfa_date_obs"], p["pred_value"]] for p in predQuery
               if p["camera_pk"] == r1_db.pk]
 
-    b_sos = [[s["start_time"] + timedelta(minutes=7), s["sn2"]] for s in sosQuery
-             if s["camera"] == b1_db.pk]
-    r_sos = [[s["start_time"] + timedelta(minutes=7), s["sn2"]] for s in sosQuery
-             if s["camera"] == r1_db.pk]
+    b_sos = [[s["start_time"] + timedelta(minutes=7),
+              s["sn2"],
+              s["design_mode"]]
+              for s in sosQuery if s["camera"] == b1_db.pk]
+    r_sos = [[s["start_time"] + timedelta(minutes=7),
+              s["sn2"],
+              s["design_mode"]]
+              for s in sosQuery if s["camera"] == r1_db.pk]
+    
+    b_colors = list()
+    r_colors = list()
+    sos_shapes = list()
+    for b in b_sos:
+        mode = b[2]
+        if "bright" in mode:
+            b_colors.append("grey")
+            r_colors.append("grey")
+            sos_shapes.append("x")
+        elif "plane" in mode:
+            b_colors.append("blue")
+            r_colors.append("red")
+            sos_shapes.append("star-triangle-up")
+        else:
+            b_colors.append("blue")
+            r_colors.append("red")
+            sos_shapes.append("circle")
 
     outformat = "%Y-%m-%d %H:%M:%S"
     output = {
@@ -916,6 +943,9 @@ def robodamus():
         "r_sn_sos" : [r[1] for r in r_sos],
         "b_times_sos" : [b[0].strftime(outformat) for b in b_sos],
         "r_times_sos" : [r[0].strftime(outformat) for r in r_sos],
+        "b_colors": b_colors,
+        "r_colors": r_colors,
+        "sos_shapes": sos_shapes,
     }
 
     return output

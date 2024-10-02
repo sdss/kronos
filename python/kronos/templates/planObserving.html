@@ -72,7 +72,10 @@
       <canvas id='apql' width="300" height="150"></canvas>
     </div>
     <div>
-      <h5>BOSS Predictions</h5>
+      <h5 style="text-align: center;">BOSS Predictions</h5>
+      <p style="text-align: center;">
+        Triangles indicate dark_plane, less accurate
+      </p>
     </div>
     <div id="predBossRed" style="text-align: center;">
     </div>
@@ -668,9 +671,9 @@
             mode: 'markers',
             opacity: 0.8,
             marker: {
-              color: 'red',
+              color: pred_sn.r_colors,
               size: 10,
-              /* symbol: 'triangle' */
+              symbol: pred_sn.sos_shapes
             },
             x: pred_sn.r_times_sos,
             y: pred_sn.r_sn_sos,
@@ -687,9 +690,9 @@
             mode: 'markers',
             opacity: 0.8,
             marker: {
-              color: 'blue',
+              color: pred_sn.b_colors,
               size: 10,
-              /* symbol: 'triangle' */
+              symbol: pred_sn.sos_shapes
             },
             x: pred_sn.b_times_sos,
             y: pred_sn.b_sn_sos,
@@ -703,7 +706,7 @@
           var red_data = [pred_r, avg_r, sos_r];
           var layout = {
             title: 'Predicted and SOS Red SN2',
-            width: 350,
+            /* width: 350, */
             height: 200,
             margin: {
               l: 20,
@@ -723,7 +726,7 @@
           var blue_data = [pred_b, avg_b, sos_b];
           var layout = {
             title: 'Predicted and SOS Blue SN2',
-            width: 350,
+            /* width: 350, */
             height: 200,
             margin: {
               l: 20,
