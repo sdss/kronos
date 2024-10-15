@@ -672,6 +672,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         while now < mjdEnd:
             await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
+            if exp_max == 0:
+                exp_max = 1
             # field id and exposure nums of designs
             field_pk, design_idxs = await wrapBlocking(self.scheduler.nextfield,
                                                        mjd=now,
@@ -741,6 +743,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 now = next_change + 5 / 60 / 24
             else:
                 now += mjd_duration
+            
+            if now > mjdEnd and "dark" in obs_mode:
+                evening, morning = self.getDarkBounds(np.floor(now))
+                now = morning + 3 / 60/ 24
 
         tnow = datetime.datetime.now()
         tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
@@ -776,6 +782,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         while now < mjdEnd:
             await asyncio.sleep(0)
             exp_max = (mjdEnd - now) // self.exp_nom
+            if exp_max == 0:
+                exp_max = 1
             # field id and exposure nums of designs
             # field_id, designs = self.scheduler.nextfield(mjd=now,
             #                                              maxExp=exp_max,
@@ -834,6 +842,10 @@ class Scheduler(object, metaclass=SchedulerSingleton):
             else:
                 now += mjd_duration
             # now += mjd_duration
+
+            if now > mjdEnd and "dark" in obs_mode:
+                evening, morning = self.getDarkBounds(np.floor(now))
+                now = morning + 3 / 60/ 24
 
         tstamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         fname = "lookAhead" + tstamp

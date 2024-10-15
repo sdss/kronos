@@ -1,13 +1,17 @@
 #!/usr/bin/env/python
 
+from datetime import datetime
+
 from quart import Blueprint, request, jsonify
+
+import numpy as np
 
 from kronos import wrapBlocking
 from kronos.dbConvenience import (getRecentExps, designCompletion,
                                   queueLength, getDesignStatus,
                                   apql, modifyDesignStatus,
                                   getField, latestFieldID,
-                                  predictNext)
+                                  predictNext, robodamus)
 from kronos.controllers.fieldDetail import designsToEpoch
 
 
@@ -89,3 +93,10 @@ async def status():
     res = await wrapBlocking(predictNext)
 
     return jsonify(res)
+
+
+@dbEndPoints.route('/predBoss/', methods=['GET'])
+async def predBoss():
+    output = robodamus()
+
+    return jsonify(output)
