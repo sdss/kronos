@@ -51,7 +51,7 @@ def getRecentExps(mjd):
                      exp.exposure_no, cfg.design_id, design.design_mode_label)\
                 .join(exp)\
                 .join(cfg)\
-                .join(design)\
+                .join(design, on=(cfg.design_id == design.design_id))\
                 .where(exp.start_time > useTime,
                        exp.exposure_flavor == db_flavor,
                        cfg.design_id.is_null(False)).dicts()
