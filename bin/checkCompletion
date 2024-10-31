@@ -26,7 +26,7 @@ else:
 
 r1_db = opsdb.Camera.get(label=r_camera).pk
 b1_db = opsdb.Camera.get(label=b_camera).pk
-ap_db = opsdb.Camera.get(label="APOGEE").pk
+ap_db = opsdb.Camera.get(label=b_camera).pk
 Design = targetdb.Design
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
@@ -41,36 +41,19 @@ Camera = opsdb.Camera
 Queue = opsdb.Queue
 
 
-def brightCollate(expDicts):
-    sn2 = np.array([e["sn2"] for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
-    if len(sn2) == 0:
-        return 0
-    times = np.array([datetime.timestamp(e["start_time"]) for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
-    pos = np.array([e["dither_pixpos"] for e in expDicts if e["pk"] == ap_db and e["sn2"] >= 100])
-    a_val = np.min(pos)
-    a = np.abs(pos - a_val) < 0.2
-    b = ~a
-    atimes = times[a]
-    btimes = times[b]
-    sn2a = sn2[a]
-    sn2b = sn2[b]
+def brightCollate(exps):
+    # we joined to camera to get camera pk
+    camera_pk = [e["pk"] for e in exps]
+    sn2 = [e["sn2_15"] for e in exps]
 
-    aMatch = list()
-    bMatch = list()
-    for i, t in enumerate(atimes):
-        diff = [abs(t - bt) for bt in btimes]
-        matched = np.where(np.array(diff) < 7200)
-        if len(matched[0] > 0):
-            aMatch.append(i)
-            # matched are indices into btimes/sn2b now
-            for j in matched[0]:
-                if j not in bMatch:
-                    bMatch.append(j)
+    r = 0
 
-    goodA = np.sum([sn2a[i] for i in aMatch])
-    goodB = np.sum([sn2b[i] for i in bMatch])
+    for c, s in zip(camera_pk, sn2):
+        if s > 0.2:
+            if c == ap_db:
+                b += s
 
-    return goodA + goodB
+    return b
 
 
 def darkCollate(exps):
@@ -180,7 +163,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         exp_idxs[d["design_id"]] = [beginExp + i for i in range(expInEpoch[d["design_id"]])]
         if not bright:  # and d["exposure"] >= expCount[current_epoch] - 2
             # not bright because at the moment we treat all bright designs individually
-            epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2)\
+            epoch_exps = Exp.select(Camera.pk, CameraFrame.sn2,  CameraFrame.sn2_15)\
                             .join(Conf)\
                             .join(Design)\
                             .join(d2f)\
@@ -191,12 +174,10 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                                    d2f.exposure >= beginExp,
                                    d2f.exposure <= d["exposure"],
                                    Exp.start_time > maxLength)
-        exps = Exp.select(Exp.start_time, Camera.pk,
-                          CameraFrame.sn2, Quickred.dither_pixpos)\
+        exps = Exp.select(Exp.start_time, Camera.pk, CameraFrame.sn2_15,
+                          CameraFrame.sn2)\
                   .join(Conf)\
                   .join(Design)\
-                  .switch(Exp)\
-                  .join(Quickred, JOIN.LEFT_OUTER)\
                   .switch(Exp)\
                   .join(CameraFrame)\
                   .join(Camera)\

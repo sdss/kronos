@@ -1,6 +1,6 @@
 bright_time:
-    apSN2: 1600
-    epoch_apSN2: 1600
+    bSN2_15: 2200
+    rSN2_15: 0
 
 dark_plane:
     bSN2: 1.0

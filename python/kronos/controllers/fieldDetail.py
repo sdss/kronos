@@ -75,7 +75,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
             else:
                 epoch_count += ap_count.get(d_id, 0)
         out = {"label": label, "mjd": int(end),
-               "r_camera": 0, "b_camera": 0, "AP": 0,
+               "r_camera": 0, "b_camera": 0, "bSN2_15": 0,
                "epoch_count": epoch_count,
                "exposures": [], "mjds": []}
         for mjds in theseDesigns:
@@ -83,7 +83,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
                 if mjd >= start:
                     out["r_camera"] += mjds[mjd]["r_camera"]
                     out["b_camera"] += mjds[mjd]["b_camera"]
-                    out["AP"] += mjds[mjd]["AP"]
+                    out["bSN2_15"] += mjds[mjd]["AP"]
                     out["exposures"].extend(mjd_exposure[mjd])
                     if mjd not in out["mjds"]:
                         out["mjds"].append(mjd)
@@ -193,11 +193,11 @@ async def fieldDetail():
         elif last_design_mode == "dark_plane":
             mode_checker.epoch_bSN2 = mode_checker.bSN2 * n_exp
             mode_checker.epoch_rSN2 = mode_checker.rSN2 * n_exp
-        sn_reqs = {"AP": mode_checker.epoch_apSN2,
+        sn_reqs = {"bSN2_15": mode_checker.epoch_apSN2,
                    "R": mode_checker.epoch_rSN2*n_exp,
                    "B": mode_checker.epoch_bSN2*n_exp}
     else:
-        sn_reqs = {"AP": 0,
+        sn_reqs = {"bSN2_15": 0,
                    "R": 0,
                    "B": 0}
 
