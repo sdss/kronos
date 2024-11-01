@@ -46,11 +46,11 @@ def brightCollate(exps):
     camera_pk = [e["pk"] for e in exps]
     sn2 = [e["sn2_15"] for e in exps]
 
-    r = 0
+    b = 0
 
     for c, s in zip(camera_pk, sn2):
-        if s > 0.2:
-            if c == ap_db:
+        if c == ap_db:
+            if s > 0.2:
                 b += s
 
     return b
@@ -184,6 +184,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
                   .where(Design.design_id == d["design_id"],
                          Exp.start_time > maxLength)
         if bright:
+            print(d["design_id"], exps.dicts()[:])
             apsn2[d["design_id"]] = brightCollate(exps.dicts())
         else:
             r1[d["design_id"]], b1[d["design_id"]] = darkCollate(exps.dicts())
@@ -200,7 +201,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     for a in b_designs:
         if modes[a] != "bright_time":
             continue
-        done = checker[modes[a]].design(ap=apsn2[a])
+        done = checker[modes[a]].design(bSN2_15=apsn2[a])
         if done:
             statusString = "done"
         else:

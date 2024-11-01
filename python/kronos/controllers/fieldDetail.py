@@ -83,7 +83,7 @@ def designsToEpoch(mjd_design=None, cadence_nexps=None,
                 if mjd >= start:
                     out["r_camera"] += mjds[mjd]["r_camera"]
                     out["b_camera"] += mjds[mjd]["b_camera"]
-                    out["bSN2_15"] += mjds[mjd]["AP"]
+                    out["bSN2_15"] += mjds[mjd]["bSN2_15"]
                     out["exposures"].extend(mjd_exposure[mjd])
                     if mjd not in out["mjds"]:
                         out["mjds"].append(mjd)

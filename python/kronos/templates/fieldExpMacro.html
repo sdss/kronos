@@ -5,7 +5,7 @@
         <tr>
           <th class="text-center">Design</th>
           <th class="text-center">Exp No.</th>
-          <th class="text-center">AP</th>
+          <th class="text-center">SN2_15</th>
           <th class="text-center">r</th>
           <th class="text-center">b</th>
         </tr>
@@ -14,7 +14,7 @@
         <tr>
           <td></td>
           <td class="text-center">&Sigma;</td>
-          <td class="text-center"><b>{{sums.AP}}</b></td>
+          <td class="text-center"><b>{{sums.bSN2_15}}</b></td>
           <td class="text-center"><b>{{sums.r_camera}}</b></td>
           <td class="text-center"><b>{{sums.b_camera}}</b></td>
         </tr>
@@ -22,7 +22,7 @@
         <tr>
           <td class="text-center"><a href="designDetail.html?designID={{e.design}}">{{e.design}}</a></td>
           <td class="text-center hover-table"><span class="hover-field">{{e.timeStamp}}</span>{{e.exposure_no}}</td>
-          <td class="text-center">{{e.AP}}</td>
+          <td class="text-center">{{e.bSN2_15}}</td>
           <td class="text-center">{{e.r_camera}}</td>
           <td class="text-center">{{e.b_camera}}</td>
         </tr>
@@ -37,7 +37,7 @@
         <tr>
           <th class="text-center">Epoch</th>
           <th class="text-center">MJD</th>
-          <th class="text-center">AP</th>
+          <th class="text-center">SN2_15</th>
           <th class="text-center">r</th>
           <th class="text-center">b</th>
         </tr>
@@ -53,7 +53,7 @@
       {% endif %}
           <td class="text-center">{{e.label}}</td>
           <td class="text-center">{{e.mjd}}</td>
-          <td class="text-center">{{"%.1f" % e.AP}}</td>
+          <td class="text-center">{{"%.1f" % e.bSN2_15}}</td>
           <td class="text-center">{{"%.2f" % e.r_camera}}</td>
           <td class="text-center">{{"%.2f" % e.b_camera}}</td>
         </tr>

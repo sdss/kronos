@@ -24,7 +24,7 @@ else:
 
 def sn_dict():
     # we're abusing the ddict default_factory
-    return {"r_camera": 0, "b_camera": 0, "AP": 0}
+    return {"r_camera": 0, "b_camera": 0, "bSN2_15": 0}
 
 
 def fields_dict():
