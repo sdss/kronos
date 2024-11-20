@@ -881,11 +881,12 @@ def robodamus():
     exp = opsdb.Exposure
     design = targetdb.Design
     cfg = opsdb.Configuration
+    queue = opsdb.Queue
 
     r1_db = opsdb.Camera.get(label=r_camera)
     b1_db = opsdb.Camera.get(label=b_camera)
 
-    use_time = datetime.now() - timedelta(hours=3)
+    use_time = datetime.now() - timedelta(hours=18)
 
     predQuery = pred.select(pred.camera_pk,
                             pred.gfa_date_obs,
@@ -919,7 +920,17 @@ def robodamus():
               s["sn2"],
               s["design_mode"]]
               for s in sosQuery if s["camera"] == r1_db.pk]
-    
+
+    current = queue.select(design.design_mode)\
+                   .join(design)\
+                   .where(queue.position == -1).dicts()
+
+    if len(current) == 1:
+        mode = current[0]["design_mode"]
+        b_sos.append([datetime.now() - timedelta(minutes=15),
+                      None,
+                      mode])
+
     b_pred_trim = list()
     r_pred_trim = list()
 
