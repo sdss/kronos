@@ -886,7 +886,7 @@ def robodamus():
     r1_db = opsdb.Camera.get(label=r_camera)
     b1_db = opsdb.Camera.get(label=b_camera)
 
-    use_time = datetime.now() - timedelta(hours=18)
+    use_time = datetime.now() - timedelta(hours=3)
 
     predQuery = pred.select(pred.camera_pk,
                             pred.gfa_date_obs,
