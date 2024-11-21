@@ -927,7 +927,8 @@ def robodamus():
 
     if len(current) == 1:
         mode = current[0]["design_mode"]
-        b_sos.append([datetime.now() - timedelta(minutes=15),
+        last_time = max([b[0] for b in b_sos])
+        b_sos.append([last_time + timedelta(minutes=15),
                       None,
                       mode])
 
