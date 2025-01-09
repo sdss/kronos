@@ -61,7 +61,8 @@ else:
 
 reqs = yaml.load(open(reqs_file), Loader=yaml.FullLoader)
 
-bright_time = checkCompletion(**reqs["bright_time"])
+bright_cluster = checkCompletion(**reqs["bright_cluster"])
+bright_mc = checkCompletion(**reqs["bright_mc"])
 
 # set epoch obscenely high so it fails if it's checked
 
@@ -74,7 +75,8 @@ dark_rm = checkCompletion(**reqs["dark_rm"])
 # don't forget this one is scaled by N exp
 dark_faint = checkCompletion(**reqs["dark_faint"])
 checker = {
-    "bright_time": bright_time,
+    "bright_cluster": bright_cluster,
+    "bright_mc": bright_mc,
     "dark_plane": dark_plane,
     "dark_monit": dark_monit,
     "dark_rm": dark_rm,

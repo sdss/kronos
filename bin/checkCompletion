@@ -147,7 +147,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         current_epoch = np.where(np.array(expCount) > d["exposure"])[0][0]
         # .strip() because there is random white space for some cadences
         modes[d["design_id"]] = d["obsmode_pk"][current_epoch].strip()
-        bright = modes[d["design_id"]] == "bright_time"
+        bright = "bright" in modes[d["design_id"]]
         epochMaxLength = d["max_length"][current_epoch]
         if epochMaxLength < 0.1:
             epochMaxLength = 0.1
@@ -199,7 +199,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     b_designs.sort()
 
     for a in b_designs:
-        if modes[a] != "bright_time":
+        if "bright" not in modes[a]:
             continue
         done = checker[modes[a]].design(bSN2_15=apsn2[a])
         if done:
@@ -258,7 +258,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     d_designs.sort()
 
     for r in d_designs:
-        if modes[r] == "bright_time":
+        if "bright" in modes[a]:
             continue
         # if lastInEpoch[r] and modes[r] != "dark_plane":
         if modes[r] == "dark_faint":

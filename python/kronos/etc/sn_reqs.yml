@@ -1,5 +1,9 @@
-bright_time:
+bright_mc:
     bSN2_15: 2200
+    rSN2_15: 0
+
+bright_cluster:
+    bSN2_15: 8000
     rSN2_15: 0
 
 dark_plane:
