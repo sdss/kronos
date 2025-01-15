@@ -47,7 +47,7 @@ def getRecentExps(mjd):
     cfg = opsdb.Configuration
     design = targetdb.Design
 
-    exps = cf.select(exp.pk, cf.sn2, cf.camera_pk, exp.start_time,
+    exps = cf.select(exp.pk, cf.sn2, cf.sn2_15, cf.camera_pk, exp.start_time,
                      exp.exposure_no, cfg.design_id, design.design_mode_label)\
                 .join(exp)\
                 .join(cfg)\
