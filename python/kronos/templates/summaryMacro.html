@@ -4,7 +4,7 @@
       <thead>
         <tr>
           <th class="text-center">Design</th>
-          <th class="text-center">AP</th>
+          <th class="text-center">bSN2_15</th>
           <th class="text-center">r</th>
           <th class="text-center">b</th>
           <th class="text-center">status</th>
@@ -16,7 +16,7 @@
       <tbody>
         <tr>
           <td class="text-center">&Sigma;</td>
-          <td class="text-center"><b>{{"%.1f" % field.AP}}</b></td>
+          <td class="text-center"><b>{{"%.1f" % field.bSN2_15}}</b></td>
           <td class="text-center"><b>{{"%.2f" % field.r_camera}}</b></td>
           <td class="text-center"><b>{{"%.2f" % field.b_camera}}</b></td>
           <td></td>
@@ -27,7 +27,7 @@
     {% for d in field.designs %}
         <tr>
           <td class="text-center"><a href="/designDetail.html?designID={{d.design_id}}">{{d.design_id}}</a></td>
-          <td class="text-center">{{"%.1f" % d.AP}}</td>
+          <td class="text-center">{{"%.1f" % d.bSN2_15}}</td>
           <td class="text-center">{{"%.2f" % d.r_camera}}</td>
           <td class="text-center">{{"%.2f" % d.b_camera}}</td>
           <td><span id="{{d.design_id}}-status">{{d.status}}</span></td>

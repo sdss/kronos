@@ -668,6 +668,7 @@ def getFieldsTimeRange(start, end):
     dbVersion = targetdb.Version.get(plan=rs_version)
 
     exp_query = cf.select(cf.sn2, cf.camera_pk, Design.design_id,
+                          cf.sn2_15,
                           Field.field_id, Field.pk, compStatus.label,
                           Cadence.label.alias("cadence_label"))\
                   .join(Exp)\
@@ -690,7 +691,7 @@ def getFieldsTimeRange(start, end):
             designs[design_id]["r_camera"] += e["sn2"]
         if e["camera"] == b1_db.pk and e["sn2"] is not None and e["sn2"] > boss_threshold:
             designs[design_id]["b_camera"] += e["sn2"]
-        if e["camera"] == ap_db.pk and e["sn2"] is not None and e["sn2"] > 100:
+        if e["camera"] == b1_db.pk and e["sn2_15"] is not None:
             designs[design_id]["bSN2_15"] += e["sn2_15"]
         designs[design_id]["field_id"] = e["field_id"]
         designs[design_id]["field_pk"] = e["pk"]
