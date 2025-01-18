@@ -258,7 +258,7 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
     d_designs.sort()
 
     for r in d_designs:
-        if "bright" in modes[a]:
+        if "bright" in modes[r]:
             continue
         # if lastInEpoch[r] and modes[r] != "dark_plane":
         if modes[r] == "dark_faint":
