@@ -728,6 +728,8 @@ class Scheduler(object, metaclass=SchedulerSingleton):
 
             if "bright" in obs_mode:
                 airmass = 1
+                if "cluster" in obs_mode:
+                    exposures = 2
 
             next_change, next_brightness = self.scheduler.next_change(now)
 
