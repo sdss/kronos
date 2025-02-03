@@ -99,7 +99,7 @@ class Design(object):
         expCount = [np.sum(cadence.nexp[:i+1]) for i in range(len(cadence.nexp))]
         current_epoch = np.where(np.array(expCount) >= self.d2f.exposure)[0][0]
         try:
-            self.obs_mode = cadence.obsmode_pk[current_epoch]
+            self.obs_mode = cadence.obsmode_pk[current_epoch].replace("_no_apogee_skies", "")
         except TypeError:
             # probably commissioning
             self.obs_mode = "obsmode failed"
