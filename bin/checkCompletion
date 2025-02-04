@@ -163,8 +163,8 @@ def checkDone(hours=1, test=False, daemon=False, report=False, partial=False):
         # designs in an epoch
         current_epoch = np.where(np.array(expCount) > d["exposure"])[0][0]
         # .strip() because there is random white space for some cadences
-        modes[d["design_id"]] = d["obsmode_pk"][current_epoch].strip().replace("_no_apogee_skies", "")
-        bright = modes[d["design_id"]] == "bright_time"
+        modes[d["design_id"]] = d["obsmode_pk"][current_epoch].strip()
+        bright = "bright" in modes[d["design_id"]]
         epochMaxLength = d["max_length"][current_epoch]
         if epochMaxLength < 0.1:
             epochMaxLength = 0.1
