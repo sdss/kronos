@@ -886,7 +886,7 @@ def robodamus():
     r1_db = opsdb.Camera.get(label=r_camera)
     b1_db = opsdb.Camera.get(label=b_camera)
 
-    use_time = datetime.now() - timedelta(hours=3)
+    use_time = datetime.now() - timedelta(hours=15)
 
     predQuery = pred.select(pred.camera_pk,
                             pred.gfa_date_obs,
@@ -939,7 +939,7 @@ def robodamus():
     r_colors = list()
     sos_shapes = list()
     for b in b_sos:
-        mode = b[2]
+        mode = b[2].replace("_no_apogee_skies", "")
         if "bright" in mode:
             b_colors.append("grey")
             r_colors.append("grey")
