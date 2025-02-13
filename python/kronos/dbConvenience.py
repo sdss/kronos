@@ -939,7 +939,7 @@ def robodamus():
     r_colors = list()
     sos_shapes = list()
     for b in b_sos:
-        mode = b[2]
+        mode = b[2].replace("_no_apogee_skies", "")
         if "bright" in mode:
             b_colors.append("grey")
             r_colors.append("grey")

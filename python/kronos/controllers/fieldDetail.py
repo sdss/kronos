@@ -172,6 +172,7 @@ async def fieldDetail():
         last_status = stats_query.status.label
         if last_status != "done":
             last_design_mode = stats_query.design.design_mode.label
+            last_design_mode = last_design_mode.replace("_no_apogee_skies", "")
         else:
             last_design_mode = None
             last_chance = None
