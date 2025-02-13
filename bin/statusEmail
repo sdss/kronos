@@ -3,11 +3,14 @@
 # import time
 from datetime import datetime
 from datetime import timedelta
+import os
 
 import smtplib
 from email.mime.text import MIMEText
 from astropy.time import Time
 import numpy as np
+from peewee import fn
+import pyarrow.parquet as pq
 
 from sdssdb.peewee.sdss5db import opsdb, targetdb
 from kronos import rs_version, observatory
@@ -22,6 +25,7 @@ else:
 dbVersion = targetdb.Version.get(plan=rs_version)
 
 Design = targetdb.Design
+Assn = targetdb.Assignment
 Conf = opsdb.Configuration
 Exp = opsdb.Exposure
 Field = targetdb.Field
@@ -29,6 +33,10 @@ d2f = targetdb.DesignToField
 Cadence = targetdb.Cadence
 d2s = opsdb.DesignToStatus
 CompStatus = opsdb.CompletionStatus
+
+base_dir = os.getenv('SDSSCORE_DIR')
+
+obs_dir = os.path.join(base_dir, f"{observatory.lower()}/summary_files")
 
 
 def sendEmail(msgBody, recipients):
@@ -90,6 +98,26 @@ def scrapeLog():
     return selected
 
 
+def confSummary(cfg_id):
+    if observatory.upper() == "APO":
+        top = os.path.join(obs_dir, f"{cfg_id:06d}")
+        mid = f"{cfg_id:06d}"
+    else:
+        top = os.path.join(obs_dir, f"{cfg_id}")
+        mid = str(cfg_id)
+    top = top[:-3] + "XXX"
+    mid = mid[:-2] + "XX"
+        
+    fname = os.path.join(top, mid, f"confSummaryS-{cfg_id}.parquet")
+
+    summary = pq.read_table(fname)
+    assigned = len(np.where(summary["assigned"])[0])
+    on_target= len(np.where(np.logical_and(summary["on_target"],
+                                           summary["valid"]))[0])
+    
+    return assigned, on_target
+
+
 def queryDB():
     start = datetime.now()
     useTime = start - timedelta(hours=24)
@@ -125,7 +153,14 @@ def queryDB():
             manual = "!!manual!!"
         else:
             manual = ""
-        formatted = manual + f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:10s} {des['cadence']} {des['mjd']:8.2f}\n"
+        cfg_id = Conf.select(fn.max(Conf.configuration_id))\
+                     .where(Conf.design_id == des["design"]).scalar()
+        assn_count = Assn.select(fn.count(Assn.pk))\
+                         .where(Assn.design_id == des["design"]).scalar()
+        assigned, on_target = confSummary(cfg_id)
+        formatted = manual + (f"{des['field_id']:10d}, {des['design']:10d}: {des['status']:13s}" 
+                              f"{assn_count} {assigned} {on_target}  "
+                              f"{des['cadence'].replace('no_apogee_skies', '')} {des['mjd']:8.2f}\n")
         if len(mjds) > 1:
             formatted += f"        hist: "
             formatted += ", ".join(mjds) + "\n"
