@@ -33,6 +33,7 @@ d2f = targetdb.DesignToField
 Cadence = targetdb.Cadence
 d2s = opsdb.DesignToStatus
 CompStatus = opsdb.CompletionStatus
+bp = opsdb.BasePriority
 
 base_dir = os.getenv('SDSSCORE_DIR')
 
@@ -169,10 +170,27 @@ def queryDB():
     return summary
 
 
+def priFields():
+    ver = os.getenv("FIELD_PRI_VER")
+    pri_ver = opsdb.PriorityVersion.get(label=ver)
+
+    pq = bp.select(bp.priority)\
+           .where(bp.version == pri_ver).tuples()
+    
+    pris = [p[0] for p in pq]
+
+    vals, counts = np.unique(pris, return_counts=True)
+
+    summary = "\n"
+    for v, c in zip(vals, counts):
+        summary += f"priority {v} has {c} fields \n"
+    
+    return summary
+
 if __name__ == "__main__":
     # print(queryDB())
     # print(scrapeLog())
 
-    msgBody = queryDB() + "\n" + scrapeLog()
+    msgBody = queryDB() + "\n" + scrapeLog() + priFields()
 
     sendEmail(msgBody, ["j.donor@tcu.edu"])
