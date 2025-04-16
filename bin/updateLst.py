@@ -61,6 +61,8 @@ for i, pk in enumerate(hist.keys()):
 
 for k, pk in enumerate(hist.keys()):
     lst = [[int(i), int(j)] for i, j in lstObs[k]]
-    entry = LstHist.get(field_pk=pk)
+    entry, created = LstHist.get_or_create(field_pk=pk)
+    if created:
+        print(entry)
     entry.lst_counts = lst
     entry.save()
