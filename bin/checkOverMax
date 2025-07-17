@@ -134,7 +134,7 @@ for field in recent_fields.dicts():
     maxTime = np.max(filteredTimes)
     maxTime = np.max([maxTime, now])
 
-    if (maxTime - minTime).seconds / 86400 >= field["max_length"][current_epoch]:
+    if (maxTime - minTime).total_seconds() / 86400 >= field["max_length"][current_epoch]:
         these_statuses = np.unique(np.array(statuses)[idxs])
         if len(these_statuses) == 1:
             if these_statuses == int(notStartedStatus):
