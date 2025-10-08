@@ -32,5 +32,15 @@
             </td>
             {% endfor %}
         </tr>
+        {% if design.holes and design.holes|length > 0 %}
+        <tr>
+            <td colspan="9" class="text-left">
+                Holes: 
+                {% for h in design.holes %}
+                    {{h}}{% if not loop.last %}, {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        {% endif %}
     {% endfor %}
 {% endmacro %}

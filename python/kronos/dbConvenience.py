@@ -372,7 +372,7 @@ def getConfigurations(design_id=None):
 
 def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
                 limit=100, pa_range=None, instrument="BOSS", orderby=None,
-                design_ids=[], includeCustom=True):
+                design_ids=[], includeCustom=True, holeids=None):
 
     compStatus = opsdb.CompletionStatus
     d2s = opsdb.DesignToStatus
@@ -381,6 +381,7 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
     dbField = targetdb.Field
     Assign = targetdb.Assignment
     Inst = targetdb.Instrument
+    Hole = targetdb.Hole
 
     d2f = targetdb.DesignToField
     dbVersion = targetdb.Version.get(plan=rs_version)
@@ -428,6 +429,10 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
         matchingCartons = Carton.select().where(Carton.carton.contains(carton))
         designs = designs.join(C2T, on=(Assign.carton_to_target_pk == C2T.pk))\
                          .where(C2T.carton << matchingCartons)
+    
+    if holeids is not None and len(holeids) > 0:
+        designs.join(Hole, on=(Assign.hole_pk == Hole.pk))\
+                .where(Hole.holeid << holeids)
 
     if ra_range and field_id is None:
         assert len(ra_range) == 2, "must specify only begin and end of RA range"
@@ -470,6 +475,18 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
 
     dCounts = {c[1]: c[0] for c in ocounts.tuples()}
 
+    if holeids is not None and len(holeids) > 0 and carton is not None:
+        got_holes = Carton.select(Assign.design_id, fn.array_agg(Hole.holeid).alias("holes"))\
+                          .join(C2T, on=(Carton.pk == C2T.carton_pk))\
+                          .join(Assign, on=(Assign.carton_to_target_pk == C2T.pk))\
+                          .join(Hole, on=(Assign.hole_pk == Hole.pk))\
+                          .where(C2T.carton << matchingCartons,
+                                 Hole.holeid << holeids)\
+                          .group_by(Assign.design_id).dicts()
+        got_holes = {g["design"]: g["holes"] for g in got_holes}
+    else:
+        got_holes = {}
+
     res = [{"label": d[0],
             "design_id": d[1],
             "field_id": d[2],
@@ -478,7 +495,8 @@ def designQuery(field_id=None, ra_range=None, dbStatus=None, carton=None,
             "position_angle": d[5],
             "field_pk": d[6],
             "assigned": d[7],
-            "oassigned": dCounts.get(d[1], 0)} for d in resTuples]
+            "oassigned": dCounts.get(d[1], 0),
+            "holes": got_holes.get(d[1], [])} for d in resTuples]
 
     return res
 

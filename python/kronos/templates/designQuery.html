@@ -101,6 +101,12 @@
     </div>
   </div>
   <div class="form-row">
+    <div class="form-group col-md-10">
+      <label for="holeids">Hole IDs (comma seperated)</label>
+      <input id="holeids" name="holeids" type="text" class="form-control" {% if holeids|length > 0 %} value="{% for h in holeids %}{{h}}, {% endfor %}"{% endif %}>
+    </div>
+  </div>
+  <div class="form-row">
     <div class="form-group col-md-6">
       <div class="form-group col-md-3">
         <label for="fieldidSelect">Field ID</label>

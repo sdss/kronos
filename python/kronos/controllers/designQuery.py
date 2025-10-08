@@ -30,6 +30,7 @@ async def designDetail():
     chosenCarton = "none"
     orderby = "RA"
     design_ids = list()
+    holeids = list()
     errors = list()
 
     pa_start = 0
@@ -49,6 +50,17 @@ async def designDetail():
                 except:
                     errors.append("invalid design input")
                     design_ids = list()
+        if "holeids" in request.args:
+            h_text = request.args["holeids"]
+            if len(h_text) > 0:
+                try:
+                    if "," in h_text:
+                        holeids = [h.strip() for h in h_text.strip().split(",") if len(h)]
+                    else:
+                        holeids = [h_text]
+                except:
+                    errors.append("invalid holes input")
+                    holeids = list()
         fieldid = request.args["fieldid"].strip()
         if len(fieldid) == 0:
             fieldid = "none"
@@ -107,11 +119,14 @@ async def designDetail():
                                  instrument=instrument,
                                  design_ids=design_ids,
                                  includeCustom=includeCustom,
-                                 limit=limit)
+                                 limit=limit,
+                                 holeids=holeids)
     if instrument == "BOSS":
         oinstrument = "APOGEE"
     else:
         oinstrument = "BOSS"
+
+    print(holeids, "\n\n")
 
     sched = await wrapBlocking(Scheduler)
     rs = sched.scheduler
@@ -148,7 +163,8 @@ async def designDetail():
         "oinstrument": oinstrument,
         "orderby": orderby,
         "design_ids": design_ids,
-        "includeCustom": includeCustom
+        "includeCustom": includeCustom,
+        "holeids": holeids
     })
 
     return await render_template("designQuery.html", **templateDict)
