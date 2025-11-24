@@ -131,7 +131,8 @@ def queryDB():
 
     last_night = Conf.select(Conf.design_id, CompStatus.label.alias("status"),
                              d2f.exposure, Cadence.label.alias("cadence"),
-                             d2s.mjd, d2s.manual, Field.field_id)\
+                             d2s.mjd, d2s.manual, Field.field_id,
+                             Field.overplan_pk.alias("overplan"))\
                      .join(d2f, on=(d2f.design == Conf.design_id))\
                      .join(Field)\
                      .join(Cadence)\
@@ -165,6 +166,8 @@ def queryDB():
         if len(mjds) > 1:
             formatted += f"        hist: "
             formatted += ", ".join(mjds) + "\n"
+        if des["overplan"]:
+            formatted += "    !!!overplan!!! \n"
         summary += formatted
 
     return summary
