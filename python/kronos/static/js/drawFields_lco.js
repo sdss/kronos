@@ -3,7 +3,7 @@ const y_0 = 240;
 
 function renderCloudCam(dataset, backups){
     var image = new Image();
-    image.src = "http://weather.lco.cl/casca/latestred.png";
+    image.src = "http://weather.lco.cl/media/casca/red/latestimage.jpeg";
     var cnvs = document.getElementById("myCanvas");
 
     var ctx = cnvs.getContext('2d');
