@@ -650,6 +650,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         now = mjdStart
 
         dbQueue = opsdb.Queue
+        d2s = opsdb.DesignToStatus
         Field = targetdb.Field
         Design = targetdb.Design
         Version = targetdb.Version
@@ -753,6 +754,13 @@ class Scheduler(object, metaclass=SchedulerSingleton):
         tstamp = tnow.strftime("%Y-%m-%dT%H:%M:%S")
 
         self.scheduler.priorityLogger.write(name=tstamp)
+
+        query = dbQueue.select(dbQueue.design_id, d2s.mjd)\
+                       .join(d2s, on=(dbQueue.design_id == d2s.design_id))\
+                       .where(d2s.mjd.is_null(False)).dicts()
+
+        for q in query:
+            errors.append(f"{q['design']} previously observed, please alert John")
 
         return errors
 

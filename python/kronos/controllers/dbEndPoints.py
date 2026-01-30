@@ -97,6 +97,9 @@ async def status():
 
 @dbEndPoints.route('/predBoss/', methods=['GET'])
 async def predBoss():
-    output = robodamus()
+    try:
+        output = robodamus()
+    except ValueError:
+        output = {}
 
     return jsonify(output)
