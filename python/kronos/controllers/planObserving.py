@@ -295,6 +295,16 @@ async def planObserving():
             color = next_color
             next_color = old_color
         d.fieldColor = color
+    
+    dbQueue = opsdb.Queue
+    d2s = opsdb.DesignToStatus
+
+    query = dbQueue.select(dbQueue.design_id, d2s.mjd)\
+                    .join(d2s, on=(dbQueue.design_id == d2s.design_id))\
+                    .where(d2s.mjd.is_null(False)).dicts()
+
+    for q in query:
+        errors.append(f"{q['design']} previously observed, please alert John")
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
