@@ -299,12 +299,13 @@ async def planObserving():
     dbQueue = opsdb.Queue
     d2s = opsdb.DesignToStatus
 
-    query = dbQueue.select(dbQueue.design_id, d2s.mjd)\
+    query = dbQueue.select(dbQueue.design_id, d2s.mjd, dbQueue.position)\
                     .join(d2s, on=(dbQueue.design_id == d2s.design_id))\
                     .where(d2s.mjd.is_null(False)).dicts()
 
     for q in query:
-        errors.append(f"{q['design']} previously observed, please alert John")
+        if q["mjd"] and q["position"] > 0:
+            errors.append(f"{q['design']} previously observed, please alert John {q['position']}")
 
     templateDict.update({
         # "apogeeViz": ApogeeViz(schedule, apogeePlateList).export() if apogeePlateList else None,
