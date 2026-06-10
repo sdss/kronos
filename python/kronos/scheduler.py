@@ -725,7 +725,7 @@ class Scheduler(object, metaclass=SchedulerSingleton):
                 if airmass > max_airmass and max_length > 2:
                     continue
                 exposures += 1
-                await wrapBlocking(opsdb.Queue.appendQueue, d, mjd_plan)
+                await wrapBlocking(opsdb.Queue.appendQueue, d, float(mjd_plan))
 
             if "bright" in obs_mode:
                 airmass = 1
