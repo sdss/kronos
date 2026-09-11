@@ -72,10 +72,13 @@ dark_rm = checkCompletion(**reqs["dark_rm"])
 
 # don't forget this one is scaled by N exp
 dark_faint = checkCompletion(**reqs["dark_faint"])
+
+dark_faint_amu = checkCompletion(**reqs["dark_faint_amu"])
 checker = {
     "bright_time": bright_time,
     "dark_plane": dark_plane,
     "dark_monit": dark_monit,
     "dark_rm": dark_rm,
-    "dark_faint": dark_faint
+    "dark_faint": dark_faint,
+    "dark_faint_amu": dark_faint_amu
 }

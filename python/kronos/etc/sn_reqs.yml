@@ -25,3 +25,9 @@ dark_faint:
     epoch_bSN2: 1.25
     rSN2: 2.0
     epoch_rSN2: 2.5
+
+dark_faint_amu:
+    bSN2: 1.0
+    epoch_bSN2: 1.25
+    rSN2: 2.0
+    epoch_rSN2: 2.5
