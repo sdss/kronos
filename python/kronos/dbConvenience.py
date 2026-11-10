@@ -582,15 +582,21 @@ def safeInsertInQueue(design_id, pos, mjd_plan=None):
     count = Queue.select().count()
     mjds = [m.mjd_plan for m in Queue.select(Queue.mjd_plan).order_by(Queue.position)]
 
+    mjd_pos = pos - 1
+
     if pos >= count:
         # queue starts at 1 not 0
         pos = count
-        mjd_plan = mjds[-1]
+        mjd_pos = -1
     elif pos <= 0:
         pos = 1
-        mjd_plan = mjds[0]
-    elif mjd_plan is None:
-        mjd_plan = mjds[pos - 1]
+        mjd_pos = 0
+    
+    if mjd_plan is None:
+        try:
+            mjd_plan = mjds[mjd_pos]
+        except:
+            mjd_plan = 99999.9
 
     opsdb.Queue.insertInQueue(int(design_id), int(pos), mjd=float(mjd_plan))
 
