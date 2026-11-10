@@ -580,14 +580,19 @@ def safeInsertInQueue(design_id, pos, mjd_plan=None):
     Queue = opsdb.Queue
 
     count = Queue.select().count()
+    mjds = [m.mjd_plan for m in Queue.select(Queue.mjd_plan).order_by(Queue.position)]
 
     if pos >= count:
         # queue starts at 1 not 0
         pos = count
-    if pos <= 0:
+        mjd_plan = mjds[-1]
+    elif pos <= 0:
         pos = 1
+        mjd_plan = mjds[0]
+    elif mjd_plan is None:
+        mjd_plan = mjds[pos - 1]
 
-    opsdb.Queue.insertInQueue(design_id, pos, mjd=mjd_plan)
+    opsdb.Queue.insertInQueue(int(design_id), int(pos), mjd=float(mjd_plan))
 
 
 def safeAppendQueue(design_id, mjd_plan=None):
@@ -603,7 +608,7 @@ def safeAppendQueue(design_id, mjd_plan=None):
         if mjds[-1] is not None:
             mjd_plan = mjds[-1] + design_time
 
-    Queue.appendQueue(design_id, mjd_plan=mjd_plan)
+    Queue.appendQueue(int(design_id), mjd_plan=float(mjd_plan))
 
 
 def designCompletion(designs):
